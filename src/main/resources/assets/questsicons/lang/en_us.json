@@ -1,0 +1,14 @@
+{
+  "item.questsicons.chapter_lock": "Chapter Lock",
+  "item.questsicons.end_lock": "End Lock",
+  "item.questsicons.quest_backpack": "Backpack Icon",
+  "item.questsicons.quest_crown": "Crown Icon",
+  "item.questsicons.quest_dungeon": "Dungeon Icon",
+  "item.questsicons.quest_key": "Key",
+  "item.questsicons.quest_portal_one": "Green Portal",
+  "item.questsicons.quest_portal_two": "Purple Portal",
+  "item.questsicons.quest_reward": "Treasure Chest",
+  "item.questsicons.logo_fabric": "Dreamcraft Logo",
+
+  "itemGroup.questsicons.questitems": "Quest Items"
+}
