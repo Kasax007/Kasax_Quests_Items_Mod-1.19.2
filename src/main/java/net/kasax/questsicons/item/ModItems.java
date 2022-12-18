@@ -2,9 +2,15 @@ package net.kasax.questsicons.item;
 
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.kasax.questsicons.QuestsIcons;
+import net.kasax.questsicons.item.custom.QuestRewardItem;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.world.World;
 
 public class ModItems {
 
@@ -33,7 +39,7 @@ public class ModItems {
             new Item(new FabricItemSettings().maxCount(1).group(ModItemGroup.QUEST_ITEMS)));
 
     public static final Item QUEST_REWARD = registerItem("quest_reward" ,
-            new Item(new FabricItemSettings().maxCount(1).group(ModItemGroup.QUEST_ITEMS)));
+            new QuestRewardItem(new FabricItemSettings().maxCount(1).group(ModItemGroup.QUEST_ITEMS)));
 
     public static final Item LOGO_FABRIC = registerItem("logo_fabric" ,
             new Item(new FabricItemSettings().maxCount(1).group(ModItemGroup.QUEST_ITEMS)));
@@ -41,8 +47,11 @@ public class ModItems {
     private static Item registerItem(String name, Item item) {
         return Registry.register(Registry.ITEM, new Identifier(QuestsIcons.MOD_ID, name), item);
     }
-
+    public ModItems() {
+        // Default constructor
+    }
     public static  void registerModItems() {
         QuestsIcons.LOGGER.debug("Register Mod Items for " + QuestsIcons.MOD_ID);
     }
+
 }
