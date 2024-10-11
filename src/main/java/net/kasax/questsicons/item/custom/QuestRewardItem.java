@@ -2,12 +2,15 @@ package net.kasax.questsicons.item.custom;
 
 import net.kasax.questsicons.function.ItemListGenerator;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.item.TooltipContext;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.registry.Registries;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -40,16 +43,13 @@ public class QuestRewardItem extends Item {
         }
         if (!user.getAbilities().creativeMode) {
             ItemStack stack = user.getStackInHand(hand);
-            stack.setDamage(stack.getDamage() + 1);
-            if (stack.getDamage() > stack.getMaxDamage()) {
-                stack.setCount(0);
-            }
+            stack.damage(1, user, EquipmentSlot.MAINHAND);
         }
         return super.use(world, user, hand);
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
+    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         if (Screen.hasShiftDown()) {
             tooltip.add(Text.translatable("Right click this item in your hand up to 5 times to receive a random item.").formatted(Formatting.RED));
         }
@@ -58,7 +58,7 @@ public class QuestRewardItem extends Item {
         }
 
 
-        super.appendTooltip(stack, world, tooltip, context);
+        super.appendTooltip(stack, context, tooltip, type);
     }
 
     private void giveRandomItem(PlayerInventory player) {

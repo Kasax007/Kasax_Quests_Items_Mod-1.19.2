@@ -10,7 +10,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 public class ModItemGroup {
-    public static ItemGroup QUEST_ITEMS = Registry.register(Registries.ITEM_GROUP, new Identifier(QuestsIcons.MOD_ID, "questitems"),
+    public static ItemGroup QUEST_ITEMS = Registry.register(Registries.ITEM_GROUP, Identifier.of(QuestsIcons.MOD_ID, "questitems"),
             FabricItemGroup.builder().displayName(Text.translatable("itemgroup.questitems"))
                     .icon(() -> new ItemStack(ModItems.QUEST_CROWN)).entries((displayContext, entries) -> {
                         entries.add(ModItems.CHAPTER_LOCK);
