@@ -60,7 +60,8 @@ public class QuestBookScreen extends Screen {
     static final int LOCKED = 0xFF5A5468;
     static final int AVAILABLE = 0xFFE7D4FF;
 
-    private static final int SIDEBAR = 136;
+    /** Width of the chapter list; grows with the screen so chapter titles fit. */
+    private static int SIDEBAR = 150;
     private static final int TOP = 24;
     private static final int GRID = 24;
     private static long lastChapter;
@@ -129,6 +130,7 @@ public class QuestBookScreen extends Screen {
     @Override
     protected void init() {
         openedAt = System.currentTimeMillis();
+        SIDEBAR = Mth.clamp(width / 5, 150, 200);
         if (book() == null) return;
         if (chapter == null) {
             Chapter c = book().chapter(lastChapter);
