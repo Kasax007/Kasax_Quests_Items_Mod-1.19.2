@@ -1,33 +1,34 @@
 package net.kasax.questsicons.item;
 
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.kasax.questsicons.QuestsIcons;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
-public class ModItemGroup {
-    public static ItemGroup QUEST_ITEMS = Registry.register(Registries.ITEM_GROUP, Identifier.of(QuestsIcons.MOD_ID, "questitems"),
-            FabricItemGroup.builder().displayName(Text.translatable("itemgroup.questitems"))
-                    .icon(() -> new ItemStack(ModItems.QUEST_CROWN)).entries((displayContext, entries) -> {
-                        entries.add(ModItems.CHAPTER_LOCK);
-                        entries.add(ModItems.END_LOCK);
-                        entries.add(ModItems.QUEST_BACKPACK);
-                        entries.add(ModItems.QUEST_CROWN);
-                        entries.add(ModItems.QUEST_DUNGEON);
-                        entries.add(ModItems.QUEST_KEY);
-                        entries.add(ModItems.QUEST_PORTAL_ONE);
-                        entries.add(ModItems.QUEST_PORTAL_TWO);
-                        entries.add(ModItems.QUEST_PORTAL_THREE);
-                        entries.add(ModItems.QUEST_PORTAL_FOUR);
-                        entries.add(ModItems.QUEST_PORTAL_FIVE);
-                        entries.add(ModItems.QUEST_REWARD);
-                        entries.add(ModItems.LOGO_FABRIC);
+public final class ModItemGroup {
+    public static final CreativeModeTab QUEST_ITEMS = Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB,
+            Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "questitems"),
+            FabricCreativeModeTab.builder()
+                    .title(Component.translatable("itemgroup.questitems"))
+                    .icon(() -> new ItemStack(ModItems.QUEST_CROWN))
+                    .displayItems((params, out) -> {
+                        out.accept(ModItems.QUEST_BOOK);
+                        out.accept(ModItems.COMMON_CRATE);
+                        out.accept(ModItems.RARE_CRATE);
+                        out.accept(ModItems.EPIC_CRATE);
+                        out.accept(ModItems.LEGENDARY_CRATE);
+                        out.accept(ModItems.QUEST_REWARD);
+                        for (Item i : ModItems.ICONS) out.accept(i);
                     }).build());
-    public static void registerItemGroups() {
 
+    private ModItemGroup() {
+    }
+
+    public static void registerItemGroups() {
     }
 }

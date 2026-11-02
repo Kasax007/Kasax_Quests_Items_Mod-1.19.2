@@ -1,58 +1,86 @@
 package net.kasax.questsicons.item;
 
 import net.kasax.questsicons.QuestsIcons;
+import net.kasax.questsicons.item.custom.LootCrateItem;
+import net.kasax.questsicons.item.custom.QuestBookItem;
 import net.kasax.questsicons.item.custom.QuestRewardItem;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
 
-public class ModItems {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 
-    public static final Item CHAPTER_LOCK = registerItem("chapter_lock" ,
-            new Item(new Item.Settings().maxCount(1)));
+public final class ModItems {
+    /** Every pure icon item, in creative-tab order. */
+    public static final List<Item> ICONS = new ArrayList<>();
 
-    public static final Item END_LOCK = registerItem("end_lock" ,
-            new Item(new Item.Settings().maxCount(1)));
-
-    public static final Item QUEST_BACKPACK = registerItem("quest_backpack" ,
-            new Item(new Item.Settings().maxCount(1)));
-
-    public static final Item QUEST_CROWN = registerItem("quest_crown" ,
-            new Item(new Item.Settings().maxCount(1)));
-
-    public static final Item QUEST_DUNGEON = registerItem("quest_dungeon" ,
-            new Item(new Item.Settings().maxCount(1)));
-
-    public static final Item QUEST_KEY = registerItem("quest_key" ,
-            new Item(new Item.Settings().maxCount(1)));
-
-    public static final Item QUEST_PORTAL_ONE = registerItem("quest_portal_one" ,
-            new Item(new Item.Settings().maxCount(1)));
-
-    public static final Item QUEST_PORTAL_TWO = registerItem("quest_portal_two" ,
-            new Item(new Item.Settings().maxCount(1)));
-
-    public static final Item QUEST_PORTAL_THREE = registerItem("quest_portal_three" ,
-            new Item(new Item.Settings().maxCount(1)));
-
-    public static final Item QUEST_PORTAL_FOUR = registerItem("quest_portal_four" ,
-            new Item(new Item.Settings().maxCount(1)));
-
-    public static final Item QUEST_PORTAL_FIVE = registerItem("quest_portal_five" ,
-            new Item(new Item.Settings().maxCount(1)));
-
-    public static final Item QUEST_REWARD = registerItem("quest_reward" ,
-            new QuestRewardItem(new Item.Settings().maxCount(1)));
-
-    public static final Item LOGO_FABRIC = registerItem("logo_fabric" ,
-            new Item(new Item.Settings().maxCount(1)));
-
-    private static Item registerItem(String name, Item item) {
-        return Registry.register(Registries.ITEM, Identifier.of(QuestsIcons.MOD_ID, name), item);
+    private ModItems() {
     }
 
-    public static  void registerModItems() {
-        QuestsIcons.LOGGER.debug("Register Mod Items for " + QuestsIcons.MOD_ID);
+    private static Item register(String name, Function<Item.Properties, Item> factory, Item.Properties props) {
+        Identifier id = Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, name);
+        Item item = factory.apply(props.setId(ResourceKey.create(Registries.ITEM, id)));
+        return Registry.register(BuiltInRegistries.ITEM, id, item);
+    }
+
+    private static Item icon(String name) {
+        Item item = register(name, Item::new, new Item.Properties().stacksTo(1));
+        ICONS.add(item);
+        return item;
+    }
+
+    // The quest book and the loot crates.
+    public static final Item QUEST_BOOK = register("quest_book", QuestBookItem::new, new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
+    public static final Item COMMON_CRATE = register("common_crate", p -> new LootCrateItem(p, "common_crate"), new Item.Properties().rarity(Rarity.COMMON));
+    public static final Item RARE_CRATE = register("rare_crate", p -> new LootCrateItem(p, "rare_crate"), new Item.Properties().rarity(Rarity.UNCOMMON));
+    public static final Item EPIC_CRATE = register("epic_crate", p -> new LootCrateItem(p, "epic_crate"), new Item.Properties().rarity(Rarity.RARE));
+    public static final Item LEGENDARY_CRATE = register("legendary_crate", p -> new LootCrateItem(p, "legendary_crate"), new Item.Properties().rarity(Rarity.EPIC));
+
+    // The original icons (kept with their ids so old quest files still find them).
+    public static final Item CHAPTER_LOCK = icon("chapter_lock");
+    public static final Item END_LOCK = icon("end_lock");
+    public static final Item QUEST_BACKPACK = icon("quest_backpack");
+    public static final Item QUEST_CROWN = icon("quest_crown");
+    public static final Item QUEST_DUNGEON = icon("quest_dungeon");
+    public static final Item QUEST_KEY = icon("quest_key");
+    public static final Item QUEST_PORTAL_ONE = icon("quest_portal_one");
+    public static final Item QUEST_PORTAL_TWO = icon("quest_portal_two");
+    public static final Item QUEST_PORTAL_THREE = icon("quest_portal_three");
+    public static final Item QUEST_PORTAL_FOUR = icon("quest_portal_four");
+    public static final Item QUEST_PORTAL_FIVE = icon("quest_portal_five");
+    public static final Item LOGO_FABRIC = icon("logo_fabric");
+
+    // New chapter and quest icons.
+    public static final Item ICON_COMPASS = icon("icon_compass");
+    public static final Item ICON_SWORD = icon("icon_sword");
+    public static final Item ICON_SHIELD = icon("icon_shield");
+    public static final Item ICON_PICKAXE = icon("icon_pickaxe");
+    public static final Item ICON_MAGIC = icon("icon_magic");
+    public static final Item ICON_GEAR = icon("icon_gear");
+    public static final Item ICON_HOUSE = icon("icon_house");
+    public static final Item ICON_FOOD = icon("icon_food");
+    public static final Item ICON_MAP = icon("icon_map");
+    public static final Item ICON_STAR = icon("icon_star");
+    public static final Item ICON_TROPHY = icon("icon_trophy");
+    public static final Item ICON_SKULL = icon("icon_skull");
+    public static final Item ICON_HEART = icon("icon_heart");
+    public static final Item ICON_QUESTION = icon("icon_question");
+    public static final Item ICON_EXCLAMATION = icon("icon_exclamation");
+    public static final Item ICON_RAFT = icon("icon_raft");
+    public static final Item ICON_POTION = icon("icon_potion");
+    public static final Item ICON_CHEST = icon("icon_chest");
+    public static final Item ICON_TREE = icon("icon_tree");
+    public static final Item ICON_MOON = icon("icon_moon");
+
+    public static final Item QUEST_REWARD = register("quest_reward", QuestRewardItem::new, new Item.Properties().stacksTo(1).durability(5));
+
+    public static void registerModItems() {
+        QuestsIcons.LOGGER.debug("Registered {} quest icons", ICONS.size());
     }
 }

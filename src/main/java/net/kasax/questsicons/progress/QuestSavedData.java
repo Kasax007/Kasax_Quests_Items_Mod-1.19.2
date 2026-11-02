@@ -1,0 +1,68 @@
+package net.kasax.questsicons.progress;
+
+import com.mojang.serialization.Codec;
+import net.kasax.questsicons.QuestsIcons;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.datafix.DataFixTypes;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.UUID;
+
+/** All teams and their quest progress, stored with the world ({@code data/questsicons/quest_progress.dat}). */
+public final class QuestSavedData extends SavedData {
+    public final Map<UUID, TeamData> teams = new LinkedHashMap<>();
+    public final Map<UUID, UUID> playerTeam = new HashMap<>();
+
+    private static final Codec<QuestSavedData> CODEC = CompoundTag.CODEC.xmap(QuestSavedData::fromTag, QuestSavedData::toTag);
+
+    public static final SavedDataType<QuestSavedData> TYPE = new SavedDataType<>(
+            Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "quest_progress"), QuestSavedData::new, CODEC, DataFixTypes.LEVEL);
+
+    public static QuestSavedData get(MinecraftServer server) {
+        return server.overworld().getDataStorage().computeIfAbsent(TYPE);
+    }
+
+    private static QuestSavedData fromTag(CompoundTag tag) {
+        QuestSavedData d = new QuestSavedData();
+        for (Tag t : tag.getListOrEmpty("teams")) {
+            if (!(t instanceof CompoundTag c)) continue;
+            TeamData team = TeamData.read(c);
+            d.teams.put(team.id, team);
+            for (UUID m : team.members) d.playerTeam.put(m, team.id);
+        }
+        return d;
+    }
+
+    private CompoundTag toTag() {
+        CompoundTag tag = new CompoundTag();
+        ListTag l = new ListTag();
+        for (TeamData t : teams.values()) l.add(t.write());
+        tag.put("teams", l);
+        return tag;
+    }
+
+    public TeamData teamOf(UUID player, String playerName) {
+        UUID teamId = playerTeam.get(player);
+        TeamData team = teamId == null ? null : teams.get(teamId);
+        if (team == null) {
+            team = new TeamData(player, playerName, player);
+            team.members.add(player);
+            team.memberNames.put(player, playerName);
+            teams.put(team.id, team);
+            playerTeam.put(player, team.id);
+            setDirty();
+        } else if (!playerName.equals(team.memberNames.get(player))) {
+            team.memberNames.put(player, playerName);
+            setDirty();
+        }
+        return team;
+    }
+}
