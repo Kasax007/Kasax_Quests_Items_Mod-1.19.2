@@ -178,6 +178,7 @@ public final class QuestCommands {
         target.invites.remove(p.getUUID());
         target.members.add(p.getUUID());
         target.memberNames.put(p.getUUID(), p.getGameProfile().name());
+        target.gotBook.add(p.getUUID());           // they already got their book; without this the next login gave a second one
         qs.data().playerTeam.put(p.getUUID(), target.id);
         qs.markDirty(target);
         qs.completeTaskless(target, p);
