@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "G": "minecraft:gold_ingot",
+    "A": "minecraft:amethyst_shard",
+    "Q": "minecraft:quartz_pillar",
+    "B": "minecraft:polished_blackstone"
+  },
+  "pattern": [
+    "GAG",
+    " Q ",
+    "BBB"
+  ],
+  "result": {
+    "id": "questsicons:dream_star_pedestal"
+  }
+}

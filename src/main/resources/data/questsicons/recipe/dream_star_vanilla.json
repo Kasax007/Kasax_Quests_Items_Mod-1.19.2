@@ -1,0 +1,58 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:not",
+      "value": {
+        "condition": "fabric:and",
+        "values": [
+          {
+            "condition": "fabric:all_mods_loaded",
+            "values": [
+              "techreborn",
+              "mythicupgrades",
+              "wizards",
+              "paladins",
+              "raft",
+              "tamagotchi"
+            ]
+          },
+          {
+            "condition": "fabric:registry_contains",
+            "registry": "minecraft:item",
+            "values": [
+              "techreborn:lapotronic_orb",
+              "mythicupgrades:ametrine_ingot",
+              "wizards:staff_netherite_arcane",
+              "wizards:staff_netherite_fire",
+              "wizards:staff_netherite_frost",
+              "paladins:netherite_holy_staff",
+              "raft:heart_of_the_tide",
+              "tamagotchi:tamagotchi_heart"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "T": "minecraft:totem_of_undying",
+    "D": [
+      "minecraft:dragon_egg",
+      "minecraft:dragon_head"
+    ],
+    "B": "minecraft:netherite_block",
+    "N": "minecraft:nether_star",
+    "G": "minecraft:enchanted_golden_apple",
+    "H": "minecraft:heavy_core"
+  },
+  "pattern": [
+    "TDT",
+    "BNB",
+    "GHG"
+  ],
+  "result": {
+    "id": "questsicons:dream_star"
+  }
+}

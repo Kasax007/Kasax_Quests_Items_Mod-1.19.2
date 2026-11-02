@@ -1,0 +1,8 @@
+{
+  "values": [
+    "#minecraft:is_fire",
+    "#minecraft:is_explosion",
+    "minecraft:cactus",
+    "minecraft:lightning_bolt"
+  ]
+}

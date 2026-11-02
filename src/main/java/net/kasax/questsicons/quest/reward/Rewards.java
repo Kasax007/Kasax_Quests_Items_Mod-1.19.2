@@ -305,6 +305,11 @@ public final class Rewards {
         }
 
         @Override
+        public boolean acceptsChoice(int choice) {
+            return choice >= 0 && choice < items.size();
+        }
+
+        @Override
         public List<ItemStack> choices(HolderLookup.Provider registries) {
             List<ItemStack> list = new ArrayList<>();
             for (ItemSpec s : items) list.add(s.stack(registries).copyWithCount(s.count()));
@@ -413,7 +418,8 @@ public final class Rewards {
 
         @Override
         public void claim(ServerPlayer player, int choice) {
-            AdvancementHolder h = player.level().getServer().getAdvancements().get(Identifier.parse(advancement));
+            Identifier id = Identifier.tryParse(advancement);
+            AdvancementHolder h = id == null ? null : player.level().getServer().getAdvancements().get(id);
             if (h == null) return;
             for (String c : h.value().criteria().keySet()) player.getAdvancements().award(h, c);
         }

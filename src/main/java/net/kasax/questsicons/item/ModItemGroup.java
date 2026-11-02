@@ -2,6 +2,7 @@ package net.kasax.questsicons.item;
 
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.kasax.questsicons.QuestsIcons;
+import net.kasax.questsicons.block.ModBlocks;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -18,6 +19,8 @@ public final class ModItemGroup {
                     .icon(() -> new ItemStack(ModItems.QUEST_CROWN))
                     .displayItems((params, out) -> {
                         out.accept(ModItems.QUEST_BOOK);
+                        out.accept(ModItems.DREAM_STAR);
+                        out.accept(ModBlocks.DREAM_STAR_PEDESTAL_ITEM);
                         out.accept(ModItems.COMMON_CRATE);
                         out.accept(ModItems.RARE_CRATE);
                         out.accept(ModItems.EPIC_CRATE);

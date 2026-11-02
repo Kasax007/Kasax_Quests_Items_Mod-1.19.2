@@ -34,9 +34,34 @@ public final class QuestSavedData extends SavedData {
         QuestSavedData d = new QuestSavedData();
         for (Tag t : tag.getListOrEmpty("teams")) {
             if (!(t instanceof CompoundTag c)) continue;
-            TeamData team = TeamData.read(c);
-            d.teams.put(team.id, team);
-            for (UUID m : team.members) d.playerTeam.put(m, team.id);
+            try {
+                TeamData team = TeamData.read(c);
+                d.teams.put(team.id, team);
+            } catch (RuntimeException e) {
+                QuestsIcons.LOGGER.error("Skipping a broken quest team entry: {}", e.toString());
+            }
+        }
+        // Up to 1.0.1, joining a team also left the player in a new personal team. Each player belongs to exactly
+        // one team: keep the shared one (they never left it) and drop the stray copies.
+        for (TeamData team : d.teams.values()) {
+            for (UUID m : team.members) {
+                TeamData other = d.teams.get(d.playerTeam.get(m));
+                if (other == null || team.members.size() > other.members.size()) d.playerTeam.put(m, team.id);
+            }
+        }
+        boolean repaired = false;
+        for (var it = d.teams.values().iterator(); it.hasNext(); ) {
+            TeamData team = it.next();
+            if (team.members.removeIf(m -> !team.id.equals(d.playerTeam.get(m)))) {
+                repaired = true;
+                team.memberNames.keySet().retainAll(team.members);
+                if (team.members.isEmpty()) it.remove();
+                else if (!team.members.contains(team.owner)) team.owner = team.members.iterator().next();
+            }
+        }
+        if (repaired) {
+            QuestsIcons.LOGGER.info("Repaired quest team membership (players listed in more than one team)");
+            d.setDirty();
         }
         return d;
     }

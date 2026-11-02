@@ -58,6 +58,18 @@ public interface ProgressView {
             total++;
             if (isQuestCompleted(q.id)) done++;
         }
-        return total == 0 ? 100 : Math.round(done * 100f / total);
+        // Rounded down: 199 of 200 quests is 99 %, not "complete".
+        return total == 0 ? 100 : done * 100 / total;
+    }
+
+    /** All non-optional quests of the chapter are done (a chapter of only optional quests never "completes"). */
+    default boolean isChapterComplete(Chapter chapter) {
+        boolean any = false;
+        for (Quest q : chapter.quests) {
+            if (q.optional) continue;
+            any = true;
+            if (!isQuestCompleted(q.id)) return false;
+        }
+        return any;
     }
 }

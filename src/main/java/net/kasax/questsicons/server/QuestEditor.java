@@ -35,7 +35,7 @@ public final class QuestEditor {
             switch (kind) {
                 case "reload" -> {
                     qs.load();
-                    player.sendSystemMessage(Component.translatable("questsicons.command.reloaded", book.chapters.size()));
+                    player.sendSystemMessage(Component.translatable("questsicons.command.reloaded", qs.book.chapters.size()));
                     return;
                 }
                 case "quest_set" -> {

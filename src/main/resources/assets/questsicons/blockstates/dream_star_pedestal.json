@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "has_star=false": {"model": "questsicons:block/dream_star_pedestal"},
+    "has_star=true": {"model": "questsicons:block/dream_star_pedestal"}
+  }
+}

@@ -1,6 +1,7 @@
 package net.kasax.questsicons.item.custom;
 
 import net.kasax.questsicons.quest.RewardTable;
+import net.kasax.questsicons.quest.reward.Reward;
 import net.kasax.questsicons.server.QuestServer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
@@ -47,7 +48,7 @@ public class LootCrateItem extends Item {
         if (!sp.getAbilities().instabuild) stack.shrink(1);
         Component name = loot.getHoverName();
         int count = loot.getCount();
-        if (!sp.getInventory().add(loot)) sp.drop(loot, false, net.minecraft.util.Prediction.SERVER_ONLY);
+        Reward.give(sp, loot);   // split into normal stacks, the rest drops
         level.playSound(null, sp.blockPosition(), SoundEvents.CHEST_OPEN, SoundSource.PLAYERS, 0.6f, 1.2f);
         level.playSound(null, sp.blockPosition(), SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.4f, 1.6f);
         ((ServerLevel) level).sendParticles(ParticleTypes.HAPPY_VILLAGER, sp.getX(), sp.getY() + 1, sp.getZ(), 12, 0.4, 0.5, 0.4, 0.1);

@@ -16,7 +16,9 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -157,8 +159,10 @@ public final class QuestCommands {
         TeamData t = qs().team(p);
         t.invites.add(target.getUUID());
         qs().data().setDirty();
+        String join = "/quests team join " + p.getGameProfile().name();
         target.sendSystemMessage(Component.translatable("questsicons.team.invited", p.getDisplayName(), t.name, p.getGameProfile().name())
-                .withStyle(ChatFormatting.GOLD));
+                .withStyle(s -> s.withColor(ChatFormatting.GOLD).withClickEvent(new ClickEvent.SuggestCommand(join))
+                        .withHoverEvent(new HoverEvent.ShowText(Component.literal(join)))));
         c.getSource().sendSuccess(() -> Component.translatable("questsicons.team.invite_sent", target.getDisplayName()), false);
         return 1;
     }
@@ -174,7 +178,9 @@ public final class QuestCommands {
         }
         TeamData current = qs.team(p);
         if (current == target) return 0;
-        leave(qs, p, current);
+        // Only leave the old team here: leave() would also make a fresh personal team that kept the player as a
+        // member, and after a restart the player ended up back in that empty team instead of the one they joined.
+        removeFromTeam(qs, p, current);
         target.invites.remove(p.getUUID());
         target.members.add(p.getUUID());
         target.memberNames.put(p.getUUID(), p.getGameProfile().name());
@@ -200,18 +206,25 @@ public final class QuestCommands {
         return 1;
     }
 
-    /** Removes the player from a shared team; they get a fresh personal team. */
-    private static void leave(QuestServer qs, ServerPlayer p, TeamData team) {
+    /** Takes the player out of a team (a team nobody is left in is deleted). */
+    private static void removeFromTeam(QuestServer qs, ServerPlayer p, TeamData team) {
         UUID u = p.getUUID();
-        if (team.members.size() <= 1) {
+        team.members.remove(u);
+        team.memberNames.remove(u);
+        if (team.members.isEmpty()) {
             qs.data().teams.remove(team.id);
         } else {
-            team.members.remove(u);
-            team.memberNames.remove(u);
             if (team.owner.equals(u)) team.owner = team.members.iterator().next();
             qs.markDirty(team);
         }
         qs.data().playerTeam.remove(u);
+        qs.data().setDirty();
+    }
+
+    /** Removes the player from a shared team; they get a fresh personal team. */
+    private static void leave(QuestServer qs, ServerPlayer p, TeamData team) {
+        UUID u = p.getUUID();
+        removeFromTeam(qs, p, team);
         TeamData fresh = new TeamData(UUID.randomUUID(), p.getGameProfile().name(), u);
         fresh.members.add(u);
         fresh.memberNames.put(u, p.getGameProfile().name());

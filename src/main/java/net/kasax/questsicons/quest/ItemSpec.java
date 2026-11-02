@@ -65,7 +65,8 @@ public final class ItemSpec {
 
     public @Nullable TagKey<Item> tagKey() {
         if (!isTag()) return null;
-        return TagKey.create(Registries.ITEM, Identifier.parse(((StringTag) raw).value().substring(1)));
+        Identifier id = Identifier.tryParse(((StringTag) raw).value().substring(1));   // null for a typo instead of a crash
+        return id == null ? null : TagKey.create(Registries.ITEM, id);
     }
 
     public String idString() {

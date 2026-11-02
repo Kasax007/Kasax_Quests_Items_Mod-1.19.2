@@ -1,0 +1,19 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "star": "questsicons:item/dream_star",
+    "particle": "questsicons:item/dream_star"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 7.45],
+      "to": [16, 16, 8.55],
+      "shade": false,
+      "light_emission": 15,
+      "faces": {
+        "north": {"uv": [16, 0, 0, 16], "texture": "#star"},
+        "south": {"uv": [0, 0, 16, 16], "texture": "#star"}
+      }
+    }
+  ]
+}

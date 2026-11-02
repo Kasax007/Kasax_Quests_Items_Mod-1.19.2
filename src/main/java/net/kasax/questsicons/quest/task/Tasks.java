@@ -36,6 +36,7 @@ import net.minecraft.world.phys.AABB;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+import org.jetbrains.annotations.Nullable;
 
 /** Registry of all task types plus their implementations. */
 public final class Tasks {
@@ -61,6 +62,16 @@ public final class Tasks {
     public static Task create(String type) {
         Supplier<Task> s = TYPES.get(type);
         return s == null ? null : s.get();
+    }
+
+    /** Parses an id from a quest file ("#" for tags is skipped); null instead of an exception for a typo. */
+    static @Nullable Identifier id(String raw) {
+        return Identifier.tryParse(raw.startsWith("#") ? raw.substring(1) : raw);
+    }
+
+    static <T> @Nullable TagKey<T> tag(net.minecraft.resources.ResourceKey<? extends net.minecraft.core.Registry<T>> registry, String raw) {
+        Identifier id = id(raw);
+        return id == null ? null : TagKey.create(registry, id);
     }
 
     static Component name(String id) {
@@ -226,27 +237,28 @@ public final class Tasks {
 
         public boolean matches(Entity e) {
             if (entity.startsWith("#")) {
-                return e.getType().builtInRegistryHolder().is(TagKey.create(Registries.ENTITY_TYPE, Identifier.parse(entity.substring(1))));
+                TagKey<EntityType<?>> key = tag(Registries.ENTITY_TYPE, entity);
+                return key != null && e.getType().builtInRegistryHolder().is(key);
             }
             return BuiltInRegistries.ENTITY_TYPE.getKey(e.getType()).toString().equals(entity);
         }
 
+        private @Nullable EntityType<?> entityType() {
+            Identifier id = entity.startsWith("#") ? null : id(entity);
+            return id == null ? null : BuiltInRegistries.ENTITY_TYPE.getOptional(id).orElse(null);
+        }
+
         @Override
         protected Component defaultTitle(HolderLookup.Provider r) {
-            Component n;
-            if (entity.startsWith("#")) {
-                n = name(entity);
-            } else {
-                EntityType<?> t = BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.parse(entity));
-                n = t.getDescription();
-            }
+            EntityType<?> t = entityType();
+            Component n = t != null ? t.getDescription() : name(entity);
             return Component.translatable("questsicons.task.kill", value, n);
         }
 
         @Override
         protected ItemStack defaultIcon(HolderLookup.Provider r) {
-            if (!entity.startsWith("#")) {
-                EntityType<?> t = BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.parse(entity));
+            EntityType<?> t = entityType();
+            if (t != null) {
                 var egg = SpawnEggItem.byId(t);
                 if (egg.isPresent()) return new ItemStack(egg.get());
             }
@@ -299,7 +311,8 @@ public final class Tasks {
 
         @Override
         public void detect(ServerPlayer player, TaskContext ctx) {
-            AdvancementHolder h = player.level().getServer().getAdvancements().get(Identifier.parse(advancement));
+            Identifier id = id(advancement);
+            AdvancementHolder h = id == null ? null : player.level().getServer().getAdvancements().get(id);
             if (h == null) return;
             AdvancementProgress p = player.getAdvancements().getOrStartProgress(h);
             if (criterion.isEmpty() ? p.isDone() : isCriterionDone(p)) ctx.set(1);
@@ -389,10 +402,10 @@ public final class Tasks {
 
         @Override
         public void detect(ServerPlayer player, TaskContext ctx) {
+            Identifier id = id(biome);
+            if (id == null) return;
             Holder<Biome> b = player.level().getBiome(player.blockPosition());
-            boolean ok = biome.startsWith("#")
-                    ? b.is(TagKey.create(Registries.BIOME, Identifier.parse(biome.substring(1))))
-                    : b.is(ResourceKey.create(Registries.BIOME, Identifier.parse(biome)));
+            boolean ok = biome.startsWith("#") ? b.is(TagKey.create(Registries.BIOME, id)) : b.is(ResourceKey.create(Registries.BIOME, id));
             if (ok) ctx.set(1);
         }
     }
@@ -439,14 +452,16 @@ public final class Tasks {
 
         @Override
         public void detect(ServerPlayer player, TaskContext ctx) {
+            Identifier id = id(structure);
+            if (id == null) return;
             ServerLevel level = player.level();
             BlockPos pos = player.blockPosition();
             boolean found;
             if (structure.startsWith("#")) {
-                TagKey<Structure> key = TagKey.create(Registries.STRUCTURE, Identifier.parse(structure.substring(1)));
+                TagKey<Structure> key = TagKey.create(Registries.STRUCTURE, id);
                 found = level.structureManager().getStructureWithPieceAt(pos, key).isValid();
             } else {
-                ResourceKey<Structure> key = ResourceKey.create(Registries.STRUCTURE, Identifier.parse(structure));
+                ResourceKey<Structure> key = ResourceKey.create(Registries.STRUCTURE, id);
                 found = level.structureManager().getStructureWithPieceAt(pos, h -> h.is(key)).isValid();
             }
             if (found) ctx.set(1);
@@ -504,6 +519,13 @@ public final class Tasks {
             return !consume;
         }
 
+        /** The XP points the player has right now (levels and the bar). */
+        static long currentPoints(ServerPlayer p) {
+            long l = Math.max(0, p.experienceLevel);
+            long forLevels = l <= 16 ? l * l + 6 * l : l <= 31 ? (5 * l * l - 81 * l + 720) / 2 : (9 * l * l - 325 * l + 4440) / 2;
+            return Math.max(0, forLevels + Math.round(p.experienceProgress * p.getXpNeededForNextLevel()));
+        }
+
         @Override
         public void detect(ServerPlayer player, TaskContext ctx) {
             long have = points ? player.totalExperience : player.experienceLevel;
@@ -518,7 +540,8 @@ public final class Tasks {
             }
             long need = maxProgress() - ctx.get();
             if (points) {
-                int take = (int) Math.min(need, player.totalExperience);
+                // Not totalExperience: spending levels on enchanting or an anvil does not lower it.
+                int take = (int) Math.min(need, currentPoints(player));
                 player.giveExperiencePoints(-take);
                 ctx.add(take);
             } else {
@@ -579,8 +602,8 @@ public final class Tasks {
 
         @Override
         public void detect(ServerPlayer player, TaskContext ctx) {
-            Identifier key = Identifier.parse(stat);
-            if (!BuiltInRegistries.CUSTOM_STAT.containsKey(key)) return;
+            Identifier key = id(stat);
+            if (key == null || !BuiltInRegistries.CUSTOM_STAT.containsKey(key)) return;
             int v = player.getStats().getValue(Stats.CUSTOM.get(BuiltInRegistries.CUSTOM_STAT.getValue(key)));
             if (v > ctx.get()) ctx.set(Math.min(v, maxProgress()));
         }
@@ -626,19 +649,17 @@ public final class Tasks {
         @Override
         protected Component defaultTitle(HolderLookup.Provider r) {
             Component n = name(observe);
-            if (!entity && !observe.startsWith("#")) {
-                Block b = BuiltInRegistries.BLOCK.getValue(Identifier.parse(observe));
-                n = b.getName();
-            }
+            Identifier id = entity || observe.startsWith("#") ? null : id(observe);
+            Block b = id == null ? null : BuiltInRegistries.BLOCK.getOptional(id).orElse(null);
+            if (b != null) n = b.getName();
             return Component.translatable("questsicons.task.observe", n);
         }
 
         @Override
         protected ItemStack defaultIcon(HolderLookup.Provider r) {
-            if (!entity && !observe.startsWith("#")) {
-                ItemStack s = new ItemStack(BuiltInRegistries.BLOCK.getValue(Identifier.parse(observe)).asItem());
-                if (!s.isEmpty()) return s;
-            }
+            Identifier id = entity || observe.startsWith("#") ? null : id(observe);
+            Block b = id == null ? null : BuiltInRegistries.BLOCK.getOptional(id).orElse(null);
+            if (b != null && !b.asItem().getDefaultInstance().isEmpty()) return new ItemStack(b.asItem());
             return new ItemStack(Items.SPYGLASS);
         }
 
@@ -664,17 +685,15 @@ public final class Tasks {
                 EntityHitResult hit = ProjectileUtil.getEntityHitResult(player, eye, end, box, e -> !e.isSpectator(), reach * reach);
                 if (hit != null) {
                     String id = BuiltInRegistries.ENTITY_TYPE.getKey(hit.getEntity().getType()).toString();
-                    seen = observe.startsWith("#")
-                            ? hit.getEntity().getType().builtInRegistryHolder().is(TagKey.create(Registries.ENTITY_TYPE, Identifier.parse(observe.substring(1))))
-                            : id.equals(observe);
+                    TagKey<EntityType<?>> key = observe.startsWith("#") ? tag(Registries.ENTITY_TYPE, observe) : null;
+                    seen = observe.startsWith("#") ? key != null && hit.getEntity().getType().builtInRegistryHolder().is(key) : id.equals(observe);
                 }
             } else {
                 HitResult hit = player.pick(reach, 1f, false);
                 if (hit instanceof BlockHitResult bh && hit.getType() == HitResult.Type.BLOCK) {
                     var state = player.level().getBlockState(bh.getBlockPos());
-                    seen = observe.startsWith("#")
-                            ? state.is(TagKey.create(Registries.BLOCK, Identifier.parse(observe.substring(1))))
-                            : BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString().equals(observe);
+                    TagKey<Block> key = observe.startsWith("#") ? tag(Registries.BLOCK, observe) : null;
+                    seen = observe.startsWith("#") ? key != null && state.is(key) : BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString().equals(observe);
                 }
             }
             if (seen) ctx.set(Math.min(maxProgress(), ctx.get() + detectInterval()));

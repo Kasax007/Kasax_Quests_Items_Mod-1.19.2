@@ -151,8 +151,14 @@ public final class TeamData {
         ListTag m = new ListTag();
         for (UUID u : members) m.add(StringTag.valueOf(memberNames.getOrDefault(u, "?")));
         t.put("members", m);
-        t.put("progress", write().getCompoundOrEmpty("progress"));
-        t.put("completed", write().getCompoundOrEmpty("completed"));
+        CompoundTag p = new CompoundTag();
+        progress.long2LongEntrySet().forEach(e -> {
+            if (e.getLongValue() > 0) p.putLong(QuestObject.idToString(e.getLongKey()), e.getLongValue());
+        });
+        t.put("progress", p);
+        CompoundTag c = new CompoundTag();
+        completed.long2LongEntrySet().forEach(e -> c.putLong(QuestObject.idToString(e.getLongKey()), e.getLongValue()));
+        t.put("completed", c);
         ListTag mine = new ListTag();
         LongOpenHashSet set = claimed.get(player);
         if (set != null) for (long r : set) mine.add(StringTag.valueOf(QuestObject.idToString(r)));

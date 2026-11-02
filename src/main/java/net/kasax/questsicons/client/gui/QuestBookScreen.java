@@ -97,6 +97,9 @@ public class QuestBookScreen extends Screen {
     private static final int RIGHT = InputConstants.MOUSE_BUTTON_RIGHT;
     private static final int MIDDLE = InputConstants.MOUSE_BUTTON_MIDDLE;
     private final List<Zone> lastZones = new ArrayList<>();
+    /** Visible band of the scrolling quest panel: buttons scrolled out of it must not react to clicks. */
+    private int clipTop = Integer.MIN_VALUE;
+    private int clipBottom = Integer.MAX_VALUE;
     private long openedAt;
 
     record Zone(int x, int y, int w, int h, Runnable action, @Nullable Component tooltip) {
@@ -602,10 +605,17 @@ public class QuestBookScreen extends Screen {
     }
 
     private void button(GuiGraphicsExtractor g, int x, int y, int w, int h, Component label, int mouseX, int mouseY, Runnable action) {
-        boolean hov = mouseX >= x && mouseY >= y && mouseX < x + w && mouseY < y + h;
+        boolean hov = mouseX >= x && mouseY >= y && mouseX < x + w && mouseY < y + h && mouseY >= clipTop && mouseY < clipBottom;
         frame(g, x, y, w, h, hov ? 0xFF3A2358 : 0xFF261839, hov ? ACCENT : 0xFF5B3A86);
         g.centeredText(font, label, x + w / 2, y + (h - 8) / 2, hov ? 0xFFFFFFFF : TEXT);
-        zones.add(new Zone(x, y, w, h, action, null));
+        zone(x, y, w, h, action, null);
+    }
+
+    /** Adds a click/tooltip area, cut to the visible part of the scrolling panel. */
+    private void zone(int x, int y, int w, int h, Runnable action, @Nullable Component tooltip) {
+        int top = Math.max(y, clipTop);
+        int bottom = Math.min(y + h, clipBottom);
+        if (bottom > top) zones.add(new Zone(x, top, w, bottom - top, action, tooltip));
     }
 
     // ------------------------------------------------------------------------------- details panel
@@ -648,6 +658,8 @@ public class QuestBookScreen extends Screen {
         int bodyTop = py + 32;
         int bodyBottom = py + ph - 26;
         g.enableScissor(px + 1, bodyTop, px + pw - 1, bodyBottom);
+        clipTop = bodyTop;
+        clipBottom = bodyBottom;
         int y = bodyTop + 4 - panelScroll;
         int textW = pw - 20;
         for (String line : q.description) {
@@ -675,7 +687,7 @@ public class QuestBookScreen extends Screen {
                 boolean dd = p.isQuestCompleted(dep);
                 g.text(font, Component.literal((dd ? "✔ " : "✖ ")).append(d.displayTitle()), px + 16, y, dd ? GREEN : MUTED, false);
                 final Quest target = d;
-                zones.add(new Zone(px + 16, y, textW, 10, () -> jumpTo(target), null));
+                zone(px + 16, y, textW, 10, () -> jumpTo(target), null);
                 y += 10;
             }
             if (q.dependsOnAny) {
@@ -717,8 +729,8 @@ public class QuestBookScreen extends Screen {
                 String title = font.plainSubstrByWidth(t.title(reg()).getString(), right - ptw - (px + 32) - 6);
                 g.text(font, title, px + 32, y + 5, tdone ? 0xFFB9F5C9 : TEXT, false);
                 if (mouseY >= y && mouseY < y + 18 && mouseX >= px + 8 && mouseX < px + 30) {
-                    zones.add(new Zone(px + 8, y, 22, 18, () -> {
-                    }, t.title(reg())));
+                    zone(px + 8, y, 22, 18, () -> {
+                    }, t.title(reg()));
                 }
                 y += 22;
             }
@@ -762,14 +774,16 @@ public class QuestBookScreen extends Screen {
                 g.text(font, font.plainSubstrByWidth(title.getString(), right - (px + 32) - 4), px + 32, y + 5, claimed ? MUTED : TEXT, false);
                 if (mouseY >= y && mouseY < y + 18 && mouseX >= px + 8 && mouseX < px + 30) {
                     List<ItemStack> choices = r.choices(reg());
-                    zones.add(new Zone(px + 8, y, 22, 18, () -> {
-                    }, choices.isEmpty() ? title : Component.translatable("questsicons.gui.choice_count", choices.size())));
+                    zone(px + 8, y, 22, 18, () -> {
+                    }, choices.isEmpty() ? title : Component.translatable("questsicons.gui.choice_count", choices.size()));
                 }
                 y += 22;
             }
         }
         panelContentHeight = y + panelScroll - bodyTop + 4;
         g.disableScissor();
+        clipTop = Integer.MIN_VALUE;
+        clipBottom = Integer.MAX_VALUE;
         int maxScroll = Math.max(0, panelContentHeight - (bodyBottom - bodyTop));
         if (maxScroll > 0) {
             int trackH = bodyBottom - bodyTop;

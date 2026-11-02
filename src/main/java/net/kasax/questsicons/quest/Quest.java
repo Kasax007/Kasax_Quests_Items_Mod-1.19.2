@@ -43,6 +43,9 @@ public final class Quest extends QuestObject {
 
     public void read(CompoundTag tag) {
         readBase(tag);
+        // A hand-written quest without an id gets a stable one from its place in the file (all of them sharing id 0
+        // made them overwrite each other). The id must exist before the task and reward ids are derived from it.
+        if (id == 0 && chapter != null) id = hashId("quest/" + chapter.filename + "/" + chapter.quests.size());
         subtitle = tag.getStringOr("subtitle", "");
         description.clear();
         Tag d = tag.get("description");

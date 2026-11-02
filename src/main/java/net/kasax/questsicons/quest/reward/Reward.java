@@ -54,6 +54,11 @@ public abstract class Reward extends QuestObject {
         return false;
     }
 
+    /** Is {@code choice} (-1 = no pick) a valid way to claim this reward? */
+    public boolean acceptsChoice(int choice) {
+        return !needsChoice() || choice >= 0;
+    }
+
     /** Options for a choice reward. */
     public List<ItemStack> choices(HolderLookup.Provider registries) {
         return List.of();
@@ -75,7 +80,8 @@ public abstract class Reward extends QuestObject {
     /** Give the reward. {@code choice} is the picked option for choice rewards, otherwise -1. */
     public abstract void claim(ServerPlayer player, int choice);
 
-    protected static void give(ServerPlayer player, ItemStack stack) {
+    /** Gives a stack of any size, split into normal stacks; what does not fit is dropped at the player's feet. */
+    public static void give(ServerPlayer player, ItemStack stack) {
         int left = stack.getCount();
         while (left > 0) {
             ItemStack part = stack.copyWithCount(Math.min(left, stack.getMaxStackSize()));

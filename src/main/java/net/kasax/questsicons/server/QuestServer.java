@@ -48,6 +48,8 @@ public final class QuestServer {
     public QuestBook book;
     private byte[] bookBytes;
     private final List<Task> detectTasks = new ArrayList<>();
+    /** Tasks whose detection threw (e.g. a typo in an id): switched off until the book is reloaded. */
+    private final List<Task> brokenTasks = new ArrayList<>();
     private final Set<UUID> dirtyTeams = new HashSet<>();
     private long tick;
 
@@ -116,6 +118,7 @@ public final class QuestServer {
         if (save) save();
         bookBytes = QuestNet.compress(book.writeAll());
         detectTasks.clear();
+        brokenTasks.clear();
         for (Task t : book.allTasks()) if (t.autoDetect()) detectTasks.add(t);
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
             sendBook(p);
@@ -185,9 +188,19 @@ public final class QuestServer {
                 for (Task t : detectTasks) {
                     if (phase % t.detectInterval() != 0) continue;
                     if (view.isTaskComplete(t) || view.isQuestCompleted(t.quest.id) || !view.canStart(t.quest)) continue;
-                    t.detect(p, ctx(team, t, p));
+                    try {
+                        t.detect(p, ctx(team, t, p));
+                    } catch (RuntimeException e) {
+                        // A broken task must not take the server down with it: report it once and stop checking it.
+                        if (!brokenTasks.contains(t)) {
+                            brokenTasks.add(t);
+                            QuestsIcons.LOGGER.error("Quest {}: task {} ({}) failed and is switched off until /quests reload",
+                                    t.quest.idString(), t.idString(), t.type(), e);
+                        }
+                    }
                 }
             }
+            if (!brokenTasks.isEmpty()) detectTasks.removeAll(brokenTasks);
         }
         if (!dirtyTeams.isEmpty()) {
             for (UUID id : dirtyTeams) {
@@ -238,7 +251,8 @@ public final class QuestServer {
         for (Task t : q.tasks) team.progress.put(t.id, t.maxProgress());
         markDirty(team);
         Chapter chapter = q.chapter;
-        boolean chapterDone = team.viewFor(team.owner).chapterPercent(chapter) >= 100 && chapter.quests.stream().anyMatch(x -> !x.optional);
+        // Only the quest that finishes the chapter announces it (an optional quest in a done chapter does not).
+        boolean chapterDone = !q.optional && team.viewFor(team.owner).isChapterComplete(chapter);
         for (UUID m : team.members) {
             ServerPlayer p = server.getPlayerList().getPlayer(m);
             if (p == null) continue;
@@ -271,7 +285,7 @@ public final class QuestServer {
         TeamData team = team(killer);
         ProgressView view = team.viewFor(killer.getUUID());
         for (Task t : book.allTasks()) {
-            if (t instanceof Tasks.KillTask k && k.matches(victim) && !view.isTaskComplete(t)
+            if (t instanceof Tasks.KillTask k && !brokenTasks.contains(t) && k.matches(victim) && !view.isTaskComplete(t)
                     && !view.isQuestCompleted(t.quest.id) && view.canStart(t.quest)) {
                 setProgress(team, t, team.progress.get(t.id) + 1, killer);
             }
@@ -317,7 +331,8 @@ public final class QuestServer {
         if (!team.completed.containsKey(r.quest.id)) return false;
         boolean teamReward = r.isTeamReward();
         if (team.isRewardClaimed(p.getUUID(), r.id, teamReward)) return false;
-        if (r.needsChoice() && choice < 0) return false;
+        // A bad pick (e.g. the book changed while the picker was open) must not use up the reward.
+        if (!r.acceptsChoice(choice)) return false;
         team.markClaimed(p.getUUID(), r.id, teamReward);
         markDirty(team);
         try {

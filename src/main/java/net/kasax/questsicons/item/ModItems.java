@@ -1,16 +1,21 @@
 package net.kasax.questsicons.item;
 
 import net.kasax.questsicons.QuestsIcons;
+import net.kasax.questsicons.item.custom.DreamStarItem;
 import net.kasax.questsicons.item.custom.LootCrateItem;
 import net.kasax.questsicons.item.custom.QuestBookItem;
 import net.kasax.questsicons.item.custom.QuestRewardItem;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.component.DamageResistant;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +82,15 @@ public final class ModItems {
     public static final Item ICON_CHEST = icon("icon_chest");
     public static final Item ICON_TREE = icon("icon_tree");
     public static final Item ICON_MOON = icon("icon_moon");
+
+    /** Damage a dropped Dream Star ignores: fire, lava, explosions, cactus and lightning (data tag). */
+    public static final TagKey<DamageType> DREAM_STAR_IMMUNE =
+            TagKey.create(Registries.DAMAGE_TYPE, Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "dream_star_immune"));
+
+    /** The Dreamcraft endgame trophy. */
+    public static final Item DREAM_STAR = register("dream_star", DreamStarItem::new, new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)
+            .component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)
+            .delayedComponent(DataComponents.DAMAGE_RESISTANT, ctx -> new DamageResistant(ctx.getOrThrow(DREAM_STAR_IMMUNE))));
 
     public static final Item QUEST_REWARD = register("quest_reward", QuestRewardItem::new, new Item.Properties().stacksTo(1).durability(5));
 

@@ -1,0 +1,45 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "questsicons:block/dream_star_pedestal_side",
+    "side": "questsicons:block/dream_star_pedestal_side",
+    "top": "questsicons:block/dream_star_pedestal_top",
+    "base": "questsicons:block/dream_star_pedestal_base"
+  },
+  "elements": [
+    {
+      "from": [2, 0, 2],
+      "to": [14, 3, 14],
+      "faces": {
+        "down": {"uv": [2, 2, 14, 14], "texture": "#base", "cullface": "down"},
+        "up": {"uv": [2, 2, 14, 14], "texture": "#base"},
+        "north": {"uv": [2, 13, 14, 16], "texture": "#side"},
+        "south": {"uv": [2, 13, 14, 16], "texture": "#side"},
+        "west": {"uv": [2, 13, 14, 16], "texture": "#side"},
+        "east": {"uv": [2, 13, 14, 16], "texture": "#side"}
+      }
+    },
+    {
+      "from": [4, 3, 4],
+      "to": [12, 13, 12],
+      "faces": {
+        "north": {"uv": [4, 2, 12, 12], "texture": "#side"},
+        "south": {"uv": [4, 2, 12, 12], "texture": "#side"},
+        "west": {"uv": [4, 2, 12, 12], "texture": "#side"},
+        "east": {"uv": [4, 2, 12, 12], "texture": "#side"}
+      }
+    },
+    {
+      "from": [3, 13, 3],
+      "to": [13, 15, 13],
+      "faces": {
+        "down": {"uv": [3, 3, 13, 13], "texture": "#base"},
+        "up": {"uv": [3, 3, 13, 13], "texture": "#top"},
+        "north": {"uv": [3, 0, 13, 2], "texture": "#side"},
+        "south": {"uv": [3, 0, 13, 2], "texture": "#side"},
+        "west": {"uv": [3, 0, 13, 2], "texture": "#side"},
+        "east": {"uv": [3, 0, 13, 2], "texture": "#side"}
+      }
+    }
+  ]
+}

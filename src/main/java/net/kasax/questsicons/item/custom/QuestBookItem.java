@@ -31,6 +31,7 @@ public class QuestBookItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> builder, TooltipFlag flag) {
-        builder.accept(Component.translatable("item.questsicons.quest_book.tooltip").withStyle(ChatFormatting.GRAY));
+        builder.accept(Component.translatable("item.questsicons.quest_book.tooltip", Component.keybind("key.questsicons.open_book"))
+                .withStyle(ChatFormatting.GRAY));
     }
 }

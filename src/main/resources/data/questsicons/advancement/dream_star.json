@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:end/kill_dragon",
+  "criteria": {
+    "dream_star": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "questsicons:dream_star"
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "questsicons:dream_star"
+    },
+    "title": {
+      "translate": "advancements.questsicons.dream_star.title"
+    },
+    "description": {
+      "translate": "advancements.questsicons.dream_star.description"
+    },
+    "frame": "challenge"
+  },
+  "requirements": [
+    [
+      "dream_star"
+    ]
+  ],
+  "rewards": {
+    "experience": 500
+  }
+}
