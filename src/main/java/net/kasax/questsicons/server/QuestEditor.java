@@ -42,10 +42,11 @@ public final class QuestEditor {
                     Chapter chapter = book.chapter(QuestObject.parseId(op.getStringOr("chapter", "")));
                     if (chapter == null) return;
                     CompoundTag qt = op.getCompoundOrEmpty("quest");
+                    // Typed without an id: a fresh one (the id a quest file derives from the position could be taken).
+                    if (QuestObject.parseId(qt.getStringOr("id", "")) == 0) qt.putString("id", QuestObject.idToString(book.newId()));
                     Quest q = new Quest();
                     q.chapter = chapter;
                     q.read(qt);
-                    if (q.id == 0) q.id = book.newId();
                     Quest old = book.quest(q.id);
                     if (old != null) {
                         int idx = old.chapter.quests.indexOf(old);

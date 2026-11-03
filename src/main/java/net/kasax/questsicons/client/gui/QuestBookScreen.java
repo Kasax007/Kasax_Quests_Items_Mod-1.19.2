@@ -100,9 +100,16 @@ public class QuestBookScreen extends Screen {
     /** Visible band of the scrolling quest panel: buttons scrolled out of it must not react to clicks. */
     private int clipTop = Integer.MIN_VALUE;
     private int clipBottom = Integer.MAX_VALUE;
+    /** Where the zones of the reward picker or context menu start: while one is open, clicks must not reach what is behind it. */
+    private int modalFrom;
+    private int lastModalFrom;
     private long openedAt;
 
-    record Zone(int x, int y, int w, int h, Runnable action, @Nullable Component tooltip) {
+    record Zone(int x, int y, int w, int h, Runnable action, @Nullable Component tooltip, @Nullable String label) {
+        Zone(int x, int y, int w, int h, Runnable action, @Nullable Component tooltip) {
+            this(x, y, w, h, action, tooltip, null);
+        }
+
         boolean contains(double mx, double my) {
             return mx >= x && my >= y && mx < x + w && my < y + h;
         }
@@ -287,7 +294,9 @@ public class QuestBookScreen extends Screen {
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float a) {
         lastZones.clear();
         lastZones.addAll(zones);
+        lastModalFrom = modalFrom;
         zones.clear();
+        modalFrom = 0;
         if (book() == null) {
             g.centeredText(font, Component.translatable("questsicons.gui.no_book"), width / 2, height / 2, TEXT);
             return;
@@ -608,14 +617,18 @@ public class QuestBookScreen extends Screen {
         boolean hov = mouseX >= x && mouseY >= y && mouseX < x + w && mouseY < y + h && mouseY >= clipTop && mouseY < clipBottom;
         frame(g, x, y, w, h, hov ? 0xFF3A2358 : 0xFF261839, hov ? ACCENT : 0xFF5B3A86);
         g.centeredText(font, label, x + w / 2, y + (h - 8) / 2, hov ? 0xFFFFFFFF : TEXT);
-        zone(x, y, w, h, action, null);
+        zone(x, y, w, h, action, null, label.getString());
     }
 
     /** Adds a click/tooltip area, cut to the visible part of the scrolling panel. */
     private void zone(int x, int y, int w, int h, Runnable action, @Nullable Component tooltip) {
+        zone(x, y, w, h, action, tooltip, null);
+    }
+
+    private void zone(int x, int y, int w, int h, Runnable action, @Nullable Component tooltip, @Nullable String label) {
         int top = Math.max(y, clipTop);
         int bottom = Math.min(y + h, clipBottom);
-        if (bottom > top) zones.add(new Zone(x, top, w, bottom - top, action, tooltip));
+        if (bottom > top) zones.add(new Zone(x, top, w, bottom - top, action, tooltip, label));
     }
 
     // ------------------------------------------------------------------------------- details panel
@@ -847,18 +860,21 @@ public class QuestBookScreen extends Screen {
     }
 
     private void drawChoice(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+        modalFrom = zones.size();
         List<ItemStack> items = choosing.choices(reg());
         int cols = Math.min(6, Math.max(1, items.size()));
         int rows = (items.size() + cols - 1) / cols;
-        int w = cols * 26 + 16;
+        Component title = Component.translatable("questsicons.gui.pick_one");
+        int gridW = cols * 26 - 2;
+        int w = Math.max(gridW, font.width(title)) + 16;   // wide enough for the title, too
         int h = rows * 26 + 40;
         int x = SIDEBAR + (width - SIDEBAR - w) / 2;
         int y = (height - h) / 2;
         g.fill(0, 0, width, height, 0x80000000);
         frame(g, x, y, w, h, PANEL, GOLD);
-        g.centeredText(font, Component.translatable("questsicons.gui.pick_one"), x + w / 2, y + 6, GOLD);
+        g.centeredText(font, title, x + w / 2, y + 6, GOLD);
         for (int i = 0; i < items.size(); i++) {
-            int ix = x + 8 + (i % cols) * 26;
+            int ix = x + (w - gridW) / 2 + (i % cols) * 26;
             int iy = y + 20 + (i / cols) * 26;
             boolean hov = mouseX >= ix && mouseY >= iy && mouseX < ix + 24 && mouseY < iy + 24;
             frame(g, ix, iy, 24, 24, hov ? 0xFF3A2358 : 0xFF261839, hov ? GOLD : 0xFF5B3A86);
@@ -878,6 +894,7 @@ public class QuestBookScreen extends Screen {
     }
 
     private void drawMenu(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+        modalFrom = zones.size();
         ContextMenu m = menu;
         int w = 0;
         for (MenuEntry e : m.entries) w = Math.max(w, font.width(e.label()));
@@ -907,7 +924,12 @@ public class QuestBookScreen extends Screen {
     }
 
     private boolean runZone(double mx, double my) {
-        for (int i = lastZones.size() - 1; i >= 0; i--) {
+        return runZone(mx, my, 0);
+    }
+
+    /** Runs the topmost zone under the cursor, looking only at zones from index {@code from} on. */
+    private boolean runZone(double mx, double my, int from) {
+        for (int i = lastZones.size() - 1; i >= from; i--) {
             Zone z = lastZones.get(i);
             if (z.contains(mx, my)) {
                 z.action().run();
@@ -926,6 +948,17 @@ public class QuestBookScreen extends Screen {
         return null;
     }
 
+    /** For tests: the GUI position of the centre of the clickable button (or picker item) showing this text, or null. */
+    public float[] zonePos(String text) {
+        for (int i = lastZones.size() - 1; i >= 0; i--) {
+            Zone z = lastZones.get(i);
+            if (text.equals(z.label()) || z.tooltip() != null && text.equals(z.tooltip().getString())) {
+                return new float[]{z.x() + z.w() / 2f, z.y() + z.h() / 2f};
+            }
+        }
+        return null;
+    }
+
     /** For tests: the quest whose detail panel is open. */
     public @Nullable Quest selectedQuest() {
         return selected;
@@ -939,12 +972,13 @@ public class QuestBookScreen extends Screen {
         int button = event.button();
         if (System.currentTimeMillis() - openedAt < 150) return true;
         if (menu != null) {
-            if (button == LEFT && runZone(mx, my)) return true;
+            if (button == LEFT && runZone(mx, my, lastModalFrom)) return true;
             menu = null;
             return true;
         }
         if (choosing != null) {
-            if (button == LEFT) runZone(mx, my);
+            // The picker is modal: the quest panel's buttons behind it must not react.
+            if (button == LEFT) runZone(mx, my, lastModalFrom);
             return true;
         }
         if (selected != null) {
@@ -1064,7 +1098,8 @@ public class QuestBookScreen extends Screen {
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        if (event.key() == 256) {
+        // 26.3 reports SDL key codes (Escape = 41, not GLFW's 256): with the old number Escape closed the whole book.
+        if (event.isEscape()) {
             if (menu != null) {
                 menu = null;
                 return true;

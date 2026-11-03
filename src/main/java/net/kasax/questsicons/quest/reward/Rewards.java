@@ -87,7 +87,7 @@ public final class Rewards {
 
         @Override
         public void claim(ServerPlayer player, int choice) {
-            ItemStack s = item.stack(player.level().registryAccess());
+            ItemStack s = item.rewardStack(player.level().registryAccess());
             if (s.isEmpty()) return;
             give(player, s.copyWithCount(count));
         }
@@ -271,7 +271,7 @@ public final class Rewards {
         @Override
         public void claim(ServerPlayer player, int choice) {
             RewardTable.Entry e = RewardTable.pick(entries(), player.getRandom());
-            if (e != null) give(player, e.item.stack(player.level().registryAccess()).copyWithCount(e.count));
+            if (e != null) give(player, e.item.rewardStack(player.level().registryAccess()).copyWithCount(e.count));
         }
     }
 
@@ -330,7 +330,7 @@ public final class Rewards {
         public void claim(ServerPlayer player, int choice) {
             if (choice < 0 || choice >= items.size()) return;
             ItemSpec s = items.get(choice);
-            give(player, s.stack(player.level().registryAccess()).copyWithCount(s.count()));
+            give(player, s.rewardStack(player.level().registryAccess()).copyWithCount(s.count()));
         }
     }
 

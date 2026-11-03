@@ -1,5 +1,6 @@
 package net.kasax.questsicons.quest;
 
+import net.kasax.questsicons.QuestsIcons;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -109,6 +110,19 @@ public final class ItemSpec {
         if (result.isEmpty() && !isEmpty()) result = new ItemStack(Items.BARRIER);
         if (registries != null || !(raw instanceof CompoundTag c2 && c2.contains("components"))) cached = result;
         return result;
+    }
+
+    /**
+     * The stack to hand out as a reward. {@link #stack} shows a barrier for an unknown id or an empty tag (fine for an
+     * icon); a reward must not give out barriers, so this is empty instead and the log names the broken entry.
+     */
+    public ItemStack rewardStack(@Nullable HolderLookup.Provider registries) {
+        ItemStack s = stack(registries);
+        if (s.is(Items.BARRIER) && !idString().equals("minecraft:barrier")) {
+            QuestsIcons.LOGGER.warn("A quest reward names an item that does not exist (or an empty tag): {}", idString());
+            return ItemStack.EMPTY;
+        }
+        return s;
     }
 
     /** The items an item tag stands for (for cycling icons). */

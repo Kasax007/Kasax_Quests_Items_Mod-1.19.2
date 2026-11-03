@@ -49,6 +49,7 @@
   "item.questsicons.crate.tooltip": "Right-click to open",
   "item.questsicons.crate.opened": "You found %sx %s!",
   "item.questsicons.crate.empty": "This crate is empty (no reward table '%s' in the quest book).",
+  "item.questsicons.crate.broken": "The reward table '%s' names an item that does not exist: %s. The crate stays closed.",
   "item.questsicons.quest_reward.received": "You received a random item!",
   "item.questsicons.quest_reward.tooltip": "Right-click up to 5 times for a random item",
   "key.questsicons.open_book": "Open Quest Book",

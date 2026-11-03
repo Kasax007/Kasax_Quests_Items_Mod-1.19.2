@@ -19,15 +19,21 @@ import org.slf4j.LoggerFactory;
 public class QuestsIcons implements ModInitializer {
     public static final String MOD_ID = "questsicons";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    /** The age {@code ItemEntity.makeFakeItem()} gives the item that only shows /give's pickup animation. */
+    private static final int FAKE_ITEM_AGE = 5999;
 
     @Override
     public void onInitialize() {
         ModItems.registerModItems();
         ModBlocks.registerBlocks();
         ModItemGroup.registerItemGroups();
-        // A dropped Dream Star never despawns (fire and explosions cannot hurt it either, see ModItems).
+        // A dropped Dream Star never despawns (fire and explosions cannot hurt it either, see ModItems). Not the fake
+        // item /give spawns for its pickup animation (ItemEntity.makeFakeItem: age 5999, nobody can pick it up): made
+        // permanent, it floated at the player's feet forever.
         ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
-            if (entity instanceof ItemEntity item && item.getItem().is(ModItems.DREAM_STAR)) item.setUnlimitedLifetime();
+            if (entity instanceof ItemEntity item && item.getItem().is(ModItems.DREAM_STAR) && item.getAge() != FAKE_ITEM_AGE) {
+                item.setUnlimitedLifetime();
+            }
         });
         QuestNet.register();
         QuestServer.init();
