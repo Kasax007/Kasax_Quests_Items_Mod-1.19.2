@@ -1,5 +1,7 @@
 package net.kasax.questsicons.client.gui;
 
+import com.mojang.blaze3d.platform.InputConstants;
+
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.kasax.questsicons.client.ClientQuests;
 import net.kasax.questsicons.net.QuestNet;
@@ -85,6 +87,15 @@ public class QuestBookScreen extends Screen {
     private @Nullable Reward choosing;
     private @Nullable ContextMenu menu;
     private final List<Zone> zones = new ArrayList<>();
+
+    /**
+     * Mouse buttons as Minecraft 26.3 reports them (SDL numbering: left = 1, middle = 2, right = 3). Older versions
+     * used GLFW numbering (left = 0, right = 1, middle = 2); comparing against those numbers made every left click
+     * count as a right click.
+     */
+    private static final int LEFT = InputConstants.MOUSE_BUTTON_LEFT;
+    private static final int RIGHT = InputConstants.MOUSE_BUTTON_RIGHT;
+    private static final int MIDDLE = InputConstants.MOUSE_BUTTON_MIDDLE;
     private final List<Zone> lastZones = new ArrayList<>();
     private long openedAt;
 
@@ -892,6 +903,20 @@ public class QuestBookScreen extends Screen {
         return false;
     }
 
+    /** For tests: the GUI position of a quest's centre on the current map, or null if it is not in this chapter. */
+    public float[] questScreenPos(long id) {
+        if (book() == null || chapter == null) return null;
+        for (Quest q : chapter.quests) {
+            if (q.id == id) return new float[]{sx(q.x), sy(q.y)};
+        }
+        return null;
+    }
+
+    /** For tests: the quest whose detail panel is open. */
+    public @Nullable Quest selectedQuest() {
+        return selected;
+    }
+
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (book() == null) return super.mouseClicked(event, doubleClick);
@@ -900,27 +925,27 @@ public class QuestBookScreen extends Screen {
         int button = event.button();
         if (System.currentTimeMillis() - openedAt < 150) return true;
         if (menu != null) {
-            if (button == 0 && runZone(mx, my)) return true;
+            if (button == LEFT && runZone(mx, my)) return true;
             menu = null;
             return true;
         }
         if (choosing != null) {
-            if (button == 0) runZone(mx, my);
+            if (button == LEFT) runZone(mx, my);
             return true;
         }
         if (selected != null) {
-            if (button == 0 && runZone(mx, my)) return true;
+            if (button == LEFT && runZone(mx, my)) return true;
             int px = panelX();
             if (mx < px || mx > px + panelW() || my < TOP + 10) selected = null;
             return true;
         }
-        if (button == 0 && runZone(mx, my)) return true;
+        if (button == LEFT && runZone(mx, my)) return true;
         if (!inMap(mx, my)) {
-            if (button == 1 && editMode && mx < SIDEBAR) openChapterMenu(mx, my);
+            if (button == RIGHT && editMode && mx < SIDEBAR) openChapterMenu(mx, my);
             return true;
         }
         Quest q = questAt(mx, my);
-        if (button == 0) {
+        if (button == LEFT) {
             if (q != null) {
                 if (editMode && linkSource != null) {
                     if (q != linkSource) {
@@ -950,12 +975,12 @@ public class QuestBookScreen extends Screen {
             panning = true;
             return true;
         }
-        if (button == 1 && editMode) {
+        if (button == RIGHT && editMode) {
             if (q != null) openQuestMenu(q, mx, my);
             else openMapMenu(mx, my);
             return true;
         }
-        if (button == 1 || button == 2) {
+        if (button == RIGHT || button == MIDDLE) {
             panning = true;
             return true;
         }
