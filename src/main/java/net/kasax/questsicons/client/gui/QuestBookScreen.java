@@ -912,7 +912,7 @@ public class QuestBookScreen extends Screen {
             zones.add(new Zone(x, ey, w, 14, () -> {
                 menu = null;
                 action.run();
-            }, null));
+            }, null, e.label().getString()));
             ey += 14;
         }
     }

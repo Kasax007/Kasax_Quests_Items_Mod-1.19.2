@@ -145,6 +145,28 @@ public class Selftest implements FabricClientGameTest {
         ctx.runOnClient(mc -> screen(mc).setEditMode(true));
         ctx.waitTicks(5);
         ctx.takeScreenshot("qi_book_edit");
+
+        // Edit mode: a right click on the empty map opens the menu; a click beside it only closes it (the chapter
+        // behind it must not react); "New quest here" adds a quest.
+        String newQuest = tr("questsicons.edit.new_quest");
+        float[] empty = ctx.computeOnClient(mc -> new float[]{mc.getWindow().getGuiScaledWidth() - 70, mc.getWindow().getGuiScaledHeight() - 60});
+        float[] chapterRow = {60, 37};   // the "Getting Started" row in the chapter list
+        rightClick(empty[0], empty[1]);
+        check("right click opens the editor menu", zone(newQuest) != null);
+        ctx.takeScreenshot("qi_edit_menu");
+        click(chapterRow[0], chapterRow[1]);
+        check("a click beside the menu only closes it", zone(newQuest) == null && bookOpen());
+        rightClick(empty[0], empty[1]);
+        check("click New quest here", clickLabel(newQuest));
+        ctx.waitTicks(10);
+        check("the new quest is in the book", server.computeOnServer(s -> QuestServer.get().book.chapters.getFirst().quests.size()) == 3);
+        server.runOnServer(s -> {   // keep the self-test's quest files as they were
+            QuestServer qs = QuestServer.get();
+            qs.book.chapters.getFirst().quests.removeIf(q -> q.id != welcome && q.id != wood);
+            qs.book.quest(wood).rewards.removeIf(r -> r.id == QuestObject.hashId("wood/choice"));
+            qs.bookChanged(true);
+        });
+        ctx.waitTicks(5);
         ctx.runOnClient(mc -> screen(mc).setEditMode(false));
         ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);
         ctx.waitTicks(3);
@@ -187,6 +209,15 @@ public class Selftest implements FabricClientGameTest {
         if (pos == null) return false;
         click(pos[0], pos[1]);
         return true;
+    }
+
+    /** A real right click at a GUI position. */
+    private void rightClick(double gx, double gy) {
+        double scale = ctx.computeOnClient(mc -> mc.getWindow().getGuiScale());
+        ctx.getInput().setCursorPos(gx * scale, gy * scale);
+        ctx.waitTicks(2);
+        ctx.getInput().pressMouse(InputConstants.MOUSE_BUTTON_RIGHT);
+        ctx.waitTicks(5);
     }
 
     /** A real left click at a GUI position. */

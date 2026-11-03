@@ -16,8 +16,9 @@
 ### Fixed
 - **Escape in the quest book** closes the open quest, reward picker or menu first, not the whole book (26.3 numbers the
   keys differently).
-- While you pick a "choose one" reward, clicks no longer reach the buttons behind the picker, and the picker is wide
-  enough for its title. A pick that does not fit the reward any more no longer uses it up.
+- While you pick a "choose one" reward (or use a right-click menu in edit mode), clicks no longer reach the buttons
+  behind it, and the picker is wide enough for its title. A pick that does not fit the reward any more no longer uses
+  it up.
 - Buttons scrolled out of the quest panel no longer react to clicks.
 - **Teams:** after joining a team and restarting the server, a player could land back in an empty team of their own.
   Worlds with this problem are repaired when they load.
