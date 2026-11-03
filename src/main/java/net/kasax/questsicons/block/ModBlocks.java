@@ -38,7 +38,7 @@ public final class ModBlocks {
         DREAM_STAR_PEDESTAL = Registry.register(BuiltInRegistries.BLOCK, id, new DreamStarPedestalBlock(BlockBehaviour.Properties.of()
                 .setId(ResourceKey.create(Registries.BLOCK, id))
                 .mapColor(MapColor.COLOR_PURPLE).strength(3.0f, 1200.0f).requiresCorrectToolForDrops().sound(SoundType.AMETHYST)
-                .lightLevel(s -> s.getValue(DreamStarPedestalBlock.HAS_STAR) ? 15 : 0).pushReaction(PushReaction.BLOCK).noOcclusion()));
+                .lightLevel(s -> s.getValue(DreamStarPedestalBlock.HAS_STAR) ? 15 : 0).pushReaction(PushReaction.IMMOVEABLE).noOcclusion()));
         DREAM_STAR_PEDESTAL_ITEM = Registry.register(BuiltInRegistries.ITEM, id, new BlockItem(DREAM_STAR_PEDESTAL,
                 new Item.Properties().setId(ResourceKey.create(Registries.ITEM, id)).useBlockDescriptionPrefix().rarity(Rarity.RARE)) {
             @Override
