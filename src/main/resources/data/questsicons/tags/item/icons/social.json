@@ -1,0 +1,23 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:icon_heart",
+    "questsicons:social_speech",
+    "questsicons:social_talk_quest",
+    "questsicons:social_talk_turn_in",
+    "questsicons:social_talk_red",
+    "questsicons:social_npc",
+    "questsicons:social_npc_question",
+    "questsicons:social_person",
+    "questsicons:social_team",
+    "questsicons:social_group",
+    "questsicons:social_letter",
+    "questsicons:social_party",
+    "questsicons:social_banner_red",
+    "questsicons:social_banner_blue",
+    "questsicons:social_banner_green",
+    "questsicons:social_banner_yellow",
+    "questsicons:social_banner_purple",
+    "questsicons:social_banner_white"
+  ]
+}

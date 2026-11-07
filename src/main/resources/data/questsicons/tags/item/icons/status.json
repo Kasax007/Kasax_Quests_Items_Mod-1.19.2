@@ -1,0 +1,22 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:status_check",
+    "questsicons:status_cross",
+    "questsicons:status_checkbox_empty",
+    "questsicons:status_checkbox_checked",
+    "questsicons:status_checkbox_crossed",
+    "questsicons:status_info",
+    "questsicons:status_question",
+    "questsicons:status_exclamation",
+    "questsicons:status_warning",
+    "questsicons:status_stop",
+    "questsicons:status_forbidden",
+    "questsicons:status_add",
+    "questsicons:status_remove",
+    "questsicons:status_new",
+    "questsicons:status_locked",
+    "questsicons:status_unlocked",
+    "questsicons:status_heart_broken"
+  ]
+}

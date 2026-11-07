@@ -1,0 +1,20 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:progress_bar_0",
+    "questsicons:progress_bar_25",
+    "questsicons:progress_bar_50",
+    "questsicons:progress_bar_75",
+    "questsicons:progress_bar_100",
+    "questsicons:progress_pie_1",
+    "questsicons:progress_pie_2",
+    "questsicons:progress_pie_3",
+    "questsicons:progress_pie_4",
+    "questsicons:flag_start",
+    "questsicons:flag_finish",
+    "questsicons:stairs",
+    "questsicons:stage_dots_1",
+    "questsicons:stage_dots_2",
+    "questsicons:stage_dots_3"
+  ]
+}

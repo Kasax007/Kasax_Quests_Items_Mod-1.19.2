@@ -1,0 +1,30 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:quest_crown",
+    "questsicons:icon_star",
+    "questsicons:icon_trophy",
+    "questsicons:medal_gold",
+    "questsicons:medal_silver",
+    "questsicons:medal_bronze",
+    "questsicons:trophy_gold",
+    "questsicons:trophy_silver",
+    "questsicons:trophy_bronze",
+    "questsicons:star_gold",
+    "questsicons:star_silver",
+    "questsicons:star_bronze",
+    "questsicons:star_red",
+    "questsicons:star_blue",
+    "questsicons:star_purple",
+    "questsicons:rosette_blue",
+    "questsicons:rosette_red",
+    "questsicons:rosette_green",
+    "questsicons:rosette_purple",
+    "questsicons:rank_chevron_1",
+    "questsicons:rank_chevron_2",
+    "questsicons:rank_chevron_3",
+    "questsicons:crown_silver",
+    "questsicons:crown_gold",
+    "questsicons:podium"
+  ]
+}

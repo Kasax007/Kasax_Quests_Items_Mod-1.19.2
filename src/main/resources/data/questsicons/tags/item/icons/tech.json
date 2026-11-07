@@ -1,0 +1,30 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:icon_gear",
+    "questsicons:tech_battery_empty",
+    "questsicons:tech_battery_low",
+    "questsicons:tech_battery_half",
+    "questsicons:tech_battery_full",
+    "questsicons:tech_lightning",
+    "questsicons:tech_plug",
+    "questsicons:tech_chip",
+    "questsicons:tech_robot",
+    "questsicons:tech_wrench",
+    "questsicons:tech_gears",
+    "questsicons:tech_pipe",
+    "questsicons:tech_tank",
+    "questsicons:tech_solar",
+    "questsicons:tech_atom",
+    "questsicons:tech_radiation",
+    "questsicons:tech_magnet",
+    "questsicons:tech_rocket",
+    "questsicons:tech_satellite",
+    "questsicons:tech_computer",
+    "questsicons:tech_lightbulb",
+    "questsicons:tech_flask",
+    "questsicons:tech_redstone",
+    "questsicons:tech_conveyor",
+    "questsicons:tech_drill"
+  ]
+}

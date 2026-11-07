@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:econ_coin_gold",
+    "questsicons:econ_coin_silver",
+    "questsicons:econ_coin_copper",
+    "questsicons:econ_coin_stack",
+    "questsicons:econ_money_bag",
+    "questsicons:econ_banknote",
+    "questsicons:econ_shop",
+    "questsicons:econ_price_tag",
+    "questsicons:econ_scales",
+    "questsicons:econ_handshake",
+    "questsicons:econ_vault",
+    "questsicons:econ_villager_trade"
+  ]
+}

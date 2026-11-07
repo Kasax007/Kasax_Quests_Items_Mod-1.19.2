@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "questsicons:item/icons/arrows/arrow_left_right"
+  }
+}

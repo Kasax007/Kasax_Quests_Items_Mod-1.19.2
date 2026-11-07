@@ -1,0 +1,29 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:chapter_lock",
+    "questsicons:end_lock",
+    "questsicons:quest_key",
+    "questsicons:ui_home",
+    "questsicons:ui_settings",
+    "questsicons:ui_bookmark",
+    "questsicons:ui_search",
+    "questsicons:ui_eye",
+    "questsicons:ui_eye_hidden",
+    "questsicons:ui_bell",
+    "questsicons:ui_trash",
+    "questsicons:ui_pencil",
+    "questsicons:ui_save",
+    "questsicons:ui_folder",
+    "questsicons:ui_list",
+    "questsicons:ui_power",
+    "questsicons:ui_play",
+    "questsicons:ui_pause",
+    "questsicons:ui_link",
+    "questsicons:ui_puzzle",
+    "questsicons:ui_pushpin",
+    "questsicons:ui_target_crosshair",
+    "questsicons:ui_book_open",
+    "questsicons:ui_hint"
+  ]
+}
