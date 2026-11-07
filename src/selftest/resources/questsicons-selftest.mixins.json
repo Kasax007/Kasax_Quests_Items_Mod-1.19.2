@@ -3,6 +3,9 @@
   "minVersion": "0.8",
   "package": "net.kasax.questsicons.selftest.mixin",
   "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "DedicatedServerMixin"
+  ],
   "client": [
     "CreateWorldScreenInvoker",
     "InputConstantsMixin",
