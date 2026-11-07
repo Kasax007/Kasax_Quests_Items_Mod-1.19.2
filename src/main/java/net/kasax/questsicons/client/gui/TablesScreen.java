@@ -77,7 +77,7 @@ public class TablesScreen extends QiScreen {
         }
         button(g, x, y + 4, 120, 16, Component.translatable("questsicons.tables.new"), mx, my, () -> {
             CompoundTag t = new CompoundTag();
-            Minecraft.getInstance().gui.setScreen(Forms.table(this, "", t, true, saved -> {
+            Minecraft.getInstance().setScreen(Forms.table(this, "", t, true, saved -> {
                 String key = saved.getStringOr("__key", "");
                 saved.remove("__key");
                 send(key, saved);
@@ -100,7 +100,7 @@ public class TablesScreen extends QiScreen {
 
     private void edit(String key, RewardTable t) {
         CompoundTag tag = t == null ? new CompoundTag() : t.write();
-        minecraft.gui.setScreen(Forms.table(this, key, tag, false, saved -> send(key, saved)));
+        minecraft.setScreen(Forms.table(this, key, tag, false, saved -> send(key, saved)));
     }
 
     private void send(String key, CompoundTag table) {

@@ -87,7 +87,7 @@ public abstract class Reward extends QuestObject {
             ItemStack part = stack.copyWithCount(Math.min(left, stack.getMaxStackSize()));
             left -= part.getCount();
             if (!player.getInventory().add(part) || !part.isEmpty()) {
-                player.drop(part, false, net.minecraft.util.Prediction.SERVER_ONLY);
+                player.drop(part, false);
             }
         }
     }

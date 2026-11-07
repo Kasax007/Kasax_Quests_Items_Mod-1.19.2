@@ -187,7 +187,7 @@ public class PickerScreen extends QiScreen {
         // The value first (the form behind rebuilds its fields from it), then back - unless the callback opened a screen.
         if (onItem != null) onItem.accept(e.stack().copy());
         if (onValue != null) onValue.accept(e.value());
-        if (minecraft != null && minecraft.gui.screen() == this) back();
+        if (minecraft != null && minecraft.screen == this) back();
     }
 
     @Override

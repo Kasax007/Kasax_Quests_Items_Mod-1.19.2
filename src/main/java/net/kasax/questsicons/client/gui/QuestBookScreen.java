@@ -700,7 +700,7 @@ public class QuestBookScreen extends Screen {
             });
             if (editMode) {
                 x = toolButton(g, x, Component.translatable("questsicons.edit.book_settings"), mouseX, mouseY, this::editBook);
-                x = toolButton(g, x, Component.translatable("questsicons.edit.tables"), mouseX, mouseY, () -> minecraft.gui.setScreen(new TablesScreen(this)));
+                x = toolButton(g, x, Component.translatable("questsicons.edit.tables"), mouseX, mouseY, () -> minecraft.setScreen(new TablesScreen(this)));
                 x = toolButton(g, x, Component.translatable(EditorData.snap ? "questsicons.edit.snap_on" : "questsicons.edit.snap_off"), mouseX, mouseY,
                         () -> EditorData.snap = !EditorData.snap);
                 if (EditorData.undoSize() > 0) {
@@ -1574,7 +1574,7 @@ public class QuestBookScreen extends Screen {
 
     /** The quest form (everything a quest file can say). */
     public void editQuestForm(Quest q) {
-        minecraft.gui.setScreen(Forms.quest(this, q, q.write(), t -> {
+        minecraft.setScreen(Forms.quest(this, q, q.write(), t -> {
             if (!t.contains("id")) t.putString("id", q.idString());
             sendQuest(q, t);
         }));
@@ -1589,18 +1589,18 @@ public class QuestBookScreen extends Screen {
         t.putDouble("y", y);
         if (c.defaultQuestSize != 1.0) t.putDouble("size", c.defaultQuestSize);
         t.put("tasks", new ListTag());
-        minecraft.gui.setScreen(Forms.quest(this, null, t, saved -> sendQuest("new quest", c, saved)));
+        minecraft.setScreen(Forms.quest(this, null, t, saved -> sendQuest("new quest", c, saved)));
     }
 
     public void editChapterForm(Chapter c) {
-        minecraft.gui.setScreen(Forms.chapter(this, chapterTag(c), t -> {
+        minecraft.setScreen(Forms.chapter(this, chapterTag(c), t -> {
             t.putString("id", c.idString());
             sendChapter(c, t);
         }));
     }
 
     private void editGroupForm(ChapterGroup grp) {
-        minecraft.gui.setScreen(Forms.group(this, grp.write(), t -> {
+        minecraft.setScreen(Forms.group(this, grp.write(), t -> {
             t.putString("id", grp.idString());
             CompoundTag op = new CompoundTag();
             op.putString("op", "group_set");
@@ -1610,7 +1610,7 @@ public class QuestBookScreen extends Screen {
     }
 
     private void editBook() {
-        minecraft.gui.setScreen(Forms.book(this, book().writeData(), t -> {
+        minecraft.setScreen(Forms.book(this, book().writeData(), t -> {
             CompoundTag op = new CompoundTag();
             op.putString("op", "book_set");
             op.put("data", t);
@@ -1621,7 +1621,7 @@ public class QuestBookScreen extends Screen {
     private void editImageForm(int idx) {
         if (chapter == null || idx >= chapter.images.size()) return;
         Chapter c = chapter;
-        minecraft.gui.setScreen(Forms.image(this, 0, c.images.get(idx).write(), t -> {
+        minecraft.setScreen(Forms.image(this, 0, c.images.get(idx).write(), t -> {
             CompoundTag op = new CompoundTag();
             op.putString("op", "image_set");
             op.putString("chapter", c.idString());
@@ -1633,7 +1633,7 @@ public class QuestBookScreen extends Screen {
 
     /** Pick a library picture, then place it here (its form opens with the default size). */
     private void addImage(Chapter c, double x, double y) {
-        minecraft.gui.setScreen(PickerScreen.images(this, tex -> {
+        minecraft.setScreen(PickerScreen.images(this, tex -> {
             CompoundTag t = new CompoundTag();
             t.putString("image", tex);
             t.putDouble("x", x);
@@ -1647,7 +1647,7 @@ public class QuestBookScreen extends Screen {
             }
             t.putDouble("width", w);
             t.putDouble("height", h);
-            minecraft.gui.setScreen(Forms.image(this, 0, t, saved -> {
+            minecraft.setScreen(Forms.image(this, 0, t, saved -> {
                 CompoundTag op = new CompoundTag();
                 op.putString("op", "image_add");
                 op.putString("chapter", c.idString());
@@ -1659,7 +1659,7 @@ public class QuestBookScreen extends Screen {
 
     /** The icon picker for a quest, a chapter, a task or a reward: the library first, every other item in a tab. */
     private void pickIcon(Component what, java.util.function.Consumer<CompoundTag> applyIcon) {
-        minecraft.gui.setScreen(PickerScreen.items(this, Component.translatable("questsicons.picker.icon_for", what), true, st -> {
+        minecraft.setScreen(PickerScreen.items(this, Component.translatable("questsicons.picker.icon_for", what), true, st -> {
             CompoundTag holder = new CompoundTag();
             holder.put("icon", ItemSpec.of(st.copyWithCount(1), reg()).write());
             applyIcon.accept(holder);
@@ -1781,7 +1781,7 @@ public class QuestBookScreen extends Screen {
             names.add(c.displayTitle());
             icons.add(c.displayIcon(reg()));
         }
-        minecraft.gui.setScreen(PickerScreen.list(this, Component.translatable("questsicons.edit.move_to_chapter"), values, names, icons, cid -> {
+        minecraft.setScreen(PickerScreen.list(this, Component.translatable("questsicons.edit.move_to_chapter"), values, names, icons, cid -> {
             Chapter target = book().chapter(QuestObject.parseId(cid));
             if (target == null) return;
             List<Quest> qs = new ArrayList<>();
@@ -2067,7 +2067,7 @@ public class QuestBookScreen extends Screen {
     }
 
     private void editQuestSnbt(Quest q) {
-        minecraft.gui.setScreen(new SnbtEditScreen(this, Component.translatable("questsicons.edit.edit_quest", q.displayTitle()), q.write(), t -> {
+        minecraft.setScreen(new SnbtEditScreen(this, Component.translatable("questsicons.edit.edit_quest", q.displayTitle()), q.write(), t -> {
             if (!t.contains("id")) t.putString("id", q.idString());
             sendQuest(q, t);
         }));
@@ -2076,7 +2076,7 @@ public class QuestBookScreen extends Screen {
     private void editChapterSnbt(Chapter c) {
         CompoundTag tag = c.write();
         tag.remove("quests");
-        minecraft.gui.setScreen(new SnbtEditScreen(this, Component.translatable("questsicons.edit.edit_chapter", c.displayTitle()), tag, t -> {
+        minecraft.setScreen(new SnbtEditScreen(this, Component.translatable("questsicons.edit.edit_chapter", c.displayTitle()), tag, t -> {
             t.putString("id", c.idString());
             sendChapter(c, t);
         }));

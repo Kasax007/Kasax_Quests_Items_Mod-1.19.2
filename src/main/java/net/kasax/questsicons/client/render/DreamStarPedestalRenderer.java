@@ -63,7 +63,7 @@ public class DreamStarPedestalRenderer implements BlockEntityRenderer<DreamStarP
         poseStack.pushPose();
         float bob = Mth.sin(state.time * Mth.TWO_PI / 80f) * 0.05f;
         poseStack.translate(0.5f, 15f / 16f + 0.45f + bob, 0.5f);
-        poseStack.rotateDegrees(Axis.YP, state.time * 1.5f);
+        poseStack.mulPose(Axis.YP.rotationDegrees(state.time * 1.5f));
         poseStack.scale(0.7f, 0.7f, 0.7f);
         state.item.submit(poseStack, collector, LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0);
         poseStack.popPose();

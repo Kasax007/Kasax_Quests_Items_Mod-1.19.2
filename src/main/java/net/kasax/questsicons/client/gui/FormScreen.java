@@ -297,13 +297,13 @@ public class FormScreen extends QiScreen {
         void draw(FormScreen f, GuiGraphicsExtractor g, int x, int y, int w, int mx, int my) {
             if (picker != null) {
                 f.button(g, x + w - 20, y + 2, 20, 16, Component.literal("…"), mx, my, () ->
-                        f.minecraft.gui.setScreen(picker.apply(f, v -> f.tag.putString(key, v))));
+                        f.minecraft.setScreen(picker.apply(f, v -> f.tag.putString(key, v))));
                 return;
             }
             if (kind == null) return;
             f.button(g, x + w - 20, y + 2, 20, 16, Component.literal("…"), mx, my, () -> {
                 List<String> ids = EditorData.ids(kind);
-                f.minecraft.gui.setScreen(PickerScreen.list(f, label, ids, null, null, v -> f.tag.putString(key, v)));
+                f.minecraft.setScreen(PickerScreen.list(f, label, ids, null, null, v -> f.tag.putString(key, v)));
             });
         }
 
@@ -655,7 +655,7 @@ public class FormScreen extends QiScreen {
             }
             int bx = x + w - 100;
             f.button(g, bx, y + 3, 50, 16, Component.translatable("questsicons.form.pick"), mx, my, () ->
-                    f.minecraft.gui.setScreen(PickerScreen.items(f, label, iconsFirst, st -> set(f, st))));
+                    f.minecraft.setScreen(PickerScreen.items(f, label, iconsFirst, st -> set(f, st))));
             f.button(g, bx + 52, y + 3, 48, 16, Component.translatable("questsicons.form.hand"), mx, my, () -> {
                 if (f.minecraft.player != null && !f.minecraft.player.getMainHandItem().isEmpty()) {
                     set(f, f.minecraft.player.getMainHandItem().copyWithCount(1));

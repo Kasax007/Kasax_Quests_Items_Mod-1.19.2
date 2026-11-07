@@ -36,7 +36,7 @@ public class SnbtEditScreen extends Screen {
         setInitialFocus(box);
         addRenderableWidget(Button.builder(Component.translatable("questsicons.edit.save"), b -> save())
                 .bounds(width / 2 - 104, height - 32, 100, 20).build());
-        addRenderableWidget(Button.builder(Component.translatable("gui.cancel"), b -> minecraft.gui.setScreen(parent))
+        addRenderableWidget(Button.builder(Component.translatable("gui.cancel"), b -> minecraft.setScreen(parent))
                 .bounds(width / 2 + 4, height - 32, 100, 20).build());
     }
 
@@ -44,7 +44,7 @@ public class SnbtEditScreen extends Screen {
         try {
             CompoundTag tag = Snbt.parse(box.getValue());
             onSave.accept(tag);
-            minecraft.gui.setScreen(parent);
+            minecraft.setScreen(parent);
         } catch (Exception e) {
             error = e.getMessage();
         }
@@ -64,6 +64,6 @@ public class SnbtEditScreen extends Screen {
 
     @Override
     public void onClose() {
-        minecraft.gui.setScreen(parent);
+        minecraft.setScreen(parent);
     }
 }

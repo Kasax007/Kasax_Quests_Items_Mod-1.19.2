@@ -173,7 +173,7 @@ public final class QuestServer {
             team.gotBook.add(p.getUUID());
             data().setDirty();
             ItemStack bookItem = new ItemStack(ModItems.QUEST_BOOK);
-            if (!p.getInventory().add(bookItem)) p.drop(bookItem, false, net.minecraft.util.Prediction.SERVER_ONLY);
+            if (!p.getInventory().add(bookItem)) p.drop(bookItem, false);
         }
     }
 

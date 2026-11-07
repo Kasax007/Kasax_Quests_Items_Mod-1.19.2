@@ -140,7 +140,7 @@ public abstract class QiScreen extends Screen {
     }
 
     public void back() {
-        if (minecraft != null) minecraft.gui.setScreen(parent);
+        if (minecraft != null) minecraft.setScreen(parent);
     }
 
     @Override

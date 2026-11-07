@@ -56,7 +56,7 @@ public final class ClientQuests {
     private static final KeyMapping.Category CATEGORY =
             KeyMapping.Category.register(Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "main"));
     public static final KeyMapping OPEN_BOOK = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.questsicons.open_book", InputConstants.Type.KEYBOARD, InputConstants.KEY_J, CATEGORY));
+            new KeyMapping("key.questsicons.open_book", InputConstants.Type.KEYSYM, InputConstants.KEY_J, CATEGORY));
 
     private ClientQuests() {
     }
@@ -70,14 +70,14 @@ public final class ClientQuests {
                 if (ctx.client().level != null) b.registries = ctx.client().level.registryAccess();
                 book = b;
                 canEdit = payload.canEdit();
-                if (ctx.client().gui.screen() instanceof QuestBookScreen s) s.bookUpdated();
+                if (ctx.client().screen instanceof QuestBookScreen s) s.bookUpdated();
             } catch (Exception e) {
                 QuestsIcons.LOGGER.error("Could not read the quest book from the server", e);
             }
         });
         ClientPlayNetworking.registerGlobalReceiver(QuestNet.TeamSync.TYPE, (payload, ctx) -> {
             progress.read(payload.data());
-            if (ctx.client().gui.screen() instanceof QuestBookScreen s) s.progressUpdated();
+            if (ctx.client().screen instanceof QuestBookScreen s) s.progressUpdated();
         });
         ClientPlayNetworking.registerGlobalReceiver(QuestNet.Notify.TYPE, (payload, ctx) -> notify(ctx.client(), payload));
         ClientPlayConnectionEvents.DISCONNECT.register((h, c) -> {
@@ -88,7 +88,7 @@ public final class ClientQuests {
         });
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             while (OPEN_BOOK.consumeClick()) {
-                if (mc.player != null && mc.gui.screen() == null) open(mc);
+                if (mc.player != null && mc.screen == null) open(mc);
             }
         });
         HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "pinned"), new QuestHud());
@@ -109,7 +109,7 @@ public final class ClientQuests {
             ClientPlayNetworking.send(new QuestNet.Action(QuestNet.Action.REQUEST_SYNC, 0, 0));
             return;
         }
-        mc.gui.setScreen(new QuestBookScreen());
+        mc.setScreen(new QuestBookScreen());
     }
 
     private static void notify(Minecraft mc, QuestNet.Notify n) {
@@ -118,14 +118,14 @@ public final class ClientQuests {
             case QuestNet.Notify.QUEST -> {
                 Quest q = book == null ? null : book.quest(n.id());
                 if (q != null) {
-                    mc.gui.toastManager().addToast(new QuestToast(q.displayIcon(book.registries), q.displayTitle(),
+                    mc.getToastManager().addToast(new QuestToast(q.displayIcon(book.registries), q.displayTitle(),
                             Component.translatable("questsicons.toast.quest_complete"), false));
                 }
             }
             case QuestNet.Notify.CHAPTER -> {
                 Chapter c = book == null ? null : book.chapter(n.id());
                 if (c != null) {
-                    mc.gui.toastManager().addToast(new QuestToast(c.displayIcon(book.registries), c.displayTitle(),
+                    mc.getToastManager().addToast(new QuestToast(c.displayIcon(book.registries), c.displayTitle(),
                             Component.translatable("questsicons.toast.chapter_complete"), true));
                 }
             }

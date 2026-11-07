@@ -17,7 +17,7 @@ public class QuestHud implements HudElement {
     public void extractRenderState(GuiGraphicsExtractor g, DeltaTracker delta) {
         Minecraft mc = Minecraft.getInstance();
         QuestBook book = ClientQuests.book;
-        if (book == null || ClientQuests.pinned.isEmpty() || mc.gui.hud.isHidden() || mc.gui.screen() != null) return;
+        if (book == null || ClientQuests.pinned.isEmpty() || mc.options.hideGui || mc.screen != null) return;
         Font font = mc.font;
         int x = 4;
         int y = 30;
