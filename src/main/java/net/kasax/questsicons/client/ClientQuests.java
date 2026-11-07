@@ -56,7 +56,7 @@ public final class ClientQuests {
     private static final KeyMapping.Category CATEGORY =
             KeyMapping.Category.register(Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "main"));
     public static final KeyMapping OPEN_BOOK = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.questsicons.open_book", InputConstants.Type.KEYBOARD, InputConstants.KEY_J, CATEGORY));
+            new KeyMapping("key.questsicons.open_book", InputConstants.Type.KEYSYM, InputConstants.KEY_J, CATEGORY));
 
     private ClientQuests() {
     }

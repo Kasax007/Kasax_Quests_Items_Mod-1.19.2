@@ -65,7 +65,7 @@ public final class QuestCommands {
                         .then(Commands.argument("targets", EntityArgument.players()).executes(c -> {
                             for (ServerPlayer p : EntityArgument.getPlayers(c, "targets")) {
                                 ItemStack s = new ItemStack(ModItems.QUEST_BOOK);
-                                if (!p.getInventory().add(s)) p.drop(s, false, net.minecraft.util.Prediction.SERVER_ONLY);
+                                if (!p.getInventory().add(s)) p.drop(s, false);
                             }
                             return 1;
                         })))
