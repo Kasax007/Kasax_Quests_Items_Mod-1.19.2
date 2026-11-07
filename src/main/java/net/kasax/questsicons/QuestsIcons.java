@@ -1,12 +1,9 @@
 package net.kasax.questsicons;
 
-import net.kasax.questsicons.block.ModBlocks;
-import net.kasax.questsicons.item.ModItemGroup;
 import net.kasax.questsicons.item.ModItems;
 import net.kasax.questsicons.net.QuestNet;
 import net.kasax.questsicons.server.QuestCommands;
 import net.kasax.questsicons.server.QuestServer;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraftforge.api.distmarker.Dist;
@@ -25,7 +22,6 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,15 +41,8 @@ public class QuestsIcons {
 
     public QuestsIcons() {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
-        // Blocks, items, the block entity and the creative tabs are plain Registry.register calls in static initialisers
-        // (as on Fabric). Forge only accepts them while it fires RegisterEvent, so the classes are loaded in the first one.
-        modBus.addListener((RegisterEvent e) -> {
-            if (e.getRegistryKey().equals(Registries.BLOCK)) {
-                ModBlocks.registerBlocks();
-                ModItems.registerModItems();
-                ModItemGroup.registerItemGroups();
-            }
-        });
+        // Blocks, items, the block entity and the creative tabs: see ModRegistry.
+        modBus.addListener(ModRegistry::onRegister);
         modBus.addListener((FMLCommonSetupEvent e) -> QuestNet.register());
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> QuestsIconsClient.init(modBus));
 

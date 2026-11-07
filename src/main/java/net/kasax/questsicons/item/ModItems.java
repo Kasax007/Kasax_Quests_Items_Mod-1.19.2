@@ -1,5 +1,6 @@
 package net.kasax.questsicons.item;
 
+import net.kasax.questsicons.ModRegistry;
 import net.kasax.questsicons.QuestsIcons;
 import net.kasax.questsicons.icons.IconLibrary;
 import net.kasax.questsicons.item.custom.DreamStarItem;
@@ -33,7 +34,7 @@ public final class ModItems {
     private static Item register(String name, Function<Item.Properties, Item> factory, Item.Properties props) {
         ResourceLocation id = new ResourceLocation(QuestsIcons.MOD_ID, name);
         Item item = factory.apply(props);
-        return Registry.register(BuiltInRegistries.ITEM, id, item);
+        return ModRegistry.register(Registries.ITEM, id, item);
     }
 
     private static Item icon(String name) {

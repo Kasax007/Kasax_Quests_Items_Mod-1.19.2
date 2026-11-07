@@ -178,34 +178,24 @@ final class FtbItems {
             stack.putInt("count", (int) Math.min(Integer.MAX_VALUE, o.count));
             if (!comps.isEmpty()) stack.put("components", comps.copy());
         }
-        CompoundTag fixed = fix(stack, from, where);
+        // Minecraft 1.20.1 keeps item data as the stack's NBT tag. A 1.20 book is upgraded to 1.20.1 with the data fixer;
+        // the "components" of a 1.21+ book cannot be turned back into NBT and are left out (the report says so).
+        CompoundTag fixed = legacy ? fix(stack, from, where) : stack;
         String newId = fixed.getStringOr("id", id);
-        CompoundTag newComps = fixed.getCompoundOrEmpty("components").copy();
-        if (legacy && !tag.isEmpty() && options.fixer == null) {
-            o.approx.add("1.20 item data (NBT) of " + id + " dropped (" + String.join(", ", tag.keySet()) + ")");
+        CompoundTag newTag = fixed.getCompoundOrEmpty("tag").copy();
+        if (!legacy && !comps.isEmpty()) {
+            comps.keySet().removeIf(k -> k.startsWith("ftbquests:") || k.startsWith("!ftbquests:") || k.startsWith("ftbfiltersystem:"));
+            if (!comps.isEmpty()) o.approx.add("1.21 item data (components) of " + id + " left out on 1.20.1 (" + String.join(", ", comps.keySet()) + ")");
         }
-        // Mod data from a 1.20 stack ends up as custom data the 26.x mod no longer reads: leave it out.
-        if (legacy && newComps.contains("minecraft:custom_data")) {
-            CompoundTag cd = newComps.getCompoundOrEmpty("minecraft:custom_data");
-            newComps.remove("minecraft:custom_data");
-            if (!cd.isEmpty() && !(cd.size() == 1 && cd.contains("Damage"))) {
-                o.approx.add("mod data of " + id + " left out (" + String.join(", ", cd.keySet()) + ")");
-            }
-        }
-        newComps.keySet().removeIf(k -> k.startsWith("ftbquests:") || k.startsWith("!ftbquests:") || k.startsWith("ftbfiltersystem:"));
-        if (newComps.contains("minecraft:damage") && newComps.get("minecraft:damage") instanceof NumericTag n && n.intValue() == 0) {
-            newComps.remove("minecraft:damage");
-        }
+        if (newTag.get("Damage") instanceof NumericTag n && n.intValue() == 0) newTag.remove("Damage");
         ref(newId, where);
-        if (!newComps.isEmpty() && (use != Use.TASK || keepComponents)) {
+        if (!newTag.isEmpty() && (use != Use.TASK || keepComponents)) {
             CompoundTag spec = new CompoundTag();
             spec.putString("id", newId);
-            spec.put("components", newComps);
+            spec.put("tag", newTag);
             o.spec = spec;
         } else {
-            if (!newComps.isEmpty() && use == Use.TASK) {
-                // FTB ignores item data unless the task matches it, so dropping it changes nothing.
-            }
+            // FTB ignores item data unless the task matches it, so dropping it there changes nothing.
             o.spec = StringTag.valueOf(newId);
         }
         return o;
@@ -230,7 +220,8 @@ final class FtbItems {
     }
 
     private CompoundTag fix(CompoundTag stack, int from, String where) {
-        if (from <= 0 || options.fixer == null) return stack;
+        // 1.20.1 can only upgrade data up to its own version (a 1.21 book's data stays as it is).
+        if (from <= 0 || from > DATA_1_20_1 || options.fixer == null) return stack;
         String key = from + "|" + stack;
         CompoundTag cached = fixCache.get(key);
         if (cached != null) return cached;

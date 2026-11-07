@@ -1,6 +1,7 @@
 package net.kasax.questsicons.block;
 
 
+import net.kasax.questsicons.ModRegistry;
 import net.kasax.questsicons.QuestsIcons;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Registry;
@@ -36,18 +37,18 @@ public final class ModBlocks {
 
     static {
         ResourceLocation id = new ResourceLocation(QuestsIcons.MOD_ID, "dream_star_pedestal");
-        DREAM_STAR_PEDESTAL = Registry.register(BuiltInRegistries.BLOCK, id, new DreamStarPedestalBlock(BlockBehaviour.Properties.of()
+        DREAM_STAR_PEDESTAL = ModRegistry.register(Registries.BLOCK, id, new DreamStarPedestalBlock(BlockBehaviour.Properties.of()
                 .mapColor(MapColor.COLOR_PURPLE).strength(3.0f, 1200.0f).requiresCorrectToolForDrops().sound(SoundType.AMETHYST)
                 .lightLevel(s -> s.getValue(DreamStarPedestalBlock.HAS_STAR) ? 15 : 0).pushReaction(PushReaction.BLOCK).noOcclusion()));
-        DREAM_STAR_PEDESTAL_ITEM = Registry.register(BuiltInRegistries.ITEM, id, new BlockItem(DREAM_STAR_PEDESTAL,
+        DREAM_STAR_PEDESTAL_ITEM = ModRegistry.register(Registries.ITEM, id, new BlockItem(DREAM_STAR_PEDESTAL,
                 new Item.Properties().rarity(Rarity.RARE)) {
             @Override
             public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> builder, TooltipFlag flag) {
                 builder.add(Component.translatable("block.questsicons.dream_star_pedestal.tooltip").withStyle(ChatFormatting.GRAY));
             }
         });
-        DREAM_STAR_PEDESTAL_BE = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id,
-                BlockEntityType.Builder.of(DreamStarPedestalBlockEntity::new, DREAM_STAR_PEDESTAL).build(null));
+        DREAM_STAR_PEDESTAL_BE = BlockEntityType.Builder.of(DreamStarPedestalBlockEntity::new, DREAM_STAR_PEDESTAL).build(null);
+        ModRegistry.register(Registries.BLOCK_ENTITY_TYPE, id, DREAM_STAR_PEDESTAL_BE);
     }
 
     public static void registerBlocks() {

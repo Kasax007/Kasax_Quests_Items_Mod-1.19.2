@@ -1,10 +1,12 @@
 package net.kasax.questsicons.item;
 
+import net.kasax.questsicons.ModRegistry;
 import net.kasax.questsicons.QuestsIcons;
 import net.kasax.questsicons.block.ModBlocks;
 import net.kasax.questsicons.icons.IconLibrary;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
@@ -16,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
  * categories from the icon library (letters and numbers, symbols, ranks, themes).
  */
 public final class ModItemGroup {
-    public static final CreativeModeTab QUEST_ITEMS = Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB,
+    public static final CreativeModeTab QUEST_ITEMS = ModRegistry.register(Registries.CREATIVE_MODE_TAB,
             new ResourceLocation(QuestsIcons.MOD_ID, "questitems"),
             CreativeModeTab.builder()
                     .title(Component.translatable("itemgroup.questitems"))
@@ -38,7 +40,7 @@ public final class ModItemGroup {
     static {
         for (IconLibrary.Tab tab : IconLibrary.TABS) {
             if (tab.id().equals("questitems")) continue;
-            Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, new ResourceLocation(QuestsIcons.MOD_ID, "icons_" + tab.id()),
+            ModRegistry.register(Registries.CREATIVE_MODE_TAB, new ResourceLocation(QuestsIcons.MOD_ID, "icons_" + tab.id()),
                     CreativeModeTab.builder()
                             .title(Component.translatable("itemgroup.questsicons." + tab.id()))
                             .icon(() -> new ItemStack(ModItems.ICON_BY_ID.get(tab.icon())))
