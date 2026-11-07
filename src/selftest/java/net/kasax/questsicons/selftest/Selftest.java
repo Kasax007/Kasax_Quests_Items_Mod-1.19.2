@@ -180,6 +180,7 @@ public class Selftest implements FabricClientGameTest {
         check("a click beside the menu only closes it", zone(newQuest) == null && bookOpen());
         rightClick(empty[0], empty[1]);
         check("click New quest here", clickLabel(newQuest));
+        check("the new quest's form opens; Save", press(tr("questsicons.edit.save")));
         ctx.waitTicks(10);
         check("the new quest is in the book", server.computeOnServer(s -> QuestServer.get().book.chapters.getFirst().quests.size()) == 3);
         server.runOnServer(s -> {   // keep the self-test's quest files as they were
@@ -201,10 +202,32 @@ public class Selftest implements FabricClientGameTest {
         return ctx.computeOnClient(mc -> type.isInstance(mc.gui.screen()));
     }
 
+    private float[] findZone(String text) {
+        return ctx.computeOnClient(mc -> mc.gui.screen() instanceof QuestBookScreen s ? s.zonePos(text)
+                : mc.gui.screen() instanceof QiScreen s ? s.zonePos(text) : null);
+    }
+
+    /** Scrolls a long form or list with the mouse wheel until the condition holds (down first, then up). */
+    private boolean scrollUntil(java.util.function.BooleanSupplier found) {
+        if (found.getAsBoolean()) return true;
+        if (!onScreen(QiScreen.class)) return false;
+        double scale = ctx.computeOnClient(mc -> mc.getWindow().getGuiScale());
+        float[] c = ctx.computeOnClient(mc -> new float[]{mc.getWindow().getGuiScaledWidth() / 2f, mc.getWindow().getGuiScaledHeight() / 2f});
+        ctx.getInput().setCursorPos(c[0] * scale, c[1] * scale);
+        for (int dir : new int[]{-1, 1}) {
+            for (int i = 0; i < 25; i++) {
+                ctx.getInput().scroll(dir);
+                ctx.waitTicks(2);
+                if (found.getAsBoolean()) return true;
+            }
+        }
+        return false;
+    }
+
     /** Clicks a button, menu entry, tab or picker cell (by text, tooltip or value) on whatever screen is open. */
     private boolean press(String text) {
-        float[] pos = ctx.computeOnClient(mc -> mc.gui.screen() instanceof QuestBookScreen s ? s.zonePos(text)
-                : mc.gui.screen() instanceof QiScreen s ? s.zonePos(text) : null);
+        scrollUntil(() -> findZone(text) != null);
+        float[] pos = findZone(text);
         if (pos == null) {
             System.out.println("[selftest] no button '" + text + "' on " + ctx.computeOnClient(mc -> String.valueOf(mc.gui.screen())));
             return false;
@@ -215,6 +238,7 @@ public class Selftest implements FabricClientGameTest {
 
     /** Clicks into a form's text field (by its label), selects everything and types the new text. */
     private boolean type(String fieldLabel, String text) {
+        scrollUntil(() -> ctx.computeOnClient(mc -> mc.gui.screen() instanceof FormScreen f && f.fieldPos(fieldLabel) != null));
         float[] pos = ctx.computeOnClient(mc -> mc.gui.screen() instanceof FormScreen f ? f.fieldPos(fieldLabel) : null);
         if (pos == null) {
             System.out.println("[selftest] no field '" + fieldLabel + "'");

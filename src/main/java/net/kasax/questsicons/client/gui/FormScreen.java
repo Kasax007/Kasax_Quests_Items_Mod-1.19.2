@@ -172,7 +172,7 @@ public class FormScreen extends QiScreen {
     /** For tests: the text box of the field with this label (to click into it), or null. */
     public float[] fieldPos(String label) {
         for (Field f : fields) {
-            if (f.label != null && f.label.getString().equals(label) && f.box() != null) {
+            if (f.label != null && f.label.getString().equals(label) && f.box() != null && f.box().visible) {
                 var b = f.box();
                 return new float[]{b.getX() + 6, b.getY() + b.getHeight() / 2f};
             }

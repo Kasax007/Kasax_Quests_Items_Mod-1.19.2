@@ -186,6 +186,8 @@ public class QuestBookScreen extends Screen {
         TEXTURES.clear();   // resource packs may have changed
         SIDEBAR = Mth.clamp(width / 5, 150, 200);
         if (book() == null) return;
+        // Back from a form or picker: the book may have been replaced by a sync in the meantime.
+        if (chapter != null && book().chapter(chapter.id) != chapter) bookUpdated();
         if (chapter == null) {
             Chapter c = book().chapter(lastChapter);
             if (c == null || !isChapterVisible(c)) c = firstVisibleChapter();
