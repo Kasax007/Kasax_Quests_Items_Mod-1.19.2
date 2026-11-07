@@ -142,6 +142,7 @@
   "questsicons.import.found": " FTB book: %s groups, %s chapters, %s quests, %s tasks, %s rewards, %s reward tables",
   "questsicons.import.result": " Quest Icons book: %s quests, %s tasks, %s rewards; %s tasks became checkmarks, %s things skipped, %s approximated",
   "questsicons.import.unknown": " %s ids do not exist in this game (missing mods?), see the report",
+  "questsicons.import.missing_mods": " %s mods are not installed: %s",
   "questsicons.import.top": " Most often: %s",
   "questsicons.import.report": " Full list in the report: %s",
   "questsicons.import.open_report": "Click to copy the path",

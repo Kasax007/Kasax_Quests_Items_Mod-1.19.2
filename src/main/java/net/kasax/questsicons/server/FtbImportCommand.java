@@ -252,14 +252,18 @@ public final class FtbImportCommand {
                 num(r.result("Rewards")), num(r.count(Kind.CHECKMARK)), num(r.count(Kind.SKIPPED)), num(r.count(Kind.APPROXIMATED))), false);
         if (r.count(Kind.UNKNOWN) > 0) {
             src.sendSuccess(() -> Component.translatable("questsicons.import.unknown", num(r.count(Kind.UNKNOWN))).withStyle(ChatFormatting.RED), false);
-        }
-        List<String> top = new ArrayList<>();
-        for (Kind k : new Kind[]{Kind.CHECKMARK, Kind.SKIPPED}) {
-            for (Map.Entry<String, Integer> e : r.summary(k).entrySet()) {
-                if (top.size() >= 4) break;
-                top.add(e.getKey() + " (" + num(e.getValue()) + ")");
+            List<String> mods = FtbImporter.missingMods(r);
+            if (!mods.isEmpty()) {
+                String shownMods = String.join(", ", mods.subList(0, Math.min(8, mods.size()))) + (mods.size() > 8 ? ", ..." : "");
+                src.sendSuccess(() -> Component.translatable("questsicons.import.missing_mods", num(mods.size()), shownMods).withStyle(ChatFormatting.RED), false);
             }
         }
+        // The most frequent things that are not imported exactly as they were.
+        List<Map.Entry<String, Integer>> all = new ArrayList<>();
+        for (Kind k : new Kind[]{Kind.CHECKMARK, Kind.SKIPPED}) all.addAll(r.summary(k).entrySet());
+        all.sort((x, y) -> y.getValue() - x.getValue());
+        List<String> top = new ArrayList<>();
+        for (Map.Entry<String, Integer> e : all.subList(0, Math.min(4, all.size()))) top.add(e.getKey() + " (" + num(e.getValue()) + ")");
         if (!top.isEmpty()) {
             src.sendSuccess(() -> Component.translatable("questsicons.import.top", String.join(", ", top)).withStyle(ChatFormatting.GRAY), false);
         }
@@ -381,6 +385,15 @@ public final class FtbImportCommand {
                 Identifier rl = Identifier.tryParse(id);
                 return rl != null && server.reloadableRegistries().lookup().lookupOrThrow(Registries.LOOT_TABLE)
                         .get(ResourceKey.create(Registries.LOOT_TABLE, rl)).isPresent();
+            }
+
+            private final java.util.Map<String, Boolean> namespaces = new java.util.HashMap<>();
+
+            @Override
+            public boolean namespace(String namespace) {
+                return namespaces.computeIfAbsent(namespace, ns -> ns.equals("minecraft") || ns.equals("c")
+                        || net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded(ns)
+                        || BuiltInRegistries.ITEM.keySet().stream().anyMatch(k -> k.getNamespace().equals(ns)));
             }
 
             @Override
