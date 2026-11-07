@@ -1,12 +1,12 @@
 package net.kasax.questsicons.selftest;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
-import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
-import net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerConnection;
-import net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerContext;
-import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext;
-import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
+import net.kasax.questsicons.selftest.harness.FabricClientGameTest;
+import net.kasax.questsicons.selftest.harness.ClientGameTestContext;
+import net.kasax.questsicons.selftest.harness.TestDedicatedServerConnection;
+import net.kasax.questsicons.selftest.harness.TestDedicatedServerContext;
+import net.kasax.questsicons.selftest.harness.TestServerContext;
+import net.kasax.questsicons.selftest.harness.TestSingleplayerContext;
 import net.fabricmc.loader.api.FabricLoader;
 import net.kasax.questsicons.importer.ImportReport;
 import net.kasax.questsicons.net.QuestNet;
@@ -59,7 +59,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Opens the quest book in a fresh world and clicks through it with real mouse clicks and keys (26.3: SDL numbering),
+ * Opens the quest book in a fresh world and clicks through it with real mouse clicks and keys (1.21.1: GLFW numbering),
  * then checks the Dream Star and its pedestal. Saves screenshots and fails if a check fails.
  */
 public class Selftest implements FabricClientGameTest {
@@ -78,7 +78,7 @@ public class Selftest implements FabricClientGameTest {
         ctx.getInput().resizeWindow(1280, 720);
         ctx.runOnClient(mc -> {
             mc.options.guiScale().set(2);
-            mc.resizeGui();
+            mc.resizeDisplay();
         });
         try (TestSingleplayerContext sp = ctx.worldBuilder().adjustSettings(s -> {
             s.setGameMode(WorldCreationUiState.SelectedGameMode.CREATIVE);
@@ -109,7 +109,7 @@ public class Selftest implements FabricClientGameTest {
         ctx.setScreen(QuestBookScreen::new);
         ctx.waitTicks(10);
         ctx.takeScreenshot("qi_book_map");
-        // A real left click on the first quest must open its panel (26.3 reports left = 1, not 0).
+        // A real left click on the first quest must open its panel (1.21.1 reports left = 0 (GLFW); 26.3 reports 1).
         clickQuest(welcome);
         check("left click opens the quest", selected() == welcome);
         ctx.takeScreenshot("qi_click_quest");
@@ -129,7 +129,7 @@ public class Selftest implements FabricClientGameTest {
         check("click Unpin", clickLabel(tr("questsicons.gui.unpin")));
         check("the quest is unpinned", !ClientQuests.pinned.contains(welcome));
 
-        // Escape closes only the panel (26.3: Escape is key 41, not 256), a second Escape the book.
+        // Escape closes only the panel (1.21.1: Escape is key 256 (GLFW)), a second Escape the book.
         ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);
         ctx.waitTicks(3);
         check("Escape closes the quest panel", bookOpen() && selected() == 0);
@@ -534,7 +534,7 @@ public class Selftest implements FabricClientGameTest {
         try (TestDedicatedServerContext server = ctx.worldBuilder().createServer()) {
             try (TestDedicatedServerConnection connection = server.connect()) {
                 ctx.waitFor(mc -> ClientQuests.book != null, 1200);
-                String name = ctx.computeOnClient(mc -> mc.player.getGameProfile().name());
+                String name = ctx.computeOnClient(mc -> mc.player.getGameProfile().getName());
                 server.runCommand("op " + name);
                 ctx.waitFor(mc -> ClientQuests.canEdit, 600);
                 check("dedicated server: the operator may edit", ctx.computeOnClient(mc -> ClientQuests.canEdit));
@@ -917,15 +917,16 @@ public class Selftest implements FabricClientGameTest {
         server.runCommand("clear @a");
         server.runCommand("give @a questsicons:dream_star");
         ctx.waitTicks(20);
-        server.runOnServer(s -> player(s).getInventory().setSelectedSlot(0));
+        server.runOnServer(s -> player(s).getInventory().selected = 0);
         // /give shows its pickup animation with a fake item that must vanish (it once stayed forever).
         check("no ghost star after /give", server.computeOnServer(s -> count(s, ModItems.DREAM_STAR, player(s).blockPosition(), 4)) == 0);
         check("the star is a unique, fire-proof trophy", server.computeOnServer(s -> {
             ItemStack star = player(s).getMainHandItem();
             ServerLevel level = s.overworld();
             return star.is(ModItems.DREAM_STAR) && star.getMaxStackSize() == 1 && star.hasFoil()
-                    && !star.canBeHurtBy(level.damageSources().lava()) && !star.canBeHurtBy(level.damageSources().explosion(null, null))
-                    && star.canBeHurtBy(level.damageSources().fellOutOfWorld());
+                    // 1.21.1: the stack is fire resistant; explosions, cactus and lightning are kept off by the item
+                    // entity (invulnerable, see the TNT check below), the void still takes it.
+                    && !star.canBeHurtBy(level.damageSources().lava()) && star.canBeHurtBy(level.damageSources().fellOutOfWorld());
         }));
         check("getting the star grants the advancement", server.computeOnServer(s -> {
             AdvancementHolder h = s.getAdvancements().get(ResourceLocation.fromNamespaceAndPath("questsicons", "dream_star"));
@@ -942,7 +943,7 @@ public class Selftest implements FabricClientGameTest {
         check("the client sees the star", ctx.computeOnClient(mc -> mc.level.getBlockEntity(PEDESTAL) instanceof DreamStarPedestalBlockEntity be
                 && be.getStar().is(ModItems.DREAM_STAR)));
         ctx.runOnClient(mc -> {
-            if (!mc.gui.hud.isHidden()) mc.gui.hud.toggle();
+            mc.options.hideGui = true;
         });
         ctx.waitTicks(60);
         ctx.takeScreenshot("qi_pedestal_star");
@@ -950,7 +951,7 @@ public class Selftest implements FabricClientGameTest {
         ctx.waitTicks(30);
         ctx.takeScreenshot("qi_pedestal_star_side");
         ctx.runOnClient(mc -> {
-            if (mc.gui.hud.isHidden()) mc.gui.hud.toggle();
+            mc.options.hideGui = false;
         });
         server.runCommand("tp @a 0.5 151 -2.5 0 25");
         ctx.waitTicks(5);
@@ -1027,7 +1028,7 @@ public class Selftest implements FabricClientGameTest {
     }
 
     private static boolean hasRecipe(MinecraftServer s, String path) {
-        return s.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, ResourceLocation.fromNamespaceAndPath("questsicons", path))).isPresent();
+        return s.getRecipeManager().byKey(ResourceLocation.fromNamespaceAndPath("questsicons", path)).isPresent();
     }
 
     private static boolean crafts(MinecraftServer s, Item result, Item... grid) {
@@ -1035,6 +1036,6 @@ public class Selftest implements FabricClientGameTest {
         for (Item i : grid) items.add(i == Items.AIR ? ItemStack.EMPTY : new ItemStack(i));
         CraftingInput input = CraftingInput.of(3, 3, items);
         return s.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, s.overworld())
-                .map(h -> h.value().assemble(input).is(result)).orElse(false);
+                .map(h -> h.value().assemble(input, s.registryAccess()).is(result)).orElse(false);
     }
 }

@@ -81,7 +81,9 @@ publishing {
 }
 
 // Visual self-test (dev only, never shipped): ./gradlew runSelftest
-// A client game test that creates a world, clicks through the quest book, imports an FTB Quests book and saves screenshots.
+// Clicks through the quest book and the editor in a fresh world, imports an FTB Quests book (also on a dedicated server
+// started in the same JVM) and saves screenshots. Minecraft 1.21.1 has no Fabric client game-test API yet: src/selftest
+// brings a small harness with the same names (net.kasax.questsicons.selftest.harness). Run it under Xvfb.
 sourceSets {
 	selftest {
 		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
@@ -90,6 +92,9 @@ sourceSets {
 }
 loom {
 	mods {
+		"questsicons" {
+			sourceSet sourceSets.main
+		}
 		"questsicons-selftest" {
 			sourceSet sourceSets.selftest
 		}
@@ -100,12 +105,25 @@ loom {
 			name "Selftest"
 			source sourceSets.selftest
 			runDir "build/run/selftest"
-			property "fabric.client.gametest"
+			property "qi.selftest", "true"
 			vmArg "-Xmx2G"
+			programArgs "--username", "QiTester", "--width", "1280", "--height", "720"
 			// The FTB Quests book the self-test imports: -PselftestFtb=/path/to/quests (default: the JSON5 test book).
 			vmArg "-Dqi.selftestFtb=" + (project.findProperty("selftestFtb") ?: file("src/test/resources/ftbquests/json5").absolutePath)
 			// The book imported on the in-process dedicated server (-PselftestFtbLarge=..., default: the same book).
 			if (project.findProperty("selftestFtbLarge")) vmArg "-Dqi.selftestFtbLarge=" + project.findProperty("selftestFtbLarge")
+			// Splits payloads above this many bytes into parts (QuestNet), to test the parts with a small book: -PselftestMaxPayload=4000
+			if (project.findProperty("selftestMaxPayload")) vmArg "-Dquestsicons.maxPayload=" + project.findProperty("selftestMaxPayload")
 		}
+	}
+}
+// A clean game for every self-test: no onboarding screens, no pause when the window loses focus.
+tasks.matching { it.name == "runSelftest" }.configureEach {
+	doFirst {
+		def dir = file("build/run/selftest")
+		dir.mkdirs()
+		file("build/run/selftest/options.txt").text = "onboardAccessibility:false\npauseOnLostFocus:false\ntutorialStep:none\n" +
+				"joinedFirstServer:true\nskipMultiplayerWarning:true\nnarrator:0\nguiScale:2\nsoundCategory_master:0.0\n"
+		delete "build/run/selftest/saves", "build/run/selftest/world", "build/run/selftest/config/questsicons", "build/run/selftest/screenshots"
 	}
 }

@@ -5,7 +5,9 @@
   "name": "Quest Icons self-test",
   "environment": "client",
   "entrypoints": {
-    "fabric-client-gametest": ["net.kasax.questsicons.selftest.Selftest"]
+    "client": ["net.kasax.questsicons.selftest.harness.TestRunner"],
+    "questsicons-selftest": ["net.kasax.questsicons.selftest.Selftest"]
   },
-  "depends": {"questsicons": "*", "fabric-client-gametest-api-v1": "*"}
+  "mixins": ["questsicons-selftest.mixins.json"],
+  "depends": {"questsicons": "*"}
 }

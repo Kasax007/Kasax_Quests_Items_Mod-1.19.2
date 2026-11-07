@@ -12,7 +12,7 @@ public final class ClientNet {
     }
 
     public static void send(CustomPacketPayload payload) {
-        for (CustomPacketPayload p : QuestNet.split(payload, QuestNet.MAX_TO_SERVER)) ClientNet.send(p);
+        for (CustomPacketPayload p : QuestNet.split(payload, QuestNet.MAX_TO_SERVER)) ClientPlayNetworking.send(p);
     }
 
     static void init() {

@@ -133,8 +133,9 @@ public final class QuestNet {
     // cannot split one. A big book (an imported FTB Quests book with thousands of quests), the editor's lists and edits
     // that carry whole chapters (paste, undo) therefore travel as numbered parts when they are too big.
 
-    public static final int MAX_TO_CLIENT = 1_000_000;
-    public static final int MAX_TO_SERVER = 30_000;
+    // -Dquestsicons.maxPayload=<bytes> lowers both limits (the self-test uses it to send even a small book in parts).
+    public static final int MAX_TO_CLIENT = Math.min(1_000_000, Integer.getInteger("questsicons.maxPayload", 1_000_000));
+    public static final int MAX_TO_SERVER = Math.min(30_000, Integer.getInteger("questsicons.maxPayload", 30_000));
     /** The most a reassembled payload may hold (the book may be 16 MiB, edits and lists 8 MiB). */
     private static final int MAX_ASSEMBLED = 17 * 1024 * 1024;
 
@@ -216,6 +217,6 @@ public final class QuestNet {
 
     /** Sends a payload to a player, in parts if it is too big for one packet. */
     public static void sendToPlayer(ServerPlayer player, CustomPacketPayload payload) {
-        for (CustomPacketPayload p : split(payload, MAX_TO_CLIENT)) QuestNet.sendToPlayer(player, p);
+        for (CustomPacketPayload p : split(payload, MAX_TO_CLIENT)) ServerPlayNetworking.send(player, p);
     }
 }
