@@ -48,7 +48,13 @@ public class TestWorldBuilder {
             throw new RuntimeException(e);
         }
         TestRunner.dedicated = null;
-        Thread t = new Thread(() -> net.minecraft.server.Main.main(new String[]{"nogui"}), "Dedicated server main");
+        Thread t = new Thread(() -> {
+            try {
+                net.minecraft.server.Main.main(new String[]{"nogui"});
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, "Dedicated server main");
         t.setDaemon(true);
         t.start();
         context.waitFor(mc -> TestRunner.dedicated != null && TestRunner.dedicated.isReady(), 6000);

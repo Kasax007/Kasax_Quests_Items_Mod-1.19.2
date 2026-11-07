@@ -1,28 +1,33 @@
 package net.kasax.questsicons.selftest.harness;
 
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.loader.api.FabricLoader;
+import net.kasax.questsicons.selftest.Selftest;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.server.dedicated.DedicatedServer;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
+
+import java.util.List;
 
 /**
- * Starts the self-tests (entrypoint "questsicons-selftest") on their own thread once the title screen shows, when the
+ * Starts the self-tests on their own thread once the title screen shows, when the
  * game runs with -Dqi.selftest=true. Exits the game afterwards: status 0 if every test passed, 1 otherwise.
  */
-public class TestRunner implements ClientModInitializer {
+@Mod(value = "questsicons_selftest", dist = Dist.CLIENT)
+public class TestRunner {
     static volatile DedicatedServer dedicated;
     private static boolean started;
 
-    @Override
-    public void onInitializeClient() {
+    public TestRunner() {
         if (!Boolean.getBoolean("qi.selftest")) return;
-        ServerLifecycleEvents.SERVER_STARTED.register(s -> {
-            if (s instanceof DedicatedServer d) dedicated = d;
+        NeoForge.EVENT_BUS.addListener((ServerStartedEvent e) -> {
+            if (e.getServer() instanceof DedicatedServer d) dedicated = d;
         });
-        ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+        NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> {
+            Minecraft mc = Minecraft.getInstance();
             ClientGameTestContext.onTick();
             if (!started && mc.screen instanceof TitleScreen) {
                 started = true;
@@ -36,7 +41,7 @@ public class TestRunner implements ClientModInitializer {
     private static void runAll() {
         boolean ok = true;
         ClientGameTestContext ctx = new ClientGameTestContext();
-        for (FabricClientGameTest test : FabricLoader.getInstance().getEntrypoints("questsicons-selftest", FabricClientGameTest.class)) {
+        for (FabricClientGameTest test : List.<FabricClientGameTest>of(new Selftest())) {
             try {
                 test.runTest(ctx);
             } catch (Throwable e) {

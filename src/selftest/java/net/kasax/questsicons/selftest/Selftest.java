@@ -7,7 +7,7 @@ import net.kasax.questsicons.selftest.harness.TestDedicatedServerConnection;
 import net.kasax.questsicons.selftest.harness.TestDedicatedServerContext;
 import net.kasax.questsicons.selftest.harness.TestServerContext;
 import net.kasax.questsicons.selftest.harness.TestSingleplayerContext;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.loading.FMLPaths;
 import net.kasax.questsicons.importer.ImportReport;
 import net.kasax.questsicons.net.QuestNet;
 import net.kasax.questsicons.quest.Chapter;
@@ -524,7 +524,7 @@ public class Selftest implements FabricClientGameTest {
 
     /** The editor on a dedicated server: an operator's edits are saved by the server and reach the client live. */
     private void editorOnDedicatedServer() {
-        Path gameDir = FabricLoader.getInstance().getGameDir();
+        Path gameDir = FMLPaths.GAMEDIR.get();
         try {
             Files.writeString(gameDir.resolve("eula.txt"), "eula=true\n");
         } catch (IOException e) {
@@ -655,7 +655,7 @@ public class Selftest implements FabricClientGameTest {
             check("FTB Quests sample folder exists (" + sample + ")", false);
             return;
         }
-        Path gameDir = FabricLoader.getInstance().getGameDir();
+        Path gameDir = FMLPaths.GAMEDIR.get();
         Path target = gameDir.resolve("config/ftbquests/quests");
         try {
             deleteTree(gameDir.resolve("config/ftbquests"));
@@ -783,7 +783,7 @@ public class Selftest implements FabricClientGameTest {
     private void ftbImportOnDedicatedServer() {
         Path sample = Path.of(System.getProperty("qi.selftestFtbLarge", System.getProperty("qi.selftestFtb", "")));
         if (!Files.isDirectory(sample)) return;
-        Path gameDir = FabricLoader.getInstance().getGameDir();
+        Path gameDir = FMLPaths.GAMEDIR.get();
         try {
             deleteTree(gameDir.resolve("config/ftbquests"));
             copyTree(sample, gameDir.resolve("config/ftbquests/quests"));

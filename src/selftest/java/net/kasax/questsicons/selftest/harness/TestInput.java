@@ -1,7 +1,6 @@
 package net.kasax.questsicons.selftest.harness;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.kasax.questsicons.selftest.mixin.KeyboardHandlerInvoker;
 import net.kasax.questsicons.selftest.mixin.MouseHandlerInvoker;
 import net.minecraft.client.KeyMapping;
@@ -87,7 +86,7 @@ public class TestInput {
 
     /** Presses whatever key or mouse button the key mapping is bound to (e.g. {@code o -> o.keyUse}). */
     public void pressKey(Function<Options, KeyMapping> mapping) {
-        InputConstants.Key key = context.computeOnClient(mc -> KeyBindingHelper.getBoundKeyOf(mapping.apply(mc.options)));
+        InputConstants.Key key = context.computeOnClient(mc -> mapping.apply(mc.options).getKey());
         if (key.getType() == InputConstants.Type.MOUSE) pressMouse(key.getValue());
         else pressKey(key.getValue());
     }
