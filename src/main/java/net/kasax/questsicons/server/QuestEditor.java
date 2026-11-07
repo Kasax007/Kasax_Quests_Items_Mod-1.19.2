@@ -1,7 +1,6 @@
 package net.kasax.questsicons.server;
 
 import net.kasax.questsicons.compat.QiListTag;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.kasax.questsicons.QuestsIcons;
 import net.kasax.questsicons.net.QuestNet;
 import net.kasax.questsicons.quest.Chapter;

@@ -1,0 +1,6 @@
+{
+  "net/minecraft/nbt/CompoundTag": ["net/kasax/questsicons/compat/QiCompoundTag"],
+  "net/minecraft/nbt/ListTag": ["net/kasax/questsicons/compat/QiListTag"],
+  "net/minecraft/nbt/StringTag": ["net/kasax/questsicons/compat/QiStringTag"],
+  "net/minecraft/nbt/NumericTag": ["net/kasax/questsicons/compat/QiNumericTag"]
+}

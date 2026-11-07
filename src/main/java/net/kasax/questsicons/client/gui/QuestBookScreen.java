@@ -3,7 +3,6 @@ package net.kasax.questsicons.client.gui;
 import net.kasax.questsicons.compat.QiListTag;
 import com.mojang.blaze3d.platform.InputConstants;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.kasax.questsicons.client.ClientQuests;
 import net.kasax.questsicons.client.EditorData;
 import net.kasax.questsicons.icons.IconLibrary;

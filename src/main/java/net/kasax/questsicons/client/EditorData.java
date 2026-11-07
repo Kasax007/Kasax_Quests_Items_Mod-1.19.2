@@ -1,6 +1,5 @@
 package net.kasax.questsicons.client;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.kasax.questsicons.net.QuestNet;
 import net.kasax.questsicons.quest.Chapter;
 import net.kasax.questsicons.quest.QuestBook;
@@ -34,10 +33,6 @@ public final class EditorData {
     // ------------------------------------------------------------------------------------------------ server lists
     private static CompoundTag server = new CompoundTag();
     private static boolean requested;
-
-    public static void init() {
-        ClientPlayNetworking.registerGlobalReceiver(QuestNet.EditorLists.TYPE, (payload, ctx) -> onLists(payload));
-    }
 
     static void onLists(QuestNet.EditorLists payload) {
         server = payload.data();

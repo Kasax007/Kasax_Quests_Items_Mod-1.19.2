@@ -5,7 +5,6 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.kasax.questsicons.item.ModItems;
 import net.kasax.questsicons.progress.QuestSavedData;
 import net.kasax.questsicons.progress.TeamData;
@@ -40,8 +39,9 @@ public final class QuestCommands {
         return SharedSuggestionProvider.suggest(ids, b);
     };
 
-    public static void init() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, env) -> register(dispatcher));
+    /** Called from NeoForge's RegisterCommandsEvent (see QuestsIcons). */
+    public static void init(CommandDispatcher<CommandSourceStack> dispatcher) {
+        register(dispatcher);
     }
 
     private static QuestServer qs() {

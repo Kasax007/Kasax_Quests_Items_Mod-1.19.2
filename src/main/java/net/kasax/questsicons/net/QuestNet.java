@@ -1,9 +1,12 @@
 package net.kasax.questsicons.net;
 
 import io.netty.buffer.Unpooled;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.kasax.questsicons.QuestsIcons;
+import net.kasax.questsicons.client.ClientNet;
+import net.kasax.questsicons.server.QuestServer;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.kasax.questsicons.compat.MixedLists;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
@@ -202,21 +205,25 @@ public final class QuestNet {
         }
     }
 
-    // ------------------------------------------------------------------------------------------- loader glue (Fabric)
+    // ------------------------------------------------------------------------------------------- loader glue (NeoForge)
 
-    public static void register() {
-        PayloadTypeRegistry.playS2C().register(BookSync.TYPE, BookSync.CODEC);
-        PayloadTypeRegistry.playS2C().register(TeamSync.TYPE, TeamSync.CODEC);
-        PayloadTypeRegistry.playS2C().register(Notify.TYPE, Notify.CODEC);
-        PayloadTypeRegistry.playS2C().register(EditorLists.TYPE, EditorLists.CODEC);
-        PayloadTypeRegistry.playS2C().register(Part.TYPE, Part.CODEC);
-        PayloadTypeRegistry.playC2S().register(Action.TYPE, Action.CODEC);
-        PayloadTypeRegistry.playC2S().register(Edit.TYPE, Edit.CODEC);
-        PayloadTypeRegistry.playC2S().register(Part.TYPE, Part.CODEC);
+    /** Mod bus: registers every payload with its handler (client handlers only run on the client). */
+    public static void register(RegisterPayloadHandlersEvent event) {
+        PayloadRegistrar r = event.registrar("1");
+        r.playToClient(BookSync.TYPE, BookSync.CODEC, (p, ctx) -> ClientNet.received(p));
+        r.playToClient(TeamSync.TYPE, TeamSync.CODEC, (p, ctx) -> ClientNet.received(p));
+        r.playToClient(Notify.TYPE, Notify.CODEC, (p, ctx) -> ClientNet.received(p));
+        r.playToClient(EditorLists.TYPE, EditorLists.CODEC, (p, ctx) -> ClientNet.received(p));
+        r.playToServer(Action.TYPE, Action.CODEC, (p, ctx) -> QuestServer.received((ServerPlayer) ctx.player(), p));
+        r.playToServer(Edit.TYPE, Edit.CODEC, (p, ctx) -> QuestServer.received((ServerPlayer) ctx.player(), p));
+        r.playBidirectional(Part.TYPE, Part.CODEC, (p, ctx) -> {
+            if (ctx.player() instanceof ServerPlayer sp) QuestServer.received(sp, p);
+            else ClientNet.received(p);
+        });
     }
 
     /** Sends a payload to a player, in parts if it is too big for one packet. */
     public static void sendToPlayer(ServerPlayer player, CustomPacketPayload payload) {
-        for (CustomPacketPayload p : split(payload, MAX_TO_CLIENT)) ServerPlayNetworking.send(player, p);
+        for (CustomPacketPayload p : split(payload, MAX_TO_CLIENT)) PacketDistributor.sendToPlayer(player, p);
     }
 }

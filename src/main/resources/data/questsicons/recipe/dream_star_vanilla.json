@@ -1,55 +1,100 @@
 {
-  "fabric:load_conditions": [
+  "neoforge:conditions": [
     {
-      "condition": "fabric:not",
+      "type": "neoforge:not",
       "value": {
-        "condition": "fabric:and",
+        "type": "neoforge:and",
         "values": [
           {
-            "condition": "fabric:all_mods_loaded",
-            "values": [
-              "techreborn",
-              "mythicupgrades",
-              "wizards",
-              "paladins",
-              "raft"
-            ]
-          },
-          {
-            "condition": "fabric:any_mods_loaded",
-            "values": [
-              "tamacraft",
-              "tamagotchi"
-            ]
-          },
-          {
-            "condition": "fabric:registry_contains",
-            "registry": "minecraft:item",
-            "values": [
-              "techreborn:lapotronic_orb",
-              "mythicupgrades:ametrine_ingot",
-              "wizards:staff_netherite_arcane",
-              "wizards:staff_netherite_fire",
-              "wizards:staff_netherite_frost",
-              "paladins:netherite_holy_staff",
-              "raft:heart_of_the_tide"
-            ]
-          },
-          {
-            "condition": "fabric:or",
+            "type": "neoforge:and",
             "values": [
               {
-                "condition": "fabric:registry_contains",
-                "registry": "minecraft:item",
+                "type": "neoforge:mod_loaded",
+                "modid": "techreborn"
+              },
+              {
+                "type": "neoforge:mod_loaded",
+                "modid": "mythicupgrades"
+              },
+              {
+                "type": "neoforge:mod_loaded",
+                "modid": "wizards"
+              },
+              {
+                "type": "neoforge:mod_loaded",
+                "modid": "paladins"
+              },
+              {
+                "type": "neoforge:mod_loaded",
+                "modid": "raft"
+              }
+            ]
+          },
+          {
+            "type": "neoforge:or",
+            "values": [
+              {
+                "type": "neoforge:mod_loaded",
+                "modid": "tamacraft"
+              },
+              {
+                "type": "neoforge:mod_loaded",
+                "modid": "tamagotchi"
+              }
+            ]
+          },
+          {
+            "type": "neoforge:and",
+            "values": [
+              {
+                "type": "neoforge:item_exists",
+                "item": "techreborn:lapotronic_orb"
+              },
+              {
+                "type": "neoforge:item_exists",
+                "item": "mythicupgrades:ametrine_ingot"
+              },
+              {
+                "type": "neoforge:item_exists",
+                "item": "wizards:staff_netherite_arcane"
+              },
+              {
+                "type": "neoforge:item_exists",
+                "item": "wizards:staff_netherite_fire"
+              },
+              {
+                "type": "neoforge:item_exists",
+                "item": "wizards:staff_netherite_frost"
+              },
+              {
+                "type": "neoforge:item_exists",
+                "item": "paladins:netherite_holy_staff"
+              },
+              {
+                "type": "neoforge:item_exists",
+                "item": "raft:heart_of_the_tide"
+              }
+            ]
+          },
+          {
+            "type": "neoforge:or",
+            "values": [
+              {
+                "type": "neoforge:and",
                 "values": [
-                  "tamacraft:tamacraft_heart"
+                  {
+                    "type": "neoforge:item_exists",
+                    "item": "tamacraft:tamacraft_heart"
+                  }
                 ]
               },
               {
-                "condition": "fabric:registry_contains",
-                "registry": "minecraft:item",
+                "type": "neoforge:and",
                 "values": [
-                  "tamagotchi:tamagotchi_heart"
+                  {
+                    "type": "neoforge:item_exists",
+                    "item": "tamagotchi:tamagotchi_heart"
+                  }
                 ]
               }
             ]

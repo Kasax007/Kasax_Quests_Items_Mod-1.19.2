@@ -1,11 +1,6 @@
 package net.kasax.questsicons.server;
 
-import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.loading.FMLPaths;
 import net.kasax.questsicons.QuestsIcons;
 import net.kasax.questsicons.item.ModItems;
 import net.kasax.questsicons.net.QuestNet;
@@ -42,7 +37,7 @@ import java.util.UUID;
 
 /** Server side of the quest system: owns the book, detects progress, hands out rewards. */
 public final class QuestServer {
-    public static final Path DIR = FabricLoader.getInstance().getConfigDir().resolve("questsicons").resolve("quests");
+    public static final Path DIR = FMLPaths.CONFIGDIR.get().resolve("questsicons").resolve("quests");
 
     private static @Nullable QuestServer instance;
 
@@ -66,37 +61,45 @@ public final class QuestServer {
         return instance;
     }
 
-    public static void init() {
-        ServerLifecycleEvents.SERVER_STARTED.register(s -> instance = new QuestServer(s));
-        ServerLifecycleEvents.SERVER_STOPPED.register(s -> instance = null);
-        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((s, rm, ok) -> {
-            if (instance != null) instance.bookChanged(false);
-        });
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, s) -> {
-            if (instance != null) instance.onJoin(handler.player);
-        });
-        ServerTickEvents.END_SERVER_TICK.register(s -> {
-            if (instance != null) instance.tick();
-        });
-        ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
-            if (instance != null && source.getEntity() instanceof ServerPlayer p) instance.onKill(p, entity);
-        });
-        ServerPlayNetworking.registerGlobalReceiver(QuestNet.Action.TYPE, (payload, ctx) -> {
-            if (instance != null) instance.onAction(ctx.player(), payload);
-        });
-        ServerPlayNetworking.registerGlobalReceiver(QuestNet.Edit.TYPE, (payload, ctx) -> {
-            if (instance != null) QuestEditor.apply(instance, ctx.player(), payload.op());
-        });
+    // ------------------------------------------------------------------------------- loader hooks
+    // NeoForge events call these (wired in QuestsIcons); on Fabric the same calls sit in Fabric API callbacks.
+
+    public static void serverStarted(MinecraftServer s) {
+        instance = new QuestServer(s);
+    }
+
+    public static void serverStopped() {
+        instance = null;
+    }
+
+    public static void dataPacksReloaded() {
+        if (instance != null) instance.bookChanged(false);
+    }
+
+    public static void playerJoined(ServerPlayer p) {
+        if (instance != null) instance.onJoin(p);
+    }
+
+    public static void playerLeft(ServerPlayer p) {
+        if (instance != null) instance.parts.remove(p.getUUID());
+    }
+
+    public static void serverTick() {
+        if (instance != null) instance.tick();
+    }
+
+    public static void entityKilled(net.minecraft.world.entity.LivingEntity entity, net.minecraft.world.damagesource.DamageSource source) {
+        if (instance != null && source.getEntity() instanceof ServerPlayer p) instance.onKill(p, entity);
+    }
+
+    public static void received(ServerPlayer p, CustomPacketPayload payload) {
+        if (instance == null) return;
         // The parts of an edit that was too big for one packet (see QuestNet).
-        ServerPlayNetworking.registerGlobalReceiver(QuestNet.Part.TYPE, (payload, ctx) -> {
-            if (instance == null) return;
-            ServerPlayer p = ctx.player();
-            CustomPacketPayload whole = instance.parts.computeIfAbsent(p.getUUID(), u -> new QuestNet.Assembler()).accept(payload);
-            if (whole instanceof QuestNet.Edit e) QuestEditor.apply(instance, p, e.op());
-        });
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, s) -> {
-            if (instance != null) instance.parts.remove(handler.player.getUUID());
-        });
+        if (payload instanceof QuestNet.Part part) {
+            payload = instance.parts.computeIfAbsent(p.getUUID(), u -> new QuestNet.Assembler()).accept(part);
+        }
+        if (payload instanceof QuestNet.Action a) instance.onAction(p, a);
+        else if (payload instanceof QuestNet.Edit e) QuestEditor.apply(instance, p, e.op());
     }
 
     // ------------------------------------------------------------------------------- book
