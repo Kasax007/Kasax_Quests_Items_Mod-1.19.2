@@ -107,3 +107,8 @@ loom {
 		}
 	}
 }
+
+// The game runs on Java 21 like a 1.21.11 player's (Gradle itself may run on a newer JDK).
+tasks.withType(JavaExec).configureEach {
+	javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+}
