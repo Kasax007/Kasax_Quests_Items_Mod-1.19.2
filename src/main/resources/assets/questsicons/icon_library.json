@@ -1,0 +1,2536 @@
+{
+  "tabs": [
+    {
+      "id": "questitems",
+      "icon": "quest_crown"
+    },
+    {
+      "id": "letters_numbers",
+      "icon": "letter_a"
+    },
+    {
+      "id": "symbols",
+      "icon": "status_check"
+    },
+    {
+      "id": "ranks",
+      "icon": "medal_gold"
+    },
+    {
+      "id": "themes_craft",
+      "icon": "tech_battery_full"
+    },
+    {
+      "id": "themes_adventure",
+      "icon": "combat_crossed_swords"
+    },
+    {
+      "id": "themes_world",
+      "icon": "econ_coin_gold"
+    }
+  ],
+  "categories": [
+    {
+      "id": "classic",
+      "tab": "questitems",
+      "icons": [
+        {
+          "id": "chapter_lock",
+          "keywords": ""
+        },
+        {
+          "id": "end_lock",
+          "keywords": ""
+        },
+        {
+          "id": "quest_backpack",
+          "keywords": ""
+        },
+        {
+          "id": "quest_crown",
+          "keywords": ""
+        },
+        {
+          "id": "quest_dungeon",
+          "keywords": ""
+        },
+        {
+          "id": "quest_key",
+          "keywords": ""
+        },
+        {
+          "id": "quest_portal_one",
+          "keywords": ""
+        },
+        {
+          "id": "quest_portal_two",
+          "keywords": ""
+        },
+        {
+          "id": "quest_portal_three",
+          "keywords": ""
+        },
+        {
+          "id": "quest_portal_four",
+          "keywords": ""
+        },
+        {
+          "id": "quest_portal_five",
+          "keywords": ""
+        },
+        {
+          "id": "logo_fabric",
+          "keywords": ""
+        },
+        {
+          "id": "icon_compass",
+          "keywords": ""
+        },
+        {
+          "id": "icon_sword",
+          "keywords": ""
+        },
+        {
+          "id": "icon_shield",
+          "keywords": ""
+        },
+        {
+          "id": "icon_pickaxe",
+          "keywords": ""
+        },
+        {
+          "id": "icon_magic",
+          "keywords": ""
+        },
+        {
+          "id": "icon_gear",
+          "keywords": ""
+        },
+        {
+          "id": "icon_house",
+          "keywords": ""
+        },
+        {
+          "id": "icon_food",
+          "keywords": ""
+        },
+        {
+          "id": "icon_map",
+          "keywords": ""
+        },
+        {
+          "id": "icon_star",
+          "keywords": ""
+        },
+        {
+          "id": "icon_trophy",
+          "keywords": ""
+        },
+        {
+          "id": "icon_skull",
+          "keywords": ""
+        },
+        {
+          "id": "icon_heart",
+          "keywords": ""
+        },
+        {
+          "id": "icon_question",
+          "keywords": ""
+        },
+        {
+          "id": "icon_exclamation",
+          "keywords": ""
+        },
+        {
+          "id": "icon_raft",
+          "keywords": ""
+        },
+        {
+          "id": "icon_potion",
+          "keywords": ""
+        },
+        {
+          "id": "icon_chest",
+          "keywords": ""
+        },
+        {
+          "id": "icon_tree",
+          "keywords": ""
+        },
+        {
+          "id": "icon_moon",
+          "keywords": ""
+        }
+      ]
+    },
+    {
+      "id": "letters",
+      "tab": "letters_numbers",
+      "icons": [
+        {
+          "id": "letter_a",
+          "keywords": "abc alphabet a"
+        },
+        {
+          "id": "letter_b",
+          "keywords": "abc alphabet b"
+        },
+        {
+          "id": "letter_c",
+          "keywords": "abc alphabet c"
+        },
+        {
+          "id": "letter_d",
+          "keywords": "abc alphabet d"
+        },
+        {
+          "id": "letter_e",
+          "keywords": "abc alphabet e"
+        },
+        {
+          "id": "letter_f",
+          "keywords": "abc alphabet f"
+        },
+        {
+          "id": "letter_g",
+          "keywords": "abc alphabet g"
+        },
+        {
+          "id": "letter_h",
+          "keywords": "abc alphabet h"
+        },
+        {
+          "id": "letter_i",
+          "keywords": "abc alphabet i"
+        },
+        {
+          "id": "letter_j",
+          "keywords": "abc alphabet j"
+        },
+        {
+          "id": "letter_k",
+          "keywords": "abc alphabet k"
+        },
+        {
+          "id": "letter_l",
+          "keywords": "abc alphabet l"
+        },
+        {
+          "id": "letter_m",
+          "keywords": "abc alphabet m"
+        },
+        {
+          "id": "letter_n",
+          "keywords": "abc alphabet n"
+        },
+        {
+          "id": "letter_o",
+          "keywords": "abc alphabet o"
+        },
+        {
+          "id": "letter_p",
+          "keywords": "abc alphabet p"
+        },
+        {
+          "id": "letter_q",
+          "keywords": "abc alphabet q"
+        },
+        {
+          "id": "letter_r",
+          "keywords": "abc alphabet r"
+        },
+        {
+          "id": "letter_s",
+          "keywords": "abc alphabet s"
+        },
+        {
+          "id": "letter_t",
+          "keywords": "abc alphabet t"
+        },
+        {
+          "id": "letter_u",
+          "keywords": "abc alphabet u"
+        },
+        {
+          "id": "letter_v",
+          "keywords": "abc alphabet v"
+        },
+        {
+          "id": "letter_w",
+          "keywords": "abc alphabet w"
+        },
+        {
+          "id": "letter_x",
+          "keywords": "abc alphabet x"
+        },
+        {
+          "id": "letter_y",
+          "keywords": "abc alphabet y"
+        },
+        {
+          "id": "letter_z",
+          "keywords": "abc alphabet z"
+        }
+      ]
+    },
+    {
+      "id": "numbers",
+      "tab": "letters_numbers",
+      "icons": [
+        {
+          "id": "number_0",
+          "keywords": "digit count 0"
+        },
+        {
+          "id": "number_1",
+          "keywords": "digit count 1"
+        },
+        {
+          "id": "number_2",
+          "keywords": "digit count 2"
+        },
+        {
+          "id": "number_3",
+          "keywords": "digit count 3"
+        },
+        {
+          "id": "number_4",
+          "keywords": "digit count 4"
+        },
+        {
+          "id": "number_5",
+          "keywords": "digit count 5"
+        },
+        {
+          "id": "number_6",
+          "keywords": "digit count 6"
+        },
+        {
+          "id": "number_7",
+          "keywords": "digit count 7"
+        },
+        {
+          "id": "number_8",
+          "keywords": "digit count 8"
+        },
+        {
+          "id": "number_9",
+          "keywords": "digit count 9"
+        },
+        {
+          "id": "number_10",
+          "keywords": "digit count 10"
+        },
+        {
+          "id": "number_11",
+          "keywords": "digit count 11"
+        },
+        {
+          "id": "number_12",
+          "keywords": "digit count 12"
+        },
+        {
+          "id": "number_13",
+          "keywords": "digit count 13"
+        },
+        {
+          "id": "number_14",
+          "keywords": "digit count 14"
+        },
+        {
+          "id": "number_15",
+          "keywords": "digit count 15"
+        },
+        {
+          "id": "number_16",
+          "keywords": "digit count 16"
+        },
+        {
+          "id": "number_17",
+          "keywords": "digit count 17"
+        },
+        {
+          "id": "number_18",
+          "keywords": "digit count 18"
+        },
+        {
+          "id": "number_19",
+          "keywords": "digit count 19"
+        },
+        {
+          "id": "number_20",
+          "keywords": "digit count 20"
+        },
+        {
+          "id": "number_25",
+          "keywords": "digit count 25"
+        },
+        {
+          "id": "number_30",
+          "keywords": "digit count 30"
+        },
+        {
+          "id": "number_32",
+          "keywords": "digit count 32"
+        },
+        {
+          "id": "number_50",
+          "keywords": "digit count 50"
+        },
+        {
+          "id": "number_64",
+          "keywords": "digit count 64"
+        },
+        {
+          "id": "number_99",
+          "keywords": "digit count 99"
+        }
+      ]
+    },
+    {
+      "id": "symbols",
+      "tab": "symbols",
+      "icons": [
+        {
+          "id": "symbol_plus",
+          "keywords": "math sign plus"
+        },
+        {
+          "id": "symbol_minus",
+          "keywords": "math sign minus"
+        },
+        {
+          "id": "symbol_multiply",
+          "keywords": "math sign multiply"
+        },
+        {
+          "id": "symbol_divide",
+          "keywords": "math sign divide"
+        },
+        {
+          "id": "symbol_equals",
+          "keywords": "math sign equals"
+        },
+        {
+          "id": "symbol_not_equal",
+          "keywords": "math sign not_equal"
+        },
+        {
+          "id": "symbol_percent",
+          "keywords": "math sign percent"
+        },
+        {
+          "id": "symbol_hash",
+          "keywords": "math sign hash"
+        },
+        {
+          "id": "symbol_less_than",
+          "keywords": "math sign less_than"
+        },
+        {
+          "id": "symbol_greater_than",
+          "keywords": "math sign greater_than"
+        },
+        {
+          "id": "symbol_infinity",
+          "keywords": "math sign infinity"
+        },
+        {
+          "id": "symbol_plus_minus",
+          "keywords": "math sign plus_minus"
+        },
+        {
+          "id": "symbol_question",
+          "keywords": "math sign question"
+        },
+        {
+          "id": "symbol_exclamation",
+          "keywords": "math sign exclamation"
+        },
+        {
+          "id": "symbol_ampersand",
+          "keywords": "math sign ampersand"
+        },
+        {
+          "id": "symbol_at",
+          "keywords": "math sign at"
+        },
+        {
+          "id": "symbol_dollar",
+          "keywords": "math sign dollar"
+        },
+        {
+          "id": "symbol_asterisk",
+          "keywords": "math sign asterisk"
+        },
+        {
+          "id": "symbol_slash",
+          "keywords": "math sign slash"
+        },
+        {
+          "id": "symbol_dot",
+          "keywords": "math sign dot"
+        }
+      ]
+    },
+    {
+      "id": "arrows",
+      "tab": "symbols",
+      "icons": [
+        {
+          "id": "arrow_right",
+          "keywords": "direction next"
+        },
+        {
+          "id": "arrow_left",
+          "keywords": "direction back"
+        },
+        {
+          "id": "arrow_up",
+          "keywords": "direction up"
+        },
+        {
+          "id": "arrow_down",
+          "keywords": "direction down"
+        },
+        {
+          "id": "arrow_up_right",
+          "keywords": "diagonal"
+        },
+        {
+          "id": "arrow_up_left",
+          "keywords": "diagonal"
+        },
+        {
+          "id": "arrow_down_right",
+          "keywords": "diagonal"
+        },
+        {
+          "id": "arrow_down_left",
+          "keywords": "diagonal"
+        },
+        {
+          "id": "arrow_green_right",
+          "keywords": "direction next"
+        },
+        {
+          "id": "arrow_green_left",
+          "keywords": "direction back"
+        },
+        {
+          "id": "arrow_green_up",
+          "keywords": "direction up"
+        },
+        {
+          "id": "arrow_green_down",
+          "keywords": "direction down"
+        },
+        {
+          "id": "arrow_red_right",
+          "keywords": "direction next"
+        },
+        {
+          "id": "arrow_red_left",
+          "keywords": "direction back"
+        },
+        {
+          "id": "arrow_red_up",
+          "keywords": "direction up"
+        },
+        {
+          "id": "arrow_red_down",
+          "keywords": "direction down"
+        },
+        {
+          "id": "arrow_blue_right",
+          "keywords": "direction next"
+        },
+        {
+          "id": "arrow_blue_left",
+          "keywords": "direction back"
+        },
+        {
+          "id": "arrow_blue_up",
+          "keywords": "direction up"
+        },
+        {
+          "id": "arrow_blue_down",
+          "keywords": "direction down"
+        },
+        {
+          "id": "arrow_yellow_right",
+          "keywords": "direction next"
+        },
+        {
+          "id": "arrow_yellow_left",
+          "keywords": "direction back"
+        },
+        {
+          "id": "arrow_yellow_up",
+          "keywords": "direction up"
+        },
+        {
+          "id": "arrow_yellow_down",
+          "keywords": "direction down"
+        },
+        {
+          "id": "arrow_double_right",
+          "keywords": "skip fast double"
+        },
+        {
+          "id": "arrow_double_left",
+          "keywords": "back rewind double"
+        },
+        {
+          "id": "arrow_left_right",
+          "keywords": "swap exchange both"
+        },
+        {
+          "id": "arrow_up_down",
+          "keywords": "both vertical"
+        },
+        {
+          "id": "arrow_cycle",
+          "keywords": "repeat refresh loop again"
+        },
+        {
+          "id": "arrow_return",
+          "keywords": "back undo return"
+        },
+        {
+          "id": "arrow_curve_up",
+          "keywords": "redo turn"
+        },
+        {
+          "id": "arrow_split",
+          "keywords": "branch choose fork path"
+        },
+        {
+          "id": "arrow_merge",
+          "keywords": "join combine"
+        },
+        {
+          "id": "arrow_download",
+          "keywords": "get receive import"
+        },
+        {
+          "id": "arrow_upload",
+          "keywords": "send export give"
+        }
+      ]
+    },
+    {
+      "id": "status",
+      "tab": "symbols",
+      "icons": [
+        {
+          "id": "status_check",
+          "keywords": "done yes ok complete tick"
+        },
+        {
+          "id": "status_cross",
+          "keywords": "no wrong fail x"
+        },
+        {
+          "id": "status_checkbox_empty",
+          "keywords": "todo task open"
+        },
+        {
+          "id": "status_checkbox_checked",
+          "keywords": "done task complete"
+        },
+        {
+          "id": "status_checkbox_crossed",
+          "keywords": "failed task"
+        },
+        {
+          "id": "status_info",
+          "keywords": "information help hint i"
+        },
+        {
+          "id": "status_question",
+          "keywords": "help unknown"
+        },
+        {
+          "id": "status_exclamation",
+          "keywords": "important alert"
+        },
+        {
+          "id": "status_warning",
+          "keywords": "caution danger alert triangle"
+        },
+        {
+          "id": "status_stop",
+          "keywords": "halt error no entry forbidden"
+        },
+        {
+          "id": "status_forbidden",
+          "keywords": "not allowed no ban"
+        },
+        {
+          "id": "status_add",
+          "keywords": "plus new create"
+        },
+        {
+          "id": "status_remove",
+          "keywords": "minus delete"
+        },
+        {
+          "id": "status_new",
+          "keywords": "new star burst sparkle"
+        },
+        {
+          "id": "status_locked",
+          "keywords": "lock locked closed secure"
+        },
+        {
+          "id": "status_unlocked",
+          "keywords": "unlock open free"
+        },
+        {
+          "id": "status_heart_broken",
+          "keywords": "death fail lost"
+        }
+      ]
+    },
+    {
+      "id": "ui",
+      "tab": "symbols",
+      "icons": [
+        {
+          "id": "ui_home",
+          "keywords": "home start base house main"
+        },
+        {
+          "id": "ui_settings",
+          "keywords": "options config sliders setup"
+        },
+        {
+          "id": "ui_bookmark",
+          "keywords": "save favourite mark"
+        },
+        {
+          "id": "ui_search",
+          "keywords": "find look magnifier zoom"
+        },
+        {
+          "id": "ui_eye",
+          "keywords": "visible show see watch"
+        },
+        {
+          "id": "ui_eye_hidden",
+          "keywords": "hidden invisible secret"
+        },
+        {
+          "id": "ui_bell",
+          "keywords": "notification alert ring"
+        },
+        {
+          "id": "ui_trash",
+          "keywords": "delete remove bin"
+        },
+        {
+          "id": "ui_pencil",
+          "keywords": "edit write note"
+        },
+        {
+          "id": "ui_save",
+          "keywords": "save disk floppy"
+        },
+        {
+          "id": "ui_folder",
+          "keywords": "folder files group category"
+        },
+        {
+          "id": "ui_list",
+          "keywords": "list tasks overview menu"
+        },
+        {
+          "id": "ui_power",
+          "keywords": "on off power toggle"
+        },
+        {
+          "id": "ui_play",
+          "keywords": "start go begin play"
+        },
+        {
+          "id": "ui_pause",
+          "keywords": "pause wait break"
+        },
+        {
+          "id": "ui_link",
+          "keywords": "chain link connect url"
+        },
+        {
+          "id": "ui_puzzle",
+          "keywords": "puzzle mod addon compat piece"
+        },
+        {
+          "id": "ui_pushpin",
+          "keywords": "pin note attach"
+        },
+        {
+          "id": "ui_target_crosshair",
+          "keywords": "aim focus target goal"
+        },
+        {
+          "id": "ui_book_open",
+          "keywords": "guide lore read story manual"
+        },
+        {
+          "id": "ui_hint",
+          "keywords": "tip idea hint bulb"
+        }
+      ]
+    },
+    {
+      "id": "tiers",
+      "tab": "ranks",
+      "icons": [
+        {
+          "id": "tier_1",
+          "keywords": "roman level stage rank 1 wood"
+        },
+        {
+          "id": "tier_2",
+          "keywords": "roman level stage rank 2 stone"
+        },
+        {
+          "id": "tier_3",
+          "keywords": "roman level stage rank 3 copper"
+        },
+        {
+          "id": "tier_4",
+          "keywords": "roman level stage rank 4 iron"
+        },
+        {
+          "id": "tier_5",
+          "keywords": "roman level stage rank 5 gold"
+        },
+        {
+          "id": "tier_6",
+          "keywords": "roman level stage rank 6 emerald"
+        },
+        {
+          "id": "tier_7",
+          "keywords": "roman level stage rank 7 diamond"
+        },
+        {
+          "id": "tier_8",
+          "keywords": "roman level stage rank 8 amethyst"
+        },
+        {
+          "id": "tier_9",
+          "keywords": "roman level stage rank 9 ruby"
+        },
+        {
+          "id": "tier_10",
+          "keywords": "roman level stage rank 10 netherite"
+        },
+        {
+          "id": "tier_shield_wood",
+          "keywords": "tier material level wood"
+        },
+        {
+          "id": "tier_shield_stone",
+          "keywords": "tier material level stone"
+        },
+        {
+          "id": "tier_shield_copper",
+          "keywords": "tier material level copper"
+        },
+        {
+          "id": "tier_shield_iron",
+          "keywords": "tier material level iron"
+        },
+        {
+          "id": "tier_shield_gold",
+          "keywords": "tier material level gold"
+        },
+        {
+          "id": "tier_shield_diamond",
+          "keywords": "tier material level diamond"
+        },
+        {
+          "id": "tier_shield_netherite",
+          "keywords": "tier material level netherite"
+        }
+      ]
+    },
+    {
+      "id": "ranks",
+      "tab": "ranks",
+      "icons": [
+        {
+          "id": "medal_gold",
+          "keywords": "first winner 1st place"
+        },
+        {
+          "id": "medal_silver",
+          "keywords": "second 2nd place"
+        },
+        {
+          "id": "medal_bronze",
+          "keywords": "third 3rd place"
+        },
+        {
+          "id": "trophy_gold",
+          "keywords": "cup winner champion"
+        },
+        {
+          "id": "trophy_silver",
+          "keywords": "cup second"
+        },
+        {
+          "id": "trophy_bronze",
+          "keywords": "cup third"
+        },
+        {
+          "id": "star_gold",
+          "keywords": "favourite rating best"
+        },
+        {
+          "id": "star_silver",
+          "keywords": "rating"
+        },
+        {
+          "id": "star_bronze",
+          "keywords": "rating"
+        },
+        {
+          "id": "star_red",
+          "keywords": "rating"
+        },
+        {
+          "id": "star_blue",
+          "keywords": "rating"
+        },
+        {
+          "id": "star_purple",
+          "keywords": "rating"
+        },
+        {
+          "id": "rosette_blue",
+          "keywords": "ribbon award prize"
+        },
+        {
+          "id": "rosette_red",
+          "keywords": "ribbon award prize"
+        },
+        {
+          "id": "rosette_green",
+          "keywords": "ribbon award prize"
+        },
+        {
+          "id": "rosette_purple",
+          "keywords": "ribbon award prize"
+        },
+        {
+          "id": "rank_chevron_1",
+          "keywords": "military rank promotion"
+        },
+        {
+          "id": "rank_chevron_2",
+          "keywords": "military rank promotion"
+        },
+        {
+          "id": "rank_chevron_3",
+          "keywords": "military rank promotion"
+        },
+        {
+          "id": "crown_silver",
+          "keywords": "king queen royal second"
+        },
+        {
+          "id": "crown_gold",
+          "keywords": "king queen royal first"
+        },
+        {
+          "id": "podium",
+          "keywords": "winner places ranking leaderboard"
+        }
+      ]
+    },
+    {
+      "id": "progress",
+      "tab": "ranks",
+      "icons": [
+        {
+          "id": "progress_bar_0",
+          "keywords": "progress bar percent loading"
+        },
+        {
+          "id": "progress_bar_25",
+          "keywords": "progress bar percent loading"
+        },
+        {
+          "id": "progress_bar_50",
+          "keywords": "progress bar percent loading"
+        },
+        {
+          "id": "progress_bar_75",
+          "keywords": "progress bar percent loading"
+        },
+        {
+          "id": "progress_bar_100",
+          "keywords": "progress bar percent loading"
+        },
+        {
+          "id": "progress_pie_1",
+          "keywords": "pie quarter part stage"
+        },
+        {
+          "id": "progress_pie_2",
+          "keywords": "pie quarter part stage"
+        },
+        {
+          "id": "progress_pie_3",
+          "keywords": "pie quarter part stage"
+        },
+        {
+          "id": "progress_pie_4",
+          "keywords": "pie quarter part stage"
+        },
+        {
+          "id": "flag_start",
+          "keywords": "start begin go first"
+        },
+        {
+          "id": "flag_finish",
+          "keywords": "end finish goal last race"
+        },
+        {
+          "id": "stairs",
+          "keywords": "steps levels grow improve chart"
+        },
+        {
+          "id": "stage_dots_1",
+          "keywords": "stage step dots"
+        },
+        {
+          "id": "stage_dots_2",
+          "keywords": "stage step dots"
+        },
+        {
+          "id": "stage_dots_3",
+          "keywords": "stage step dots done"
+        }
+      ]
+    },
+    {
+      "id": "tech",
+      "tab": "themes_craft",
+      "icons": [
+        {
+          "id": "tech_battery_empty",
+          "keywords": "energy power charge rf fe"
+        },
+        {
+          "id": "tech_battery_low",
+          "keywords": "energy power charge rf fe"
+        },
+        {
+          "id": "tech_battery_half",
+          "keywords": "energy power charge rf fe"
+        },
+        {
+          "id": "tech_battery_full",
+          "keywords": "energy power charge rf fe"
+        },
+        {
+          "id": "tech_lightning",
+          "keywords": "energy power electric volt"
+        },
+        {
+          "id": "tech_plug",
+          "keywords": "energy cable electric power"
+        },
+        {
+          "id": "tech_chip",
+          "keywords": "processor computer circuit electronics ae2"
+        },
+        {
+          "id": "tech_robot",
+          "keywords": "automation machine android"
+        },
+        {
+          "id": "tech_wrench",
+          "keywords": "tool repair configure"
+        },
+        {
+          "id": "tech_gears",
+          "keywords": "machine mechanism automation create"
+        },
+        {
+          "id": "tech_pipe",
+          "keywords": "fluid transport plumbing tube"
+        },
+        {
+          "id": "tech_tank",
+          "keywords": "fluid water storage liquid"
+        },
+        {
+          "id": "tech_solar",
+          "keywords": "sun energy power generator green"
+        },
+        {
+          "id": "tech_atom",
+          "keywords": "science nuclear physics research"
+        },
+        {
+          "id": "tech_radiation",
+          "keywords": "nuclear reactor danger uranium"
+        },
+        {
+          "id": "tech_magnet",
+          "keywords": "attract pull item magnet"
+        },
+        {
+          "id": "tech_rocket",
+          "keywords": "space launch fly galacticraft"
+        },
+        {
+          "id": "tech_satellite",
+          "keywords": "space orbit signal network"
+        },
+        {
+          "id": "tech_computer",
+          "keywords": "screen monitor terminal cc computercraft"
+        },
+        {
+          "id": "tech_lightbulb",
+          "keywords": "idea hint light lamp"
+        },
+        {
+          "id": "tech_flask",
+          "keywords": "chemistry science lab research"
+        },
+        {
+          "id": "tech_redstone",
+          "keywords": "redstone circuit signal dust"
+        },
+        {
+          "id": "tech_conveyor",
+          "keywords": "belt transport automation item"
+        },
+        {
+          "id": "tech_drill",
+          "keywords": "mining machine quarry tool"
+        }
+      ]
+    },
+    {
+      "id": "magic",
+      "tab": "themes_craft",
+      "icons": [
+        {
+          "id": "magic_wand",
+          "keywords": "spell cast wizard"
+        },
+        {
+          "id": "magic_staff",
+          "keywords": "spell wizard mage"
+        },
+        {
+          "id": "magic_spellbook",
+          "keywords": "book spell enchant magic tome"
+        },
+        {
+          "id": "magic_scroll",
+          "keywords": "spell letter quest note paper"
+        },
+        {
+          "id": "magic_rune",
+          "keywords": "rune glyph ancient stone"
+        },
+        {
+          "id": "magic_cauldron",
+          "keywords": "brew potion witch alchemy"
+        },
+        {
+          "id": "magic_wizard_hat",
+          "keywords": "wizard mage magic class"
+        },
+        {
+          "id": "magic_amulet",
+          "keywords": "necklace jewel trinket charm"
+        },
+        {
+          "id": "magic_ring",
+          "keywords": "ring jewel trinket"
+        },
+        {
+          "id": "magic_crystal_ball",
+          "keywords": "orb vision future fortune"
+        },
+        {
+          "id": "magic_sparkles",
+          "keywords": "magic shine new enchant"
+        },
+        {
+          "id": "magic_eye",
+          "keywords": "eye see ender arcane vision"
+        },
+        {
+          "id": "magic_portal_ring",
+          "keywords": "ritual summoning circle pentacle"
+        },
+        {
+          "id": "magic_candle",
+          "keywords": "light ritual wax"
+        },
+        {
+          "id": "magic_fire_spell",
+          "keywords": "flame burn fire spell"
+        },
+        {
+          "id": "magic_frost_spell",
+          "keywords": "ice snow cold freeze spell"
+        },
+        {
+          "id": "magic_holy",
+          "keywords": "holy priest paladin cross heal"
+        },
+        {
+          "id": "magic_mana",
+          "keywords": "mana drop energy magic blue"
+        }
+      ]
+    },
+    {
+      "id": "nature",
+      "tab": "themes_craft",
+      "icons": [
+        {
+          "id": "nature_sprout",
+          "keywords": "plant grow seed start farming"
+        },
+        {
+          "id": "nature_wheat",
+          "keywords": "crop farm harvest grain"
+        },
+        {
+          "id": "nature_carrot",
+          "keywords": "crop vegetable farming food"
+        },
+        {
+          "id": "nature_flower_red",
+          "keywords": "poppy plant garden"
+        },
+        {
+          "id": "nature_flower_yellow",
+          "keywords": "plant garden"
+        },
+        {
+          "id": "nature_flower_blue",
+          "keywords": "plant garden"
+        },
+        {
+          "id": "nature_flower_pink",
+          "keywords": "plant garden"
+        },
+        {
+          "id": "nature_flower_purple",
+          "keywords": "plant garden"
+        },
+        {
+          "id": "nature_flower_white",
+          "keywords": "plant garden"
+        },
+        {
+          "id": "nature_mushroom_red",
+          "keywords": "fungus forage cave"
+        },
+        {
+          "id": "nature_mushroom_brown",
+          "keywords": "fungus forage"
+        },
+        {
+          "id": "nature_leaf",
+          "keywords": "plant nature eco leaves"
+        },
+        {
+          "id": "nature_sapling",
+          "keywords": "tree plant grow forest"
+        },
+        {
+          "id": "nature_cactus",
+          "keywords": "desert plant"
+        },
+        {
+          "id": "nature_bee",
+          "keywords": "honey insect pollinate apiary"
+        },
+        {
+          "id": "nature_honey",
+          "keywords": "honey bee sweet food"
+        },
+        {
+          "id": "nature_egg",
+          "keywords": "chicken animal breed"
+        },
+        {
+          "id": "nature_paw",
+          "keywords": "animal pet tame mob creature"
+        },
+        {
+          "id": "nature_fish",
+          "keywords": "fishing ocean water food"
+        },
+        {
+          "id": "nature_fishing_rod",
+          "keywords": "fishing catch angler"
+        },
+        {
+          "id": "nature_watering_can",
+          "keywords": "garden water farm grow"
+        },
+        {
+          "id": "nature_hoe",
+          "keywords": "farming till field tool"
+        },
+        {
+          "id": "nature_bone",
+          "keywords": "skeleton dog bonemeal"
+        },
+        {
+          "id": "nature_feather",
+          "keywords": "bird chicken fly light writing"
+        },
+        {
+          "id": "nature_grass_block",
+          "keywords": "dirt ground land skyblock"
+        },
+        {
+          "id": "nature_pumpkin",
+          "keywords": "halloween farm crop"
+        }
+      ]
+    },
+    {
+      "id": "food",
+      "tab": "themes_craft",
+      "icons": [
+        {
+          "id": "food_bread",
+          "keywords": "food bakery wheat"
+        },
+        {
+          "id": "food_cake",
+          "keywords": "birthday dessert sweet party"
+        },
+        {
+          "id": "food_cookie",
+          "keywords": "snack sweet food"
+        },
+        {
+          "id": "food_meat",
+          "keywords": "steak drumstick food hunt"
+        },
+        {
+          "id": "food_steak",
+          "keywords": "beef meat food"
+        },
+        {
+          "id": "food_soup",
+          "keywords": "stew bowl warm food"
+        },
+        {
+          "id": "food_cooking_pot",
+          "keywords": "kitchen cook stew farmers delight"
+        },
+        {
+          "id": "food_frying_pan",
+          "keywords": "egg breakfast kitchen cook"
+        },
+        {
+          "id": "food_mug",
+          "keywords": "coffee tea drink hot cup"
+        },
+        {
+          "id": "food_cheese",
+          "keywords": "dairy milk food"
+        },
+        {
+          "id": "food_berries",
+          "keywords": "sweet berry fruit forage"
+        },
+        {
+          "id": "food_apple_golden",
+          "keywords": "gold apple heal special"
+        },
+        {
+          "id": "food_drumstick",
+          "keywords": "chicken meat food"
+        },
+        {
+          "id": "food_pie",
+          "keywords": "pumpkin pie dessert bake"
+        },
+        {
+          "id": "food_ice_cream",
+          "keywords": "dessert sweet cold"
+        }
+      ]
+    },
+    {
+      "id": "combat",
+      "tab": "themes_adventure",
+      "icons": [
+        {
+          "id": "combat_gravestone",
+          "keywords": "grave death tomb rip"
+        },
+        {
+          "id": "combat_crossed_swords",
+          "keywords": "fight battle pvp duel"
+        },
+        {
+          "id": "combat_axe",
+          "keywords": "weapon chop fight"
+        },
+        {
+          "id": "combat_bow",
+          "keywords": "archery ranged arrow weapon"
+        },
+        {
+          "id": "combat_arrow",
+          "keywords": "archery ammo projectile"
+        },
+        {
+          "id": "combat_trident",
+          "keywords": "ocean weapon drowned"
+        },
+        {
+          "id": "combat_mace",
+          "keywords": "heavy weapon smash"
+        },
+        {
+          "id": "combat_helmet",
+          "keywords": "armor armour protection"
+        },
+        {
+          "id": "combat_chestplate",
+          "keywords": "armor armour protection"
+        },
+        {
+          "id": "combat_boss_skull",
+          "keywords": "boss horns demon final fight"
+        },
+        {
+          "id": "combat_dragon",
+          "keywords": "ender dragon boss end"
+        },
+        {
+          "id": "combat_wither",
+          "keywords": "wither boss three heads nether"
+        },
+        {
+          "id": "combat_target",
+          "keywords": "aim goal bullseye archery objective"
+        },
+        {
+          "id": "combat_bomb",
+          "keywords": "explosion tnt blast"
+        },
+        {
+          "id": "combat_explosion",
+          "keywords": "boom blast tnt creeper"
+        },
+        {
+          "id": "combat_fist",
+          "keywords": "punch fight strength melee"
+        },
+        {
+          "id": "combat_blood",
+          "keywords": "health damage vampire"
+        },
+        {
+          "id": "combat_ghost",
+          "keywords": "spirit spooky phantom haunted"
+        },
+        {
+          "id": "combat_slime",
+          "keywords": "mob jelly bounce"
+        },
+        {
+          "id": "combat_zombie",
+          "keywords": "undead mob monster hostile"
+        },
+        {
+          "id": "combat_spider",
+          "keywords": "mob cave web"
+        },
+        {
+          "id": "combat_creeper",
+          "keywords": "mob explode hostile monster"
+        },
+        {
+          "id": "combat_skull_crossbones",
+          "keywords": "pirate danger death poison"
+        },
+        {
+          "id": "combat_poison",
+          "keywords": "toxic potion bottle danger"
+        }
+      ]
+    },
+    {
+      "id": "exploration",
+      "tab": "themes_adventure",
+      "icons": [
+        {
+          "id": "explore_map_pin",
+          "keywords": "location waypoint marker place"
+        },
+        {
+          "id": "explore_spyglass",
+          "keywords": "telescope look scout binoculars"
+        },
+        {
+          "id": "explore_tent",
+          "keywords": "camp travel rest base"
+        },
+        {
+          "id": "explore_campfire",
+          "keywords": "camp fire cook rest"
+        },
+        {
+          "id": "explore_mountain",
+          "keywords": "peak climb hill biome"
+        },
+        {
+          "id": "explore_boat",
+          "keywords": "sail ship sea voyage"
+        },
+        {
+          "id": "explore_anchor",
+          "keywords": "ship harbor sea dock"
+        },
+        {
+          "id": "explore_balloon",
+          "keywords": "travel fly sky adventure"
+        },
+        {
+          "id": "explore_signpost",
+          "keywords": "direction road sign way"
+        },
+        {
+          "id": "explore_globe",
+          "keywords": "world earth planet travel"
+        },
+        {
+          "id": "explore_treasure_map",
+          "keywords": "treasure x marks loot pirate"
+        },
+        {
+          "id": "explore_lantern",
+          "keywords": "light cave night"
+        },
+        {
+          "id": "explore_torch",
+          "keywords": "light cave fire"
+        },
+        {
+          "id": "explore_footprints",
+          "keywords": "walk travel track steps"
+        },
+        {
+          "id": "explore_cave",
+          "keywords": "cave underground mine dungeon"
+        },
+        {
+          "id": "explore_horse",
+          "keywords": "ride mount animal travel"
+        },
+        {
+          "id": "explore_lighthouse",
+          "keywords": "coast sea guide beacon"
+        }
+      ]
+    },
+    {
+      "id": "dimensions",
+      "tab": "themes_adventure",
+      "icons": [
+        {
+          "id": "dim_overworld",
+          "keywords": "world surface earth"
+        },
+        {
+          "id": "dim_nether",
+          "keywords": "hell lava fire netherrack"
+        },
+        {
+          "id": "dim_end",
+          "keywords": "end ender eye portal"
+        },
+        {
+          "id": "dim_end_island",
+          "keywords": "end floating island void"
+        },
+        {
+          "id": "dim_planet",
+          "keywords": "space saturn galaxy astronomy"
+        },
+        {
+          "id": "dim_moon",
+          "keywords": "space moon crater lunar"
+        },
+        {
+          "id": "dim_sun",
+          "keywords": "day sun star light"
+        },
+        {
+          "id": "dim_galaxy",
+          "keywords": "space stars cosmic universe"
+        },
+        {
+          "id": "dim_black_hole",
+          "keywords": "void space singularity"
+        },
+        {
+          "id": "dim_ocean",
+          "keywords": "sea water wave deep aquatic"
+        },
+        {
+          "id": "dim_deep_dark",
+          "keywords": "sculk warden ancient city underground"
+        },
+        {
+          "id": "dim_sky_island",
+          "keywords": "skyblock floating aether heaven"
+        },
+        {
+          "id": "dim_cloud_realm",
+          "keywords": "aether sky heaven paradise"
+        },
+        {
+          "id": "dim_twilight",
+          "keywords": "forest dark trees dimension"
+        },
+        {
+          "id": "dim_mining",
+          "keywords": "mining world ores void"
+        },
+        {
+          "id": "dim_rift",
+          "keywords": "portal tear rift warp teleport"
+        }
+      ]
+    },
+    {
+      "id": "mining",
+      "tab": "themes_world",
+      "icons": [
+        {
+          "id": "gem_diamond",
+          "keywords": "gem jewel crystal diamond"
+        },
+        {
+          "id": "gem_emerald",
+          "keywords": "gem jewel crystal emerald"
+        },
+        {
+          "id": "gem_ruby",
+          "keywords": "gem jewel crystal ruby"
+        },
+        {
+          "id": "gem_sapphire",
+          "keywords": "gem jewel crystal sapphire"
+        },
+        {
+          "id": "gem_amethyst",
+          "keywords": "gem jewel crystal amethyst"
+        },
+        {
+          "id": "gem_topaz",
+          "keywords": "gem jewel crystal topaz"
+        },
+        {
+          "id": "ingot_iron",
+          "keywords": "metal ingot bar iron"
+        },
+        {
+          "id": "ingot_gold",
+          "keywords": "metal ingot bar gold"
+        },
+        {
+          "id": "ingot_copper",
+          "keywords": "metal ingot bar copper"
+        },
+        {
+          "id": "ingot_netherite",
+          "keywords": "metal ingot bar netherite"
+        },
+        {
+          "id": "ingot_silver",
+          "keywords": "metal ingot bar silver"
+        },
+        {
+          "id": "ingot_bronze",
+          "keywords": "metal ingot bar bronze"
+        },
+        {
+          "id": "ingot_steel",
+          "keywords": "metal ingot bar steel"
+        },
+        {
+          "id": "ingot_tin",
+          "keywords": "metal ingot bar tin"
+        },
+        {
+          "id": "ingot_lead",
+          "keywords": "metal ingot bar lead"
+        },
+        {
+          "id": "ingot_uranium",
+          "keywords": "metal ingot bar uranium"
+        },
+        {
+          "id": "ingot_aluminium",
+          "keywords": "metal ingot bar aluminium"
+        },
+        {
+          "id": "ingot_enchanted",
+          "keywords": "metal ingot bar enchanted"
+        },
+        {
+          "id": "ore_coal",
+          "keywords": "ore mine vein coal"
+        },
+        {
+          "id": "ore_iron",
+          "keywords": "ore mine vein iron"
+        },
+        {
+          "id": "ore_copper",
+          "keywords": "ore mine vein copper"
+        },
+        {
+          "id": "ore_gold",
+          "keywords": "ore mine vein gold"
+        },
+        {
+          "id": "ore_redstone",
+          "keywords": "ore mine vein redstone"
+        },
+        {
+          "id": "ore_lapis",
+          "keywords": "ore mine vein lapis"
+        },
+        {
+          "id": "ore_diamond",
+          "keywords": "ore mine vein diamond"
+        },
+        {
+          "id": "ore_emerald",
+          "keywords": "ore mine vein emerald"
+        },
+        {
+          "id": "ore_quartz",
+          "keywords": "ore mine vein quartz"
+        },
+        {
+          "id": "ore_ruby",
+          "keywords": "ore mine vein ruby"
+        },
+        {
+          "id": "ore_amethyst",
+          "keywords": "ore mine vein amethyst"
+        },
+        {
+          "id": "mining_crystal_cluster",
+          "keywords": "crystal geode amethyst cluster"
+        },
+        {
+          "id": "mining_minecart",
+          "keywords": "rail cart transport mine"
+        },
+        {
+          "id": "mining_dynamite",
+          "keywords": "explosive tnt blast mining"
+        },
+        {
+          "id": "mining_shovel",
+          "keywords": "dig dirt tool"
+        },
+        {
+          "id": "mining_hammer",
+          "keywords": "crush smash tool build"
+        },
+        {
+          "id": "mining_dust",
+          "keywords": "dust powder grind pulverize"
+        }
+      ]
+    },
+    {
+      "id": "building",
+      "tab": "themes_world",
+      "icons": [
+        {
+          "id": "build_bricks",
+          "keywords": "wall brick build construction"
+        },
+        {
+          "id": "build_blueprint",
+          "keywords": "plan design schematic build"
+        },
+        {
+          "id": "build_paintbrush",
+          "keywords": "paint decorate color art"
+        },
+        {
+          "id": "build_paint_bucket",
+          "keywords": "paint dye color decorate"
+        },
+        {
+          "id": "build_door",
+          "keywords": "door house entrance"
+        },
+        {
+          "id": "build_window",
+          "keywords": "glass house frame"
+        },
+        {
+          "id": "build_castle",
+          "keywords": "fortress kingdom medieval build"
+        },
+        {
+          "id": "build_tower",
+          "keywords": "tower spire wizard castle"
+        },
+        {
+          "id": "build_bridge",
+          "keywords": "cross river path build"
+        },
+        {
+          "id": "build_column",
+          "keywords": "pillar greek decoration marble"
+        },
+        {
+          "id": "build_chair",
+          "keywords": "furniture seat decoration"
+        },
+        {
+          "id": "build_bed",
+          "keywords": "sleep rest home spawn"
+        },
+        {
+          "id": "build_plant_pot",
+          "keywords": "decoration garden home"
+        },
+        {
+          "id": "build_crane",
+          "keywords": "construction build big project"
+        },
+        {
+          "id": "build_ruler",
+          "keywords": "measure size plan"
+        }
+      ]
+    },
+    {
+      "id": "storage",
+      "tab": "themes_world",
+      "icons": [
+        {
+          "id": "storage_crate",
+          "keywords": "box storage wood"
+        },
+        {
+          "id": "storage_barrel",
+          "keywords": "storage keg container"
+        },
+        {
+          "id": "storage_package",
+          "keywords": "parcel delivery box shipping mail"
+        },
+        {
+          "id": "storage_shulker",
+          "keywords": "portable box end storage"
+        },
+        {
+          "id": "storage_drawer",
+          "keywords": "storage drawers cabinet sort"
+        },
+        {
+          "id": "storage_hopper",
+          "keywords": "funnel transfer items automation"
+        },
+        {
+          "id": "storage_network",
+          "keywords": "network ae2 refined storage cable"
+        },
+        {
+          "id": "storage_cart",
+          "keywords": "transport move logistics"
+        },
+        {
+          "id": "storage_truck",
+          "keywords": "delivery transport logistics shipping"
+        },
+        {
+          "id": "storage_filter",
+          "keywords": "sort filter funnel"
+        }
+      ]
+    },
+    {
+      "id": "economy",
+      "tab": "themes_world",
+      "icons": [
+        {
+          "id": "econ_coin_gold",
+          "keywords": "money coin currency cash"
+        },
+        {
+          "id": "econ_coin_silver",
+          "keywords": "money coin currency"
+        },
+        {
+          "id": "econ_coin_copper",
+          "keywords": "money coin currency"
+        },
+        {
+          "id": "econ_coin_stack",
+          "keywords": "money rich coins currency"
+        },
+        {
+          "id": "econ_money_bag",
+          "keywords": "money sack loot treasure"
+        },
+        {
+          "id": "econ_banknote",
+          "keywords": "money cash dollar bill"
+        },
+        {
+          "id": "econ_shop",
+          "keywords": "store market stall trade buy sell"
+        },
+        {
+          "id": "econ_price_tag",
+          "keywords": "price cost sale label"
+        },
+        {
+          "id": "econ_scales",
+          "keywords": "trade justice balance fair"
+        },
+        {
+          "id": "econ_handshake",
+          "keywords": "trade deal agreement partner"
+        },
+        {
+          "id": "econ_vault",
+          "keywords": "safe bank secure money"
+        },
+        {
+          "id": "econ_villager_trade",
+          "keywords": "villager trade merchant npc"
+        }
+      ]
+    },
+    {
+      "id": "social",
+      "tab": "themes_world",
+      "icons": [
+        {
+          "id": "social_speech",
+          "keywords": "talk chat npc dialogue"
+        },
+        {
+          "id": "social_talk_quest",
+          "keywords": "npc talk quest giver exclamation"
+        },
+        {
+          "id": "social_talk_turn_in",
+          "keywords": "npc talk turn in question"
+        },
+        {
+          "id": "social_talk_red",
+          "keywords": "npc talk urgent important"
+        },
+        {
+          "id": "social_npc",
+          "keywords": "npc quest giver villager talk exclamation"
+        },
+        {
+          "id": "social_npc_question",
+          "keywords": "npc quest turn in question"
+        },
+        {
+          "id": "social_person",
+          "keywords": "player user single solo"
+        },
+        {
+          "id": "social_team",
+          "keywords": "team party group duo friends"
+        },
+        {
+          "id": "social_group",
+          "keywords": "team guild clan party"
+        },
+        {
+          "id": "social_letter",
+          "keywords": "mail message envelope invite"
+        },
+        {
+          "id": "social_party",
+          "keywords": "celebrate event party congratulations"
+        },
+        {
+          "id": "social_banner_red",
+          "keywords": "team flag guild faction"
+        },
+        {
+          "id": "social_banner_blue",
+          "keywords": "team flag guild faction"
+        },
+        {
+          "id": "social_banner_green",
+          "keywords": "team flag guild faction"
+        },
+        {
+          "id": "social_banner_yellow",
+          "keywords": "team flag guild faction"
+        },
+        {
+          "id": "social_banner_purple",
+          "keywords": "team flag guild faction"
+        },
+        {
+          "id": "social_banner_white",
+          "keywords": "team flag guild faction"
+        }
+      ]
+    },
+    {
+      "id": "time",
+      "tab": "themes_world",
+      "icons": [
+        {
+          "id": "time_clock",
+          "keywords": "time hour wait timer"
+        },
+        {
+          "id": "time_hourglass",
+          "keywords": "time wait timer sand"
+        },
+        {
+          "id": "time_calendar",
+          "keywords": "day date daily weekly schedule"
+        },
+        {
+          "id": "time_sun",
+          "keywords": "day sun morning light"
+        },
+        {
+          "id": "time_sunrise",
+          "keywords": "morning dawn sunset evening"
+        },
+        {
+          "id": "time_moon_full",
+          "keywords": "night moon full"
+        },
+        {
+          "id": "time_cloud",
+          "keywords": "weather cloudy sky"
+        },
+        {
+          "id": "time_rain",
+          "keywords": "weather rain storm wet"
+        },
+        {
+          "id": "time_storm",
+          "keywords": "weather thunder lightning storm"
+        },
+        {
+          "id": "time_snow",
+          "keywords": "winter snowflake cold weather"
+        },
+        {
+          "id": "time_rainbow",
+          "keywords": "weather luck colors"
+        },
+        {
+          "id": "time_thermometer",
+          "keywords": "temperature heat cold climate"
+        },
+        {
+          "id": "time_season_spring",
+          "keywords": "season spring"
+        },
+        {
+          "id": "time_season_summer",
+          "keywords": "season summer"
+        },
+        {
+          "id": "time_season_autumn",
+          "keywords": "season autumn"
+        },
+        {
+          "id": "time_season_winter",
+          "keywords": "season winter"
+        }
+      ]
+    }
+  ],
+  "map_images": [
+    {
+      "id": "arrow_right",
+      "category": "arrows",
+      "width": 48,
+      "height": 16,
+      "grid_width": 2.0,
+      "grid_height": 0.67
+    },
+    {
+      "id": "arrow_left",
+      "category": "arrows",
+      "width": 48,
+      "height": 16,
+      "grid_width": 2.0,
+      "grid_height": 0.67
+    },
+    {
+      "id": "arrow_down",
+      "category": "arrows",
+      "width": 16,
+      "height": 48,
+      "grid_width": 0.67,
+      "grid_height": 2.0
+    },
+    {
+      "id": "arrow_up",
+      "category": "arrows",
+      "width": 16,
+      "height": 48,
+      "grid_width": 0.67,
+      "grid_height": 2.0
+    },
+    {
+      "id": "gold_arrow_right",
+      "category": "arrows",
+      "width": 48,
+      "height": 16,
+      "grid_width": 2.0,
+      "grid_height": 0.67
+    },
+    {
+      "id": "gold_arrow_left",
+      "category": "arrows",
+      "width": 48,
+      "height": 16,
+      "grid_width": 2.0,
+      "grid_height": 0.67
+    },
+    {
+      "id": "gold_arrow_down",
+      "category": "arrows",
+      "width": 16,
+      "height": 48,
+      "grid_width": 0.67,
+      "grid_height": 2.0
+    },
+    {
+      "id": "gold_arrow_up",
+      "category": "arrows",
+      "width": 16,
+      "height": 48,
+      "grid_width": 0.67,
+      "grid_height": 2.0
+    },
+    {
+      "id": "green_arrow_right",
+      "category": "arrows",
+      "width": 48,
+      "height": 16,
+      "grid_width": 2.0,
+      "grid_height": 0.67
+    },
+    {
+      "id": "green_arrow_left",
+      "category": "arrows",
+      "width": 48,
+      "height": 16,
+      "grid_width": 2.0,
+      "grid_height": 0.67
+    },
+    {
+      "id": "green_arrow_down",
+      "category": "arrows",
+      "width": 16,
+      "height": 48,
+      "grid_width": 0.67,
+      "grid_height": 2.0
+    },
+    {
+      "id": "green_arrow_up",
+      "category": "arrows",
+      "width": 16,
+      "height": 48,
+      "grid_width": 0.67,
+      "grid_height": 2.0
+    },
+    {
+      "id": "red_arrow_right",
+      "category": "arrows",
+      "width": 48,
+      "height": 16,
+      "grid_width": 2.0,
+      "grid_height": 0.67
+    },
+    {
+      "id": "red_arrow_left",
+      "category": "arrows",
+      "width": 48,
+      "height": 16,
+      "grid_width": 2.0,
+      "grid_height": 0.67
+    },
+    {
+      "id": "red_arrow_down",
+      "category": "arrows",
+      "width": 16,
+      "height": 48,
+      "grid_width": 0.67,
+      "grid_height": 2.0
+    },
+    {
+      "id": "red_arrow_up",
+      "category": "arrows",
+      "width": 16,
+      "height": 48,
+      "grid_width": 0.67,
+      "grid_height": 2.0
+    },
+    {
+      "id": "arrow_curve_right",
+      "category": "arrows",
+      "width": 32,
+      "height": 32,
+      "grid_width": 1.5,
+      "grid_height": 1.5
+    },
+    {
+      "id": "arrow_curve_left",
+      "category": "arrows",
+      "width": 32,
+      "height": 32,
+      "grid_width": 1.5,
+      "grid_height": 1.5
+    },
+    {
+      "id": "divider_gold",
+      "category": "lines",
+      "width": 64,
+      "height": 8,
+      "grid_width": 4.0,
+      "grid_height": 0.5
+    },
+    {
+      "id": "divider_silver",
+      "category": "lines",
+      "width": 64,
+      "height": 8,
+      "grid_width": 4.0,
+      "grid_height": 0.5
+    },
+    {
+      "id": "divider_wood",
+      "category": "lines",
+      "width": 64,
+      "height": 8,
+      "grid_width": 4.0,
+      "grid_height": 0.5
+    },
+    {
+      "id": "divider_gold_vertical",
+      "category": "lines",
+      "width": 8,
+      "height": 64,
+      "grid_width": 0.5,
+      "grid_height": 4.0
+    },
+    {
+      "id": "line_dotted",
+      "category": "lines",
+      "width": 64,
+      "height": 8,
+      "grid_width": 4.0,
+      "grid_height": 0.5
+    },
+    {
+      "id": "line_dotted_vertical",
+      "category": "lines",
+      "width": 8,
+      "height": 64,
+      "grid_width": 0.5,
+      "grid_height": 4.0
+    },
+    {
+      "id": "line_dotted_gold",
+      "category": "lines",
+      "width": 64,
+      "height": 8,
+      "grid_width": 4.0,
+      "grid_height": 0.5
+    },
+    {
+      "id": "frame_gold",
+      "category": "frames",
+      "width": 32,
+      "height": 32,
+      "grid_width": 3.0,
+      "grid_height": 3.0
+    },
+    {
+      "id": "frame_silver",
+      "category": "frames",
+      "width": 32,
+      "height": 32,
+      "grid_width": 3.0,
+      "grid_height": 3.0
+    },
+    {
+      "id": "frame_wood",
+      "category": "frames",
+      "width": 32,
+      "height": 32,
+      "grid_width": 3.0,
+      "grid_height": 3.0
+    },
+    {
+      "id": "frame_stone",
+      "category": "frames",
+      "width": 32,
+      "height": 32,
+      "grid_width": 3.0,
+      "grid_height": 3.0
+    },
+    {
+      "id": "frame_amethyst",
+      "category": "frames",
+      "width": 32,
+      "height": 32,
+      "grid_width": 3.0,
+      "grid_height": 3.0
+    },
+    {
+      "id": "panel_dark",
+      "category": "frames",
+      "width": 48,
+      "height": 48,
+      "grid_width": 4.0,
+      "grid_height": 4.0
+    },
+    {
+      "id": "panel_parchment",
+      "category": "frames",
+      "width": 48,
+      "height": 48,
+      "grid_width": 4.0,
+      "grid_height": 4.0
+    },
+    {
+      "id": "panel_stone",
+      "category": "frames",
+      "width": 48,
+      "height": 48,
+      "grid_width": 4.0,
+      "grid_height": 4.0
+    },
+    {
+      "id": "panel_night",
+      "category": "frames",
+      "width": 48,
+      "height": 48,
+      "grid_width": 4.0,
+      "grid_height": 4.0
+    },
+    {
+      "id": "panel_forest",
+      "category": "frames",
+      "width": 48,
+      "height": 48,
+      "grid_width": 4.0,
+      "grid_height": 4.0
+    },
+    {
+      "id": "banner_start",
+      "category": "banners",
+      "width": 62,
+      "height": 18,
+      "grid_width": 3.88,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_goal",
+      "category": "banners",
+      "width": 52,
+      "height": 18,
+      "grid_width": 3.25,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_boss",
+      "category": "banners",
+      "width": 53,
+      "height": 18,
+      "grid_width": 3.31,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_bonus",
+      "category": "banners",
+      "width": 62,
+      "height": 18,
+      "grid_width": 3.88,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_secret",
+      "category": "banners",
+      "width": 69,
+      "height": 18,
+      "grid_width": 4.31,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_new",
+      "category": "banners",
+      "width": 48,
+      "height": 18,
+      "grid_width": 3.0,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_optional",
+      "category": "banners",
+      "width": 86,
+      "height": 18,
+      "grid_width": 5.38,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_finish",
+      "category": "banners",
+      "width": 66,
+      "height": 18,
+      "grid_width": 4.12,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_tier_i",
+      "category": "banners",
+      "width": 62,
+      "height": 18,
+      "grid_width": 3.88,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_tier_ii",
+      "category": "banners",
+      "width": 69,
+      "height": 18,
+      "grid_width": 4.31,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_tier_iii",
+      "category": "banners",
+      "width": 76,
+      "height": 18,
+      "grid_width": 4.75,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_tier_iv",
+      "category": "banners",
+      "width": 71,
+      "height": 18,
+      "grid_width": 4.44,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_tier_v",
+      "category": "banners",
+      "width": 64,
+      "height": 18,
+      "grid_width": 4.0,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_blank_red",
+      "category": "banners",
+      "width": 64,
+      "height": 18,
+      "grid_width": 4.0,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_blank_blue",
+      "category": "banners",
+      "width": 64,
+      "height": 18,
+      "grid_width": 4.0,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_blank_green",
+      "category": "banners",
+      "width": 64,
+      "height": 18,
+      "grid_width": 4.0,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_blank_purple",
+      "category": "banners",
+      "width": 64,
+      "height": 18,
+      "grid_width": 4.0,
+      "grid_height": 1.13
+    },
+    {
+      "id": "banner_blank_gold",
+      "category": "banners",
+      "width": 64,
+      "height": 18,
+      "grid_width": 4.0,
+      "grid_height": 1.13
+    },
+    {
+      "id": "plaque_wood",
+      "category": "banners",
+      "width": 96,
+      "height": 24,
+      "grid_width": 6.0,
+      "grid_height": 1.5
+    },
+    {
+      "id": "plaque_stone",
+      "category": "banners",
+      "width": 96,
+      "height": 24,
+      "grid_width": 6.0,
+      "grid_height": 1.5
+    },
+    {
+      "id": "scroll_header",
+      "category": "banners",
+      "width": 96,
+      "height": 28,
+      "grid_width": 6.0,
+      "grid_height": 1.75
+    }
+  ],
+  "map_image_categories": [
+    "arrows",
+    "lines",
+    "frames",
+    "banners"
+  ]
+}

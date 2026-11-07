@@ -1,0 +1,22 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:tier_1",
+    "questsicons:tier_2",
+    "questsicons:tier_3",
+    "questsicons:tier_4",
+    "questsicons:tier_5",
+    "questsicons:tier_6",
+    "questsicons:tier_7",
+    "questsicons:tier_8",
+    "questsicons:tier_9",
+    "questsicons:tier_10",
+    "questsicons:tier_shield_wood",
+    "questsicons:tier_shield_stone",
+    "questsicons:tier_shield_copper",
+    "questsicons:tier_shield_iron",
+    "questsicons:tier_shield_gold",
+    "questsicons:tier_shield_diamond",
+    "questsicons:tier_shield_netherite"
+  ]
+}

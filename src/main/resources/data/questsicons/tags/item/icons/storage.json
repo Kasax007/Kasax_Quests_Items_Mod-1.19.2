@@ -1,0 +1,16 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:icon_chest",
+    "questsicons:storage_crate",
+    "questsicons:storage_barrel",
+    "questsicons:storage_package",
+    "questsicons:storage_shulker",
+    "questsicons:storage_drawer",
+    "questsicons:storage_hopper",
+    "questsicons:storage_network",
+    "questsicons:storage_cart",
+    "questsicons:storage_truck",
+    "questsicons:storage_filter"
+  ]
+}

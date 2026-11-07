@@ -1,0 +1,26 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:quest_backpack",
+    "questsicons:icon_compass",
+    "questsicons:icon_map",
+    "questsicons:icon_raft",
+    "questsicons:explore_map_pin",
+    "questsicons:explore_spyglass",
+    "questsicons:explore_tent",
+    "questsicons:explore_campfire",
+    "questsicons:explore_mountain",
+    "questsicons:explore_boat",
+    "questsicons:explore_anchor",
+    "questsicons:explore_balloon",
+    "questsicons:explore_signpost",
+    "questsicons:explore_globe",
+    "questsicons:explore_treasure_map",
+    "questsicons:explore_lantern",
+    "questsicons:explore_torch",
+    "questsicons:explore_footprints",
+    "questsicons:explore_cave",
+    "questsicons:explore_horse",
+    "questsicons:explore_lighthouse"
+  ]
+}

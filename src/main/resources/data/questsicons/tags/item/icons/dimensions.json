@@ -1,0 +1,26 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:quest_portal_one",
+    "questsicons:quest_portal_two",
+    "questsicons:quest_portal_three",
+    "questsicons:quest_portal_four",
+    "questsicons:quest_portal_five",
+    "questsicons:dim_overworld",
+    "questsicons:dim_nether",
+    "questsicons:dim_end",
+    "questsicons:dim_end_island",
+    "questsicons:dim_planet",
+    "questsicons:dim_moon",
+    "questsicons:dim_sun",
+    "questsicons:dim_galaxy",
+    "questsicons:dim_black_hole",
+    "questsicons:dim_ocean",
+    "questsicons:dim_deep_dark",
+    "questsicons:dim_sky_island",
+    "questsicons:dim_cloud_realm",
+    "questsicons:dim_twilight",
+    "questsicons:dim_mining",
+    "questsicons:dim_rift"
+  ]
+}

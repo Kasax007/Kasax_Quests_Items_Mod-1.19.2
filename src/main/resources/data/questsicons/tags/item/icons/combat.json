@@ -1,0 +1,33 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:quest_dungeon",
+    "questsicons:icon_sword",
+    "questsicons:icon_shield",
+    "questsicons:icon_skull",
+    "questsicons:combat_gravestone",
+    "questsicons:combat_crossed_swords",
+    "questsicons:combat_axe",
+    "questsicons:combat_bow",
+    "questsicons:combat_arrow",
+    "questsicons:combat_trident",
+    "questsicons:combat_mace",
+    "questsicons:combat_helmet",
+    "questsicons:combat_chestplate",
+    "questsicons:combat_boss_skull",
+    "questsicons:combat_dragon",
+    "questsicons:combat_wither",
+    "questsicons:combat_target",
+    "questsicons:combat_bomb",
+    "questsicons:combat_explosion",
+    "questsicons:combat_fist",
+    "questsicons:combat_blood",
+    "questsicons:combat_ghost",
+    "questsicons:combat_slime",
+    "questsicons:combat_zombie",
+    "questsicons:combat_spider",
+    "questsicons:combat_creeper",
+    "questsicons:combat_skull_crossbones",
+    "questsicons:combat_poison"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:icon_moon",
+    "questsicons:time_clock",
+    "questsicons:time_hourglass",
+    "questsicons:time_calendar",
+    "questsicons:time_sun",
+    "questsicons:time_sunrise",
+    "questsicons:time_moon_full",
+    "questsicons:time_cloud",
+    "questsicons:time_rain",
+    "questsicons:time_storm",
+    "questsicons:time_snow",
+    "questsicons:time_rainbow",
+    "questsicons:time_thermometer",
+    "questsicons:time_season_spring",
+    "questsicons:time_season_summer",
+    "questsicons:time_season_autumn",
+    "questsicons:time_season_winter"
+  ]
+}

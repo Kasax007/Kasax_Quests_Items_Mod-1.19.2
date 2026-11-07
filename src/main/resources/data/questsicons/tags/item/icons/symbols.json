@@ -1,0 +1,27 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:icon_question",
+    "questsicons:icon_exclamation",
+    "questsicons:symbol_plus",
+    "questsicons:symbol_minus",
+    "questsicons:symbol_multiply",
+    "questsicons:symbol_divide",
+    "questsicons:symbol_equals",
+    "questsicons:symbol_not_equal",
+    "questsicons:symbol_percent",
+    "questsicons:symbol_hash",
+    "questsicons:symbol_less_than",
+    "questsicons:symbol_greater_than",
+    "questsicons:symbol_infinity",
+    "questsicons:symbol_plus_minus",
+    "questsicons:symbol_question",
+    "questsicons:symbol_exclamation",
+    "questsicons:symbol_ampersand",
+    "questsicons:symbol_at",
+    "questsicons:symbol_dollar",
+    "questsicons:symbol_asterisk",
+    "questsicons:symbol_slash",
+    "questsicons:symbol_dot"
+  ]
+}

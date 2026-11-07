@@ -1,0 +1,25 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:icon_magic",
+    "questsicons:icon_potion",
+    "questsicons:magic_wand",
+    "questsicons:magic_staff",
+    "questsicons:magic_spellbook",
+    "questsicons:magic_scroll",
+    "questsicons:magic_rune",
+    "questsicons:magic_cauldron",
+    "questsicons:magic_wizard_hat",
+    "questsicons:magic_amulet",
+    "questsicons:magic_ring",
+    "questsicons:magic_crystal_ball",
+    "questsicons:magic_sparkles",
+    "questsicons:magic_eye",
+    "questsicons:magic_portal_ring",
+    "questsicons:magic_candle",
+    "questsicons:magic_fire_spell",
+    "questsicons:magic_frost_spell",
+    "questsicons:magic_holy",
+    "questsicons:magic_mana"
+  ]
+}

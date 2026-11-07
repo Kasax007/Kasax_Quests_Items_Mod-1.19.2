@@ -1,0 +1,32 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:icon_tree",
+    "questsicons:nature_sprout",
+    "questsicons:nature_wheat",
+    "questsicons:nature_carrot",
+    "questsicons:nature_flower_red",
+    "questsicons:nature_flower_yellow",
+    "questsicons:nature_flower_blue",
+    "questsicons:nature_flower_pink",
+    "questsicons:nature_flower_purple",
+    "questsicons:nature_flower_white",
+    "questsicons:nature_mushroom_red",
+    "questsicons:nature_mushroom_brown",
+    "questsicons:nature_leaf",
+    "questsicons:nature_sapling",
+    "questsicons:nature_cactus",
+    "questsicons:nature_bee",
+    "questsicons:nature_honey",
+    "questsicons:nature_egg",
+    "questsicons:nature_paw",
+    "questsicons:nature_fish",
+    "questsicons:nature_fishing_rod",
+    "questsicons:nature_watering_can",
+    "questsicons:nature_hoe",
+    "questsicons:nature_bone",
+    "questsicons:nature_feather",
+    "questsicons:nature_grass_block",
+    "questsicons:nature_pumpkin"
+  ]
+}

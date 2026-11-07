@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:icon_food",
+    "questsicons:food_bread",
+    "questsicons:food_cake",
+    "questsicons:food_cookie",
+    "questsicons:food_meat",
+    "questsicons:food_steak",
+    "questsicons:food_soup",
+    "questsicons:food_cooking_pot",
+    "questsicons:food_frying_pan",
+    "questsicons:food_mug",
+    "questsicons:food_cheese",
+    "questsicons:food_berries",
+    "questsicons:food_apple_golden",
+    "questsicons:food_drumstick",
+    "questsicons:food_pie",
+    "questsicons:food_ice_cream"
+  ]
+}

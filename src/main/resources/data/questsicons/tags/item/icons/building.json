@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    "questsicons:icon_house",
+    "questsicons:build_bricks",
+    "questsicons:build_blueprint",
+    "questsicons:build_paintbrush",
+    "questsicons:build_paint_bucket",
+    "questsicons:build_door",
+    "questsicons:build_window",
+    "questsicons:build_castle",
+    "questsicons:build_tower",
+    "questsicons:build_bridge",
+    "questsicons:build_column",
+    "questsicons:build_chair",
+    "questsicons:build_bed",
+    "questsicons:build_plant_pot",
+    "questsicons:build_crane",
+    "questsicons:build_ruler"
+  ]
+}
