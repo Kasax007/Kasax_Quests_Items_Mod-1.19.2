@@ -373,6 +373,98 @@ class FtbImporterTest {
         assertEquals("Tools", r.book().quest(id("3000000000000002")).title, "missing texts come from the fallback language");
     }
 
+    @Test
+    void unknownIdsAreGroupedByMissingMod() throws Exception {
+        Path dir = out("unknown-ids");
+        Files.createDirectories(dir.resolve("chapters"));
+        Files.writeString(dir.resolve("data.snbt"), "{ title: \"Ids\" }");
+        Files.writeString(dir.resolve("chapters/a.snbt"), """
+                {
+                	id: "2000000000000009"
+                	quests: [{
+                		id: "3000000000000009"
+                		tasks: [
+                			{ id: "6000000000000091", item: "mekanism:steel_ingot", type: "item" }
+                			{ id: "6000000000000092", item: "mekanism:osmium_ingot", type: "item" }
+                			{ id: "6000000000000093", item: "minecraft:not_an_item", type: "item" }
+                			{ id: "6000000000000094", entity: "minecraft:zombie", type: "kill", value: 1L }
+                		]
+                	}]
+                }
+                """);
+        FtbImporter.Options o = new FtbImporter.Options();
+        o.game = new FtbImporter.GameData() {
+            public boolean item(String id) {
+                return net.minecraft.core.registries.BuiltInRegistries.ITEM.containsKey(net.minecraft.resources.Identifier.parse(id));
+            }
+
+            public boolean itemTag(String id) {
+                return true;
+            }
+
+            public boolean entity(String id) {
+                return net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.containsKey(net.minecraft.resources.Identifier.parse(id));
+            }
+
+            public boolean entityTag(String id) {
+                return true;
+            }
+
+            public boolean advancement(String id) {
+                return true;
+            }
+
+            public boolean dimension(String id) {
+                return true;
+            }
+
+            public boolean biome(String id) {
+                return true;
+            }
+
+            public boolean biomeTag(String id) {
+                return true;
+            }
+
+            public boolean structure(String id) {
+                return true;
+            }
+
+            public boolean structureTag(String id) {
+                return true;
+            }
+
+            public boolean block(String id) {
+                return true;
+            }
+
+            public boolean blockTag(String id) {
+                return true;
+            }
+
+            public boolean stat(String id) {
+                return true;
+            }
+
+            public boolean lootTable(String id) {
+                return true;
+            }
+
+            public List<String> itemIds() {
+                return List.of();
+            }
+
+            public boolean namespace(String namespace) {
+                return namespace.equals("minecraft");
+            }
+        };
+        ImportReport rep = FtbImporter.convert(FtbFolder.load(dir), o).report();
+        assertEquals(2, rep.count(Kind.UNKNOWN, "mod \"mekanism\" is not installed"));
+        assertEquals(1, rep.count(Kind.UNKNOWN, "item minecraft:not_an_item does not exist (renamed or a typo?)"));
+        assertEquals(3, rep.count(Kind.UNKNOWN), "the zombie exists");
+        assertEquals(List.of("mekanism (2)"), FtbImporter.missingMods(rep));
+    }
+
     // ------------------------------------------------------------------------------------------- real modpacks
 
     /**

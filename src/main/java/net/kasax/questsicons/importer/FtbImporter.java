@@ -81,6 +81,9 @@ public final class FtbImporter {
         boolean lootTable(String id);
 
         List<String> itemIds();
+
+        /** Is a mod (or Minecraft itself) with this namespace installed? */
+        boolean namespace(String namespace);
     }
 
     public static final class Options {
@@ -1204,16 +1207,19 @@ public final class FtbImporter {
         report.result.put("Chapter images", images);
     }
 
-    /** In game: everything the book names must exist, or the pack is missing a mod. */
+    /**
+     * In game: everything the book names must exist. An id of a mod that is not installed is listed under that mod
+     * (so the report reads "mod mekanism is not installed: 120 ids"), anything else as renamed or mistyped.
+     */
     private void checkIds() {
         GameData g = opt.game;
         if (g == null) return;
         for (var e : items.itemRefs.entrySet()) {
             String id = e.getKey();
-            if (!g.item(id)) report.add(Kind.UNKNOWN, "item " + id, e.getValue(), "used " + items.refCounts.getOrDefault("item:" + id, 1) + "x");
+            if (!g.item(id)) unknown(g, "item", id, e.getValue(), items.refCounts.getOrDefault("item:" + id, 1));
         }
         for (var e : items.tagRefs.entrySet()) {
-            if (!g.itemTag(e.getKey())) report.add(Kind.UNKNOWN, "item tag #" + e.getKey(), e.getValue(), "used " + items.refCounts.getOrDefault("tag:" + e.getKey(), 1) + "x");
+            if (!g.itemTag(e.getKey())) unknown(g, "item tag", e.getKey(), e.getValue(), items.refCounts.getOrDefault("tag:" + e.getKey(), 1));
         }
         for (var e : refWhere.entrySet()) {
             String kind = e.getKey().substring(0, e.getKey().indexOf('|'));
@@ -1232,7 +1238,24 @@ public final class FtbImporter {
                 case "stat" -> g.stat(id);
                 default -> true;
             };
-            if (!ok) report.add(Kind.UNKNOWN, kind.replace('_', ' ') + " " + (kind.endsWith("_tag") ? "#" : "") + id, e.getValue(), "used " + refCount.getOrDefault(e.getKey(), 1) + "x");
+            if (!ok) unknown(g, kind.replace('_', ' '), id, e.getValue(), refCount.getOrDefault(e.getKey(), 1));
         }
+    }
+
+    private void unknown(GameData g, String kind, String id, String where, int uses) {
+        String shown = kind.endsWith("tag") ? "#" + id : id;
+        String ns = id.contains(":") ? id.substring(0, id.indexOf(':')) : "minecraft";
+        String what = !g.namespace(ns) ? "mod \"" + ns + "\" is not installed" : kind + " " + shown + " does not exist (renamed or a typo?)";
+        report.add(Kind.UNKNOWN, what, where, kind + " " + shown + ", used " + uses + "x");
+    }
+
+    /** The mods whose ids the book uses but which are not installed, most used first ("mekanism (120)"). */
+    public static List<String> missingMods(ImportReport r) {
+        List<String> out = new ArrayList<>();
+        for (var e : r.summary(Kind.UNKNOWN).entrySet()) {
+            String w = e.getKey();
+            if (w.startsWith("mod \"")) out.add(w.substring(5, w.indexOf('"', 5)) + " (" + e.getValue() + ")");
+        }
+        return out;
     }
 }
