@@ -960,8 +960,15 @@ public class Selftest implements FabricClientGameTest {
         ctx.waitTicks(5);
 
         // Right-click with an empty hand takes it back.
+        ctx.takeScreenshot("qi_pedestal_before_take");
+        System.out.println("[selftest] before take: " + server.computeOnServer(s -> "star on pedestal " + hasStar(s) + ", hand "
+                + player(s).getMainHandItem() + ", slot " + player(s).getInventory().selected) + "; client hit "
+                + ctx.computeOnClient(mc -> String.valueOf(mc.hitResult == null ? null : mc.hitResult.getLocation()) + " slot " + mc.player.getInventory().selected
+                + " screen " + mc.screen));
         ctx.getInput().pressKey(o -> o.keyUse);
         ctx.waitTicks(10);
+        System.out.println("[selftest] after take: " + server.computeOnServer(s -> "star on pedestal " + hasStar(s) + ", hand "
+                + player(s).getMainHandItem() + ", inventory has " + player(s).getInventory().countItem(ModItems.DREAM_STAR)));
         check("right-click with an empty hand takes the star back", server.computeOnServer(s -> !hasStar(s)
                 && player(s).getMainHandItem().is(ModItems.DREAM_STAR)
                 && !s.overworld().getBlockState(PEDESTAL).getValue(DreamStarPedestalBlock.HAS_STAR)));
