@@ -276,7 +276,7 @@ def editor_image(name='editor_v4.png'):
     for f, t, s in panels:
         pics.append(framed(screenshot(f), cw - 24))
     ph = max(p.height for p in pics)
-    card_h = ph + 120
+    card_h = ph + 142
     H = 110 + 2 * card_h + 24 + 90
     im = night(W, H, seed=21)
     d = ImageDraw.Draw(im)

@@ -3,6 +3,7 @@ package net.kasax.questsicons.client.gui;
 import net.kasax.questsicons.client.ClientQuests;
 import net.kasax.questsicons.quest.QuestBook;
 import net.kasax.questsicons.quest.RewardTable;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -17,6 +18,7 @@ import java.util.List;
 public class TablesScreen extends QiScreen {
     private final QuestBookScreen book;
     private String confirm = "";
+    private int scroll;
 
     public TablesScreen(QuestBookScreen parent) {
         super(Component.translatable("questsicons.tables.title"), parent);
@@ -29,8 +31,11 @@ public class TablesScreen extends QiScreen {
         QuestBook b = ClientQuests.book;
         int w = Math.min(width - 40, 360);
         int x = (width - w) / 2;
-        int y = 30;
+        int y = 30 - scroll;
         if (b == null) return;
+        g.enableScissor(0, 26, width, height - 30);
+        clipTop = 26;
+        clipBottom = height - 30;
         List<String> keys = new ArrayList<>(b.rewardTables.keySet());
         for (String crate : List.of("common_crate", "rare_crate", "epic_crate", "legendary_crate")) {
             if (!keys.contains(crate)) keys.add(crate);
@@ -72,13 +77,25 @@ public class TablesScreen extends QiScreen {
         }
         button(g, x, y + 4, 120, 16, Component.translatable("questsicons.tables.new"), mx, my, () -> {
             CompoundTag t = new CompoundTag();
-            minecraft.gui.setScreen(Forms.table(this, "", t, true, saved -> {
+            Minecraft.getInstance().gui.setScreen(Forms.table(this, "", t, true, saved -> {
                 String key = saved.getStringOr("__key", "");
                 saved.remove("__key");
                 send(key, saved);
             }));
         });
+        clipTop = Integer.MIN_VALUE;
+        clipBottom = Integer.MAX_VALUE;
+        g.disableScissor();
+        maxScroll = Math.max(0, y + scroll + 30 - (height - 30));
         button(g, width / 2 - 50, height - 24, 100, 18, Component.translatable("gui.done"), mx, my, this::back);
+    }
+
+    private int maxScroll;
+
+    @Override
+    public boolean mouseScrolled(double mx, double my, double sx, double sy) {
+        scroll = Math.max(0, Math.min(maxScroll, scroll - (int) (sy * 20)));
+        return true;
     }
 
     private void edit(String key, RewardTable t) {
