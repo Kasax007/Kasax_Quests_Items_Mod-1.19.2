@@ -63,6 +63,7 @@ public final class ClientQuests {
 
     public static void init() {
         loadPins();
+        EditorData.init();
         ClientPlayNetworking.registerGlobalReceiver(QuestNet.BookSync.TYPE, (payload, ctx) -> {
             try {
                 QuestBook b = QuestBook.readAll(QuestNet.decompress(payload.data()));
@@ -83,6 +84,7 @@ public final class ClientQuests {
             book = null;
             canEdit = false;
             progress.clear();
+            EditorData.reset();
         });
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             while (OPEN_BOOK.consumeClick()) {

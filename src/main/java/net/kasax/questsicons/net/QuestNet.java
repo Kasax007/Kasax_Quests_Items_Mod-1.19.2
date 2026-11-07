@@ -108,6 +108,17 @@ public final class QuestNet {
         }
     }
 
+    /** Server -> client: ids for the editor's pickers that only the server knows (advancements, structures, ...). */
+    public record EditorLists(CompoundTag data) implements CustomPacketPayload {
+        public static final Type<EditorLists> TYPE = new Type<>(rl("editor_lists"));
+        public static final StreamCodec<FriendlyByteBuf, EditorLists> CODEC = ByteBufCodecs.TRUSTED_COMPOUND_TAG.map(EditorLists::new, EditorLists::data).cast();
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
     public static void register() {
         // A big book (an imported FTB Quests book with thousands of quests) can be close to the 1 MiB limit of a single
         // custom payload even compressed; Fabric splits a "large" payload into parts.
@@ -115,6 +126,8 @@ public final class QuestNet {
         PayloadTypeRegistry.clientboundPlay().register(TeamSync.TYPE, TeamSync.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(Notify.TYPE, Notify.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(Action.TYPE, Action.CODEC);
-        PayloadTypeRegistry.serverboundPlay().register(Edit.TYPE, Edit.CODEC);
+        // Edits carry whole chapters (paste, undo of a big chapter): allowed to be large, too.
+        PayloadTypeRegistry.serverboundPlay().registerLarge(Edit.TYPE, Edit.CODEC, 8 * 1024 * 1024);
+        PayloadTypeRegistry.clientboundPlay().registerLarge(EditorLists.TYPE, EditorLists.CODEC, 8 * 1024 * 1024);
     }
 }

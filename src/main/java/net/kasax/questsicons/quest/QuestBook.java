@@ -151,7 +151,7 @@ public final class QuestBook {
         return b;
     }
 
-    private CompoundTag writeData() {
+    public CompoundTag writeData() {
         CompoundTag tag = new CompoundTag();
         tag.putString("title", title);
         if (!icon.isEmpty()) tag.put("icon", icon.write());
@@ -162,7 +162,7 @@ public final class QuestBook {
         return tag;
     }
 
-    private void readData(CompoundTag tag) {
+    public void readData(CompoundTag tag) {
         title = tag.getStringOr("title", title);
         icon = ItemSpec.read(tag.get("icon"));
         defaultShape = tag.getStringOr("default_quest_shape", "circle");
@@ -238,9 +238,21 @@ public final class QuestBook {
                 if (f.toString().endsWith(".snbt") && !written.contains(f.getFileName().toString())) Files.delete(f);
             }
         }
+        Set<String> tables = new HashSet<>();
         if (!rewardTables.isEmpty()) {
             Files.createDirectories(dir.resolve("reward_tables"));
-            for (RewardTable t : rewardTables.values()) Snbt.write(dir.resolve("reward_tables").resolve(t.key + ".snbt"), t.write());
+            for (RewardTable t : rewardTables.values()) {
+                Snbt.write(dir.resolve("reward_tables").resolve(t.key + ".snbt"), t.write());
+                tables.add(t.key + ".snbt");
+            }
+        }
+        // A table deleted in the editor must not come back from its old file on the next start.
+        if (Files.isDirectory(dir.resolve("reward_tables"))) {
+            try (Stream<Path> files = Files.list(dir.resolve("reward_tables"))) {
+                for (Path f : files.toList()) {
+                    if (f.toString().endsWith(".snbt") && !tables.contains(f.getFileName().toString())) Files.delete(f);
+                }
+            }
         }
     }
 

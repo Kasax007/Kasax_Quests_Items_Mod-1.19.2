@@ -18,6 +18,9 @@ import net.kasax.questsicons.block.DreamStarPedestalBlock;
 import net.kasax.questsicons.block.DreamStarPedestalBlockEntity;
 import net.kasax.questsicons.block.ModBlocks;
 import net.kasax.questsicons.client.ClientQuests;
+import net.kasax.questsicons.client.gui.FormScreen;
+import net.kasax.questsicons.client.gui.PickerScreen;
+import net.kasax.questsicons.client.gui.QiScreen;
 import net.kasax.questsicons.client.gui.QuestBookScreen;
 import net.kasax.questsicons.item.ModItems;
 import net.kasax.questsicons.quest.ItemSpec;
@@ -88,10 +91,12 @@ public class Selftest implements FabricClientGameTest {
             ctx.waitTicks(5);
             ctx.takeScreenshot("qi_inventory_button");
             questBook(sp.getServer());
+            editor(sp.getServer());
             dreamStar(sp.getServer());
             ftbImport(sp.getServer());
         }
         ftbImportOnDedicatedServer();
+        editorOnDedicatedServer();
         if (!failed.isEmpty()) throw new AssertionError("self-test checks failed: " + failed);
         System.out.println("[selftest] all checks passed");
     }
@@ -188,6 +193,372 @@ public class Selftest implements FabricClientGameTest {
         ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);
         ctx.waitTicks(3);
         check("Escape with nothing open closes the book", !bookOpen());
+    }
+
+    // ------------------------------------------------------------------------------- in-game editor
+
+    private boolean onScreen(Class<?> type) {
+        return ctx.computeOnClient(mc -> type.isInstance(mc.gui.screen()));
+    }
+
+    /** Clicks a button, menu entry, tab or picker cell (by text, tooltip or value) on whatever screen is open. */
+    private boolean press(String text) {
+        float[] pos = ctx.computeOnClient(mc -> mc.gui.screen() instanceof QuestBookScreen s ? s.zonePos(text)
+                : mc.gui.screen() instanceof QiScreen s ? s.zonePos(text) : null);
+        if (pos == null) {
+            System.out.println("[selftest] no button '" + text + "' on " + ctx.computeOnClient(mc -> String.valueOf(mc.gui.screen())));
+            return false;
+        }
+        click(pos[0], pos[1]);
+        return true;
+    }
+
+    /** Clicks into a form's text field (by its label), selects everything and types the new text. */
+    private boolean type(String fieldLabel, String text) {
+        float[] pos = ctx.computeOnClient(mc -> mc.gui.screen() instanceof FormScreen f ? f.fieldPos(fieldLabel) : null);
+        if (pos == null) {
+            System.out.println("[selftest] no field '" + fieldLabel + "'");
+            return false;
+        }
+        click(pos[0], pos[1]);
+        ctx.getInput().holdControl();
+        ctx.getInput().pressKey(InputConstants.KEY_A);
+        ctx.getInput().releaseControl();
+        ctx.getInput().typeChars(text);
+        ctx.waitTicks(3);
+        return true;
+    }
+
+    private void typeSearch(String text) {
+        ctx.getInput().typeChars(text);
+        ctx.waitTicks(3);
+    }
+
+    private float[] map(double x, double y) {
+        return ctx.computeOnClient(mc -> screen(mc).mapPos(x, y));
+    }
+
+    private void rightClickMap(double x, double y) {
+        float[] p = map(x, y);
+        rightClick(p[0], p[1]);
+    }
+
+    private Chapter serverChapter(TestServerContext server, long id) {
+        return server.computeOnServer(s -> QuestServer.get().book.chapter(id));
+    }
+
+    private Quest serverQuest(TestServerContext server, String title) {
+        return server.computeOnServer(s -> {
+            for (Quest q : QuestServer.get().book.allQuests()) if (q.title.equals(title)) return q;
+            return null;
+        });
+    }
+
+    /** Drags with the left mouse button from one GUI position to another (optionally with Shift held). */
+    private void drag(float[] from, float[] to, boolean shift) {
+        double scale = ctx.computeOnClient(mc -> mc.getWindow().getGuiScale());
+        if (shift) ctx.getInput().holdShift();
+        ctx.getInput().setCursorPos(from[0] * scale, from[1] * scale);
+        ctx.waitTicks(2);
+        ctx.getInput().holdMouse(InputConstants.MOUSE_BUTTON_LEFT);
+        ctx.waitTicks(2);
+        for (int i = 1; i <= 5; i++) {
+            ctx.getInput().setCursorPos((from[0] + (to[0] - from[0]) * i / 5.0) * scale, (from[1] + (to[1] - from[1]) * i / 5.0) * scale);
+            ctx.waitTicks(1);
+        }
+        ctx.getInput().releaseMouse(InputConstants.MOUSE_BUTTON_LEFT);
+        if (shift) ctx.getInput().releaseShift();
+        ctx.waitTicks(10);
+    }
+
+    /**
+     * Builds a small chapter only with the editor and real clicks: a chapter, three quests (item, kill and checkmark
+     * tasks; item, XP and command rewards), a library icon, links, a move, copy and paste, delete, undo, a picture,
+     * a reward table and a group; then reloads the files and checks that everything is still there.
+     */
+    private void editor(TestServerContext server) {
+        ctx.setScreen(QuestBookScreen::new);
+        ctx.waitTicks(10);
+        check("editor: click Edit", press(tr("questsicons.edit.off")));
+        check("editor: edit mode is on", ctx.computeOnClient(mc -> screen(mc).editMode()));
+        int chaptersBefore = server.computeOnServer(s -> QuestServer.get().book.chapters.size());
+        check("editor: click + Chapter", press(tr("questsicons.edit.new_chapter")));
+        ctx.waitTicks(15);
+        check("editor: the new chapter exists and is shown", server.computeOnServer(s -> QuestServer.get().book.chapters.size()) == chaptersBefore + 1
+                && ctx.computeOnClient(mc -> screen(mc).selectedChapter() != null && screen(mc).selectedChapter().quests.isEmpty()));
+        long chapterId = ctx.computeOnClient(mc -> screen(mc).selectedChapter().id);
+        // Chapter settings through the form.
+        float[] row = ctx.computeOnClient(mc -> screen(mc).rowPos(chapterId));
+        rightClick(row[0], row[1]);
+        check("editor: chapter menu -> Chapter settings", press(tr("questsicons.edit.chapter_settings")));
+        check("editor: the chapter form is open", onScreen(FormScreen.class));
+        type(tr("questsicons.form.title"), "Iron Age");
+        ctx.takeScreenshot("qi_editor_chapter_form");
+        check("editor: save the chapter", press(tr("questsicons.edit.save")));
+        ctx.waitTicks(10);
+        check("editor: the chapter is renamed", "Iron Age".equals(serverChapter(server, chapterId).title));
+
+        // Quest 1: item task (4 iron ingots from the item picker) with an item reward (diamond) and 100 XP.
+        rightClickMap(0, 0);
+        check("editor: map menu -> New quest here", press(tr("questsicons.edit.new_quest")));
+        check("editor: the quest form is open", onScreen(FormScreen.class));
+        type(tr("questsicons.form.title"), "Get Iron");
+        check("editor: + Add task", press(tr("questsicons.form.add_task")));
+        check("editor: pick task type Item", press("item"));
+        check("editor: + Add item", press(tr("questsicons.form.add_item")));
+        check("editor: the item picker is open", onScreen(PickerScreen.class));
+        check("editor: picker tab All items", press("tab:items"));
+        typeSearch("iron ingot");
+        ctx.takeScreenshot("qi_editor_item_picker");
+        check("editor: pick the iron ingot", press("minecraft:iron_ingot"));
+        type(tr("questsicons.form.count"), "4");
+        ctx.takeScreenshot("qi_editor_task_form");
+        check("editor: save the task", press(tr("questsicons.edit.save")));
+        check("editor: + Add reward", press(tr("questsicons.form.add_reward")));
+        check("editor: pick reward type Item", press("item"));
+        check("editor: reward item Pick", press(tr("questsicons.form.pick")));
+        check("editor: picker tab All items (reward)", press("tab:items"));
+        typeSearch("diamond");
+        check("editor: pick the diamond", press("minecraft:diamond"));
+        check("editor: save the item reward", press(tr("questsicons.edit.save")));
+        check("editor: + Add reward (XP)", press(tr("questsicons.form.add_reward")));
+        check("editor: pick reward type XP", press("xp"));
+        check("editor: save the XP reward", press(tr("questsicons.edit.save")));
+        ctx.takeScreenshot("qi_editor_quest_form");
+        check("editor: save the quest", press(tr("questsicons.edit.save")));
+        ctx.waitTicks(10);
+        Quest q1 = serverQuest(server, "Get Iron");
+        check("editor: quest 1 has 4 iron ingots and diamond + 100 XP", q1 != null && q1.tasks.size() == 1
+                && q1.tasks.getFirst() instanceof Tasks.ItemTask it && it.count == 4 && it.item.toString().contains("iron_ingot")
+                && q1.rewards.size() == 2 && q1.rewards.get(0) instanceof Rewards.ItemReward ir && ir.item.toString().contains("diamond")
+                && q1.rewards.get(1) instanceof Rewards.XpReward xr && xr.xp == 100);
+
+        // Quest 2: kill task (a zombie by default) and a command reward.
+        rightClickMap(3, 0);
+        press(tr("questsicons.edit.new_quest"));
+        type(tr("questsicons.form.title"), "Zombie Hunter");
+        press(tr("questsicons.form.add_task"));
+        press("kill");
+        type(tr("questsicons.form.entity"), "minecraft:zombiee");
+        press(tr("questsicons.edit.save"));
+        check("editor: a typo in the mob is refused (the form stays open)", onScreen(FormScreen.class)
+                && ctx.computeOnClient(mc -> mc.gui.screen() instanceof FormScreen f && !f.valid()));
+        ctx.takeScreenshot("qi_editor_validation");
+        type(tr("questsicons.form.entity"), "minecraft:zombie");
+        type(tr("questsicons.form.amount"), "3");
+        check("editor: save the kill task", press(tr("questsicons.edit.save")));
+        press(tr("questsicons.form.add_reward"));
+        press("command");
+        check("editor: save the command reward", press(tr("questsicons.edit.save")));
+        check("editor: save quest 2", press(tr("questsicons.edit.save")));
+        ctx.waitTicks(10);
+        Quest q2 = serverQuest(server, "Zombie Hunter");
+        check("editor: quest 2 has a kill task (3 zombies) and a command reward", q2 != null && q2.tasks.size() == 1
+                && q2.tasks.getFirst() instanceof Tasks.KillTask kt && kt.value == 3 && kt.entity.equals("minecraft:zombie")
+                && q2.rewards.size() == 1 && q2.rewards.getFirst() instanceof Rewards.CommandReward);
+
+        // Quest 3: checkmark task.
+        rightClickMap(6, 0);
+        press(tr("questsicons.edit.new_quest"));
+        type(tr("questsicons.form.title"), "Report Back");
+        press(tr("questsicons.form.add_task"));
+        press("checkmark");
+        press(tr("questsicons.edit.save"));
+        check("editor: save quest 3", press(tr("questsicons.edit.save")));
+        ctx.waitTicks(10);
+        Quest q3 = serverQuest(server, "Report Back");
+        check("editor: quest 3 has a checkmark task", q3 != null && q3.tasks.size() == 1 && q3.tasks.getFirst() instanceof Tasks.CheckmarkTask);
+        if (q1 == null || q2 == null || q3 == null) return;
+
+        // The icon picker: library first, by category.
+        float[] p3 = ctx.computeOnClient(mc -> screen(mc).questScreenPos(q3.id));
+        rightClick(p3[0], p3[1]);
+        check("editor: quest menu -> Choose icon", press(tr("questsicons.edit.choose_icon")));
+        check("editor: the icon picker is open", onScreen(PickerScreen.class));
+        check("editor: icon picker tab Letters", press("tab:letters"));
+        ctx.takeScreenshot("qi_editor_icon_picker");
+        check("editor: pick Letter R", press("questsicons:letter_r"));
+        ctx.waitTicks(10);
+        check("editor: quest 3 shows the letter icon", server.computeOnServer(s -> QuestServer.get().book.quest(q3.id).icon.toString().contains("letter_r")));
+
+        // Links: shift-drag from quest 1 to quest 2; the menu's "Add dependency" from quest 3 to quest 2.
+        float[] p1 = ctx.computeOnClient(mc -> screen(mc).questScreenPos(q1.id));
+        float[] p2 = ctx.computeOnClient(mc -> screen(mc).questScreenPos(q2.id));
+        drag(p1, p2, true);
+        check("editor: shift-drag links quest 2 to quest 1", server.computeOnServer(s -> QuestServer.get().book.quest(q2.id).dependencies.contains(q1.id)));
+        rightClick(p3[0], p3[1]);
+        press(tr("questsicons.edit.link"));
+        click(p2[0], p2[1]);
+        ctx.waitTicks(10);
+        check("editor: link from the menu (quest 3 needs quest 2)", server.computeOnServer(s -> QuestServer.get().book.quest(q3.id).dependencies.contains(q2.id)));
+
+        // Move: drag quest 3 down two steps.
+        drag(p3, map(6, 2), false);
+        check("editor: dragging moves quest 3 to 6, 2", server.computeOnServer(s -> {
+            Quest q = QuestServer.get().book.quest(q3.id);
+            return q.x == 6 && q.y == 2;
+        }));
+        ctx.takeScreenshot("qi_editor_chapter_built");
+
+        // Copy and paste, delete with confirmation, undo.
+        rightClick(p1[0], p1[1]);
+        check("editor: quest menu -> Copy", press(tr("questsicons.edit.copy")));
+        rightClickMap(0, 3);
+        check("editor: map menu -> Paste", press(Component.translatable("questsicons.edit.paste", 1).getString()));
+        ctx.waitTicks(10);
+        check("editor: the pasted quest is a new quest", server.computeOnServer(s -> serverQuestsIn(s, chapterId)) == 4);
+        long pasted = server.computeOnServer(s -> {
+            for (Quest q : QuestServer.get().book.chapter(chapterId).quests) if (q.y == 3) return q.id;
+            return 0L;
+        });
+        float[] pp = ctx.computeOnClient(mc -> screen(mc).questScreenPos(pasted));
+        check("editor: the copy is placed where it was pasted", pp != null);
+        if (pp != null) {
+            rightClick(pp[0], pp[1]);
+            check("editor: quest menu -> Delete", press(tr("questsicons.edit.delete")));
+            check("editor: Delete asks again", press(tr("questsicons.edit.confirm_delete")));
+            ctx.waitTicks(10);
+            check("editor: the copy is deleted", server.computeOnServer(s -> serverQuestsIn(s, chapterId)) == 3);
+            check("editor: Undo", press(tr("questsicons.edit.undo")));
+            ctx.waitTicks(10);
+            check("editor: undo brings the deleted quest back", server.computeOnServer(s -> serverQuestsIn(s, chapterId)) == 4
+                    && server.computeOnServer(s -> QuestServer.get().book.quest(pasted) != null));
+            press(tr("questsicons.edit.undo"));
+            ctx.waitTicks(10);
+            check("editor: a second undo takes the paste back", server.computeOnServer(s -> serverQuestsIn(s, chapterId)) == 3);
+        }
+
+        // A click on a line removes the link (after a confirmation in the menu).
+        float[] mid = {(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2};
+        click(mid[0], mid[1]);
+        check("editor: click on a line -> Remove link", press(Component.translatable("questsicons.edit.remove_link", "Get Iron", "Zombie Hunter").getString()));
+        ctx.waitTicks(10);
+        check("editor: the link is gone", server.computeOnServer(s -> !QuestServer.get().book.quest(q2.id).dependencies.contains(q1.id)));
+        press(tr("questsicons.edit.undo"));
+        ctx.waitTicks(10);
+        check("editor: undo puts the link back", server.computeOnServer(s -> QuestServer.get().book.quest(q2.id).dependencies.contains(q1.id)));
+
+        // A picture from the library, a reward table and a chapter group.
+        rightClickMap(3, -3);
+        check("editor: map menu -> Add picture", press(tr("questsicons.edit.add_image")));
+        check("editor: the picture picker is open", onScreen(PickerScreen.class));
+        ctx.takeScreenshot("qi_editor_image_picker");
+        check("editor: pick the START banner", press("questsicons:textures/gui/map/banner_start.png"));
+        check("editor: save the picture", press(tr("questsicons.edit.save")));
+        ctx.waitTicks(10);
+        check("editor: the chapter has the picture", server.computeOnServer(s -> QuestServer.get().book.chapter(chapterId).images.size()) == 1);
+        check("editor: Tables", press(tr("questsicons.edit.tables")));
+        check("editor: create the common crate table", press(tr("questsicons.tables.create")));
+        check("editor: + Add entry", press(tr("questsicons.form.add_entry")));
+        press(tr("questsicons.form.pick"));
+        press("tab:items");
+        typeSearch("emerald");
+        check("editor: pick an emerald for the table", press("minecraft:emerald"));
+        type(tr("questsicons.form.count"), "3");
+        check("editor: save the entry", press(tr("questsicons.edit.save")));
+        check("editor: save the table", press(tr("questsicons.edit.save")));
+        ctx.waitTicks(10);
+        check("editor: the table is in the book", server.computeOnServer(s -> {
+            var t = QuestServer.get().book.rewardTables.get("common_crate");
+            return t != null && t.entries.size() == 1 && t.entries.getFirst().count == 3;
+        }));
+        ctx.takeScreenshot("qi_editor_tables");
+        press(tr("gui.done"));
+        int groups = server.computeOnServer(s -> QuestServer.get().book.groups.size());
+        check("editor: + Group", press(tr("questsicons.edit.new_group")));
+        ctx.waitTicks(10);
+        check("editor: the group exists", server.computeOnServer(s -> QuestServer.get().book.groups.size()) == groups + 1);
+
+        // The files: reload them from disk and check that the chapter came back the same.
+        String before = server.computeOnServer(s -> QuestServer.get().book.chapter(chapterId).write().toString());
+        server.runCommand("quests reload");
+        ctx.waitTicks(20);
+        String after = server.computeOnServer(s -> QuestServer.get().book.chapter(chapterId) == null ? "" : QuestServer.get().book.chapter(chapterId).write().toString());
+        check("editor: the chapter reloads from its SNBT file unchanged", before.equals(after));
+        check("editor: the client has the edited chapter", ctx.computeOnClient(mc -> ClientQuests.book.chapter(chapterId) != null
+                && ClientQuests.book.chapter(chapterId).quests.size() == 3));
+        ctx.takeScreenshot("qi_editor_done");
+
+        // Clean up: remove what the editor test added, so the next tests start from the starter book.
+        server.runOnServer(s -> {
+            QuestServer qs = QuestServer.get();
+            qs.book.chapters.removeIf(c -> c.id == chapterId);
+            qs.book.rewardTables.remove("common_crate");
+            if (qs.book.groups.size() > groups) qs.book.groups.removeLast();
+            qs.bookChanged(true);
+        });
+        ctx.runOnClient(mc -> screen(mc).setEditMode(false));
+        ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);
+        ctx.waitTicks(5);
+    }
+
+    private static int serverQuestsIn(MinecraftServer s, long chapterId) {
+        Chapter c = QuestServer.get().book.chapter(chapterId);
+        return c == null ? -1 : c.quests.size();
+    }
+
+    /** The editor on a dedicated server: an operator's edits are saved by the server and reach the client live. */
+    private void editorOnDedicatedServer() {
+        Path gameDir = FabricLoader.getInstance().getGameDir();
+        try {
+            Files.writeString(gameDir.resolve("eula.txt"), "eula=true\n");
+        } catch (IOException e) {
+            check("eula: " + e, false);
+            return;
+        }
+        try (TestDedicatedServerContext server = ctx.worldBuilder().createServer()) {
+            try (TestDedicatedServerConnection connection = server.connect()) {
+                ctx.waitFor(mc -> ClientQuests.book != null, 1200);
+                String name = ctx.computeOnClient(mc -> mc.player.getGameProfile().name());
+                server.runCommand("op " + name);
+                ctx.waitFor(mc -> ClientQuests.canEdit, 600);
+                check("dedicated server: the operator may edit", ctx.computeOnClient(mc -> ClientQuests.canEdit));
+                ctx.setScreen(QuestBookScreen::new);
+                ctx.waitTicks(10);
+                press(tr("questsicons.edit.off"));
+                int chapters = server.computeOnServer(s -> QuestServer.get().book.chapters.size());
+                check("dedicated server: + Chapter", press(tr("questsicons.edit.new_chapter")));
+                ctx.waitFor(mc -> ClientQuests.book.chapters.size() == chapters + 1, 200);
+                check("dedicated server: the new chapter is on the server and back on the client",
+                        server.computeOnServer(s -> QuestServer.get().book.chapters.size()) == chapters + 1
+                                && ctx.computeOnClient(mc -> ClientQuests.book.chapters.size()) == chapters + 1);
+                ctx.waitTicks(10);
+                rightClickMap(0, 0);
+                press(tr("questsicons.edit.new_quest"));
+                type(tr("questsicons.form.title"), "Server Quest");
+                press(tr("questsicons.form.add_task"));
+                press("checkmark");
+                press(tr("questsicons.edit.save"));
+                check("dedicated server: save the quest", press(tr("questsicons.edit.save")));
+                ctx.waitFor(mc -> {
+                    for (Quest q : ClientQuests.book.allQuests()) if (q.title.equals("Server Quest")) return true;
+                    return false;
+                }, 200);
+                check("dedicated server: the quest is saved on the server", server.computeOnServer(s -> {
+                    for (Quest q : QuestServer.get().book.allQuests()) if (q.title.equals("Server Quest")) return true;
+                    return false;
+                }));
+                check("dedicated server: the quest file is written", server.computeOnServer(s -> {
+                    try (Stream<Path> files = Files.list(QuestServer.DIR.resolve("chapters"))) {
+                        for (Path f : files.toList()) if (Files.readString(f).contains("Server Quest")) return true;
+                    } catch (IOException e) {
+                        return false;
+                    }
+                    return false;
+                }));
+                ctx.takeScreenshot("qi_server_editor");
+                ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);
+                ctx.waitTicks(3);
+            }
+            server.runOnServer(s -> {
+                try {
+                    deleteTree(QuestServer.DIR);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                QuestServer.get().load();
+            });
+        }
     }
 
     private static String name(Item item) {
