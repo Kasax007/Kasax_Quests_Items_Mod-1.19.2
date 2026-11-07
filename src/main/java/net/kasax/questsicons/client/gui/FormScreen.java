@@ -502,7 +502,7 @@ public class FormScreen extends QiScreen {
                 sb.append(s.value());
             }
             edit = new MultiLineEditBox(f.font, 0, 0, 200, lines * 9 + 8, Component.empty(), label);
-            edit.setCharacterLimit(20000);
+            // No character limit: on 1.21.1 a limited box draws its "0/20000" counter over the help line below it.
             edit.setValue(sb.toString());
             edit.setValueListener(s -> {
                 if (s.isEmpty()) {
