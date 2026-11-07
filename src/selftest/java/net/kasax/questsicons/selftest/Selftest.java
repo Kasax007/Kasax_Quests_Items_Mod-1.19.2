@@ -918,6 +918,7 @@ public class Selftest implements FabricClientGameTest {
         server.runCommand("give @a questsicons:dream_star");
         ctx.waitTicks(20);
         server.runOnServer(s -> player(s).getInventory().selected = 0);
+        ctx.runOnClient(mc -> mc.player.getInventory().selected = 0);   // 1.21.1: the client owns the selected slot
         // /give shows its pickup animation with a fake item that must vanish (it once stayed forever).
         check("no ghost star after /give", server.computeOnServer(s -> count(s, ModItems.DREAM_STAR, player(s).blockPosition(), 4)) == 0);
         check("the star is a unique, fire-proof trophy", server.computeOnServer(s -> {
