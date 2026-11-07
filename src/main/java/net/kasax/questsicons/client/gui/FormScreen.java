@@ -169,6 +169,14 @@ public class FormScreen extends QiScreen {
         return true;
     }
 
+    /** For tests: the text in the field with this label ("" if it has none). */
+    public String fieldText(String label) {
+        for (Field f : fields) {
+            if (f.label != null && f.label.getString().equals(label) && f.box() instanceof EditBox b) return b.getValue();
+        }
+        return "";
+    }
+
     /** For tests: the text box of the field with this label (to click into it), or null. */
     public float[] fieldPos(String label) {
         for (Field f : fields) {
@@ -477,7 +485,7 @@ public class FormScreen extends QiScreen {
 
         @Override
         int height(FormScreen f) {
-            return lines * 9 + 10 + (help != null ? 11 : 0);
+            return lines * 9 + 10 + (help != null ? 10 * f.font.split(help, f.formW() - LABEL_W).size() + 1 : 0);
         }
 
         @Override
@@ -492,7 +500,7 @@ public class FormScreen extends QiScreen {
             } else if (t instanceof StringTag s) {
                 sb.append(s.value());
             }
-            edit = MultiLineEditBox.builder().setShowBackground(true).build(f.font, 200, lines * 9 + 8, label);
+            edit = MultiLineEditBox.builder().setShowBackground(true).setShowDecorations(false).build(f.font, 200, lines * 9 + 8, label);
             edit.setCharacterLimit(20000);
             edit.setValue(sb.toString());
             edit.setValueListener(s -> {
@@ -517,7 +525,13 @@ public class FormScreen extends QiScreen {
 
         @Override
         void draw(FormScreen f, GuiGraphicsExtractor g, int x, int y, int w, int mx, int my) {
-            if (help != null) g.text(f.font, QuestBookScreen.clip(f.font, help, w), x, y + lines * 9 + 11, QuestBookScreen.MUTED, false);
+            if (help != null) {
+                int yy = y + lines * 9 + 11;
+                for (var line : f.font.split(help, w)) {
+                    g.text(f.font, line, x, yy, QuestBookScreen.MUTED, false);
+                    yy += 10;
+                }
+            }
         }
 
         @Override

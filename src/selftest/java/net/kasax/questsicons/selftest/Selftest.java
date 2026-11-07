@@ -245,9 +245,10 @@ public class Selftest implements FabricClientGameTest {
             return false;
         }
         click(pos[0], pos[1]);
-        ctx.getInput().holdControl();
-        ctx.getInput().pressKey(InputConstants.KEY_A);
-        ctx.getInput().releaseControl();
+        // Empty the field like a player would: End, then Backspace for every character.
+        int len = ctx.computeOnClient(mc -> mc.gui.screen() instanceof FormScreen f ? f.fieldText(fieldLabel).length() : 0);
+        ctx.getInput().pressKey(InputConstants.KEY_END);
+        for (int i = 0; i < len; i++) ctx.getInput().pressKey(InputConstants.KEY_BACKSPACE);
         ctx.getInput().typeChars(text);
         ctx.waitTicks(3);
         return true;

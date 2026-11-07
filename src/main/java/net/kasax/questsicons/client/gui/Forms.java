@@ -193,11 +193,6 @@ public final class Forms {
         t.putString("type", type);
         Minecraft mc = Minecraft.getInstance();
         switch (type) {
-            case "item" -> {
-                if (mc.player != null && !mc.player.getMainHandItem().isEmpty() && reg() != null) {
-                    t.put("item", ItemSpec.of(mc.player.getMainHandItem().copyWithCount(1), reg()).write());
-                }
-            }
             case "kill" -> {
                 t.putString("entity", "minecraft:zombie");
                 t.putLong("value", 1);
@@ -380,12 +375,6 @@ public final class Forms {
         t.putString("type", type);
         Minecraft mc = Minecraft.getInstance();
         switch (type) {
-            case "item" -> {
-                if (mc.player != null && !mc.player.getMainHandItem().isEmpty() && reg() != null) {
-                    t.put("item", ItemSpec.of(mc.player.getMainHandItem().copyWithCount(1), reg()).write());
-                    if (mc.player.getMainHandItem().getCount() > 1) t.putInt("count", mc.player.getMainHandItem().getCount());
-                }
-            }
             case "xp" -> t.putInt("xp", 100);
             case "xp_levels" -> t.putInt("xp_levels", 5);
             case "command" -> t.putString("command", "/say {p} finished {quest}!");
