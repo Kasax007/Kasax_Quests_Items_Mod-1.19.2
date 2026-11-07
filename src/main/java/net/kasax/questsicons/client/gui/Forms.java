@@ -83,7 +83,7 @@ public final class Forms {
                 (form, i) -> editReward(form, q, i), l("add_reward"), form -> addReward(form, q)));
         f.add(new Lines("description", l("description"), 5).help(l("help.text")));
         f.add(new ObjectList("dependencies", l("dependencies"), t -> questName(t), t -> questIcon(t), null, l("add_dependency"),
-                form -> Minecraft.getInstance().gui.setScreen(questPicker(form, q == null ? 0 : q.id, id -> addDep(form, id)))));
+                form -> Minecraft.getInstance().setScreen(questPicker(form, q == null ? 0 : q.id, id -> addDep(form, id)))));
         f.add(new Choice("dependency_requirement", l("requirement"), List.of("", "one_completed"), List.of(l("req_all"), l("req_one"))));
         f.add(new Choice("shape", l("shape"), shapes(true), shapeNames(true)));
         f.add(new Number("size", l("size"), 1, 0.25, 4, true));
@@ -166,9 +166,9 @@ public final class Forms {
         List<String> types = new ArrayList<>(Tasks.TYPES.keySet());
         List<Component> names = new ArrayList<>();
         for (String type : types) names.add(Component.translatable("questsicons.task_type." + type));
-        Minecraft.getInstance().gui.setScreen(PickerScreen.list(form, l("pick_task_type"), types, names, null, type -> {
+        Minecraft.getInstance().setScreen(PickerScreen.list(form, l("pick_task_type"), types, names, null, type -> {
             CompoundTag t = newTask(type);
-            Minecraft.getInstance().gui.setScreen(task(form, t, saved -> {
+            Minecraft.getInstance().setScreen(task(form, t, saved -> {
                 var list = form.tag.getListOrEmpty("tasks").copy();
                 list.add(saved);
                 form.tag.put("tasks", list);
@@ -179,7 +179,7 @@ public final class Forms {
     private static void editTask(FormScreen form, Quest q, int i) {
         var list = form.tag.getListOrEmpty("tasks");
         if (!(list.get(i) instanceof CompoundTag t)) return;
-        Minecraft.getInstance().gui.setScreen(task(form, t.copy(), saved -> {
+        Minecraft.getInstance().setScreen(task(form, t.copy(), saved -> {
             var l = form.tag.getListOrEmpty("tasks").copy();
             l.set(i, saved);
             form.tag.put("tasks", l);
@@ -235,7 +235,7 @@ public final class Forms {
         switch (type) {
             case "item" -> {
                 ObjectList real = new ObjectList("item", l("items_any"), Forms::itemName, Forms::itemIcon, null, l("add_item"),
-                        form -> Minecraft.getInstance().gui.setScreen(PickerScreen.items(form, l("items_any"), false, st -> {
+                        form -> Minecraft.getInstance().setScreen(PickerScreen.items(form, l("items_any"), false, st -> {
                             if (reg() != null) addItem(form, "item", ItemSpec.of(st.copyWithCount(1), reg()).write(), true);
                         }))).singleAsValue().min(1);
                 f.add(real.help(l("help.items_any")));
@@ -349,9 +349,9 @@ public final class Forms {
         List<String> types = new ArrayList<>(Rewards.TYPES.keySet());
         List<Component> names = new ArrayList<>();
         for (String type : types) names.add(Component.translatable("questsicons.reward_type." + type));
-        Minecraft.getInstance().gui.setScreen(PickerScreen.list(form, l("pick_reward_type"), types, names, null, type -> {
+        Minecraft.getInstance().setScreen(PickerScreen.list(form, l("pick_reward_type"), types, names, null, type -> {
             CompoundTag t = newReward(type);
-            Minecraft.getInstance().gui.setScreen(reward(form, t, saved -> {
+            Minecraft.getInstance().setScreen(reward(form, t, saved -> {
                 var list = form.tag.getListOrEmpty("rewards").copy();
                 list.add(saved);
                 form.tag.put("rewards", list);
@@ -362,7 +362,7 @@ public final class Forms {
     private static void editReward(FormScreen form, Quest q, int i) {
         var list = form.tag.getListOrEmpty("rewards");
         if (!(list.get(i) instanceof CompoundTag t)) return;
-        Minecraft.getInstance().gui.setScreen(reward(form, t.copy(), saved -> {
+        Minecraft.getInstance().setScreen(reward(form, t.copy(), saved -> {
             var l = form.tag.getListOrEmpty("rewards").copy();
             l.set(i, saved);
             form.tag.put("rewards", l);
@@ -413,7 +413,7 @@ public final class Forms {
             }
             case "choice" -> {
                 ObjectList items = new ObjectList("items", l("choices"), Forms::itemName, Forms::itemIcon, null, l("add_item"),
-                        form -> Minecraft.getInstance().gui.setScreen(PickerScreen.items(form, l("choices"), false, st -> {
+                        form -> Minecraft.getInstance().setScreen(PickerScreen.items(form, l("choices"), false, st -> {
                             if (reg() != null) addItem(form, "items", ItemSpec.of(st.copyWithCount(1), reg()).write(), false);
                         }))).min(1);
                 f.add(items);
@@ -529,7 +529,7 @@ public final class Forms {
                 (form, i) -> {
                     var list = form.tag.getListOrEmpty("entries");
                     if (!(list.get(i) instanceof CompoundTag e)) return;
-                    Minecraft.getInstance().gui.setScreen(entry(form, e.copy(), saved -> {
+                    Minecraft.getInstance().setScreen(entry(form, e.copy(), saved -> {
                         var l = form.tag.getListOrEmpty("entries").copy();
                         l.set(i, saved);
                         form.tag.put("entries", l);
@@ -537,7 +537,7 @@ public final class Forms {
                 }, l("add_entry"), form -> {
                     CompoundTag e = new CompoundTag();
                     e.putInt("weight", 10);
-                    Minecraft.getInstance().gui.setScreen(entry(form, e, saved -> {
+                    Minecraft.getInstance().setScreen(entry(form, e, saved -> {
                         var l = form.tag.getListOrEmpty("entries").copy();
                         l.add(saved);
                         form.tag.put("entries", l);

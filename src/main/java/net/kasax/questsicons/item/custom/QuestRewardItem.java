@@ -39,10 +39,10 @@ public class QuestRewardItem extends Item {
         List<Holder.Reference<Item>> items = BuiltInRegistries.ITEM.listElements().filter(h -> isPrize(h, enabled)).toList();
         Item item = items.get(level.getRandom().nextInt(items.size())).value();
         ItemStack gift = new ItemStack(item, 1 + level.getRandom().nextInt(Math.min(3, Math.max(1, new ItemStack(item).getMaxStackSize()))));
-        if (!user.getInventory().add(gift)) user.drop(gift, false, net.minecraft.util.Prediction.SERVER_ONLY);
+        if (!user.getInventory().add(gift)) user.drop(gift, false);
         level.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.NEUTRAL, 1.0f,
                 1f / (level.getRandom().nextFloat() * 0.4f + 0.8f));
-        user.sendSystemMessage(Component.translatable("item.questsicons.quest_reward.received").withStyle(ChatFormatting.LIGHT_PURPLE));
+        user.displayClientMessage(Component.translatable("item.questsicons.quest_reward.received").withStyle(ChatFormatting.LIGHT_PURPLE), false);
         if (!user.getAbilities().instabuild) stack.hurtAndBreak(1, user, hand);
         return InteractionResult.SUCCESS;
     }

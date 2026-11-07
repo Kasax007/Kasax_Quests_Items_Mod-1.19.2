@@ -3,7 +3,7 @@ package net.kasax.questsicons.selftest;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
-import net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerConnection;
+import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerConnection;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
@@ -59,7 +59,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Opens the quest book in a fresh world and clicks through it with real mouse clicks and keys (26.3: SDL numbering),
+ * Opens the quest book in a fresh world and clicks through it with real mouse clicks and keys (1.21.11: GLFW numbering),
  * then checks the Dream Star and its pedestal. Saves screenshots and fails if a check fails.
  */
 public class Selftest implements FabricClientGameTest {
@@ -78,7 +78,7 @@ public class Selftest implements FabricClientGameTest {
         ctx.getInput().resizeWindow(1280, 720);
         ctx.runOnClient(mc -> {
             mc.options.guiScale().set(2);
-            mc.resizeGui();
+            mc.resizeDisplay();
         });
         try (TestSingleplayerContext sp = ctx.worldBuilder().adjustSettings(s -> {
             s.setGameMode(WorldCreationUiState.SelectedGameMode.CREATIVE);
@@ -109,7 +109,7 @@ public class Selftest implements FabricClientGameTest {
         ctx.setScreen(QuestBookScreen::new);
         ctx.waitTicks(10);
         ctx.takeScreenshot("qi_book_map");
-        // A real left click on the first quest must open its panel (26.3 reports left = 1, not 0).
+        // A real left click on the first quest must open its panel (1.21.11 reports left = 0 (GLFW); 26.3 reports 1).
         clickQuest(welcome);
         check("left click opens the quest", selected() == welcome);
         ctx.takeScreenshot("qi_click_quest");
@@ -129,7 +129,7 @@ public class Selftest implements FabricClientGameTest {
         check("click Unpin", clickLabel(tr("questsicons.gui.unpin")));
         check("the quest is unpinned", !ClientQuests.pinned.contains(welcome));
 
-        // Escape closes only the panel (26.3: Escape is key 41, not 256), a second Escape the book.
+        // Escape closes only the panel (1.21.11: Escape is key 256 (GLFW)), a second Escape the book.
         ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);
         ctx.waitTicks(3);
         check("Escape closes the quest panel", bookOpen() && selected() == 0);
@@ -199,12 +199,12 @@ public class Selftest implements FabricClientGameTest {
     // ------------------------------------------------------------------------------- in-game editor
 
     private boolean onScreen(Class<?> type) {
-        return ctx.computeOnClient(mc -> type.isInstance(mc.gui.screen()));
+        return ctx.computeOnClient(mc -> type.isInstance(mc.screen));
     }
 
     private float[] findZone(String text) {
-        return ctx.computeOnClient(mc -> mc.gui.screen() instanceof QuestBookScreen s ? s.zonePos(text)
-                : mc.gui.screen() instanceof QiScreen s ? s.zonePos(text) : null);
+        return ctx.computeOnClient(mc -> mc.screen instanceof QuestBookScreen s ? s.zonePos(text)
+                : mc.screen instanceof QiScreen s ? s.zonePos(text) : null);
     }
 
     /** Scrolls a long form or list with the mouse wheel until the condition holds (down first, then up). */
@@ -229,7 +229,7 @@ public class Selftest implements FabricClientGameTest {
         scrollUntil(() -> findZone(text) != null);
         float[] pos = findZone(text);
         if (pos == null) {
-            System.out.println("[selftest] no button '" + text + "' on " + ctx.computeOnClient(mc -> String.valueOf(mc.gui.screen())));
+            System.out.println("[selftest] no button '" + text + "' on " + ctx.computeOnClient(mc -> String.valueOf(mc.screen)));
             return false;
         }
         click(pos[0], pos[1]);
@@ -238,15 +238,15 @@ public class Selftest implements FabricClientGameTest {
 
     /** Clicks into a form's text field (by its label), selects everything and types the new text. */
     private boolean type(String fieldLabel, String text) {
-        scrollUntil(() -> ctx.computeOnClient(mc -> mc.gui.screen() instanceof FormScreen f && f.fieldPos(fieldLabel) != null));
-        float[] pos = ctx.computeOnClient(mc -> mc.gui.screen() instanceof FormScreen f ? f.fieldPos(fieldLabel) : null);
+        scrollUntil(() -> ctx.computeOnClient(mc -> mc.screen instanceof FormScreen f && f.fieldPos(fieldLabel) != null));
+        float[] pos = ctx.computeOnClient(mc -> mc.screen instanceof FormScreen f ? f.fieldPos(fieldLabel) : null);
         if (pos == null) {
             System.out.println("[selftest] no field '" + fieldLabel + "'");
             return false;
         }
         click(pos[0], pos[1]);
         // Empty the field like a player would: End, then Backspace for every character.
-        int len = ctx.computeOnClient(mc -> mc.gui.screen() instanceof FormScreen f ? f.fieldText(fieldLabel).length() : 0);
+        int len = ctx.computeOnClient(mc -> mc.screen instanceof FormScreen f ? f.fieldText(fieldLabel).length() : 0);
         ctx.getInput().pressKey(InputConstants.KEY_END);
         for (int i = 0; i < len; i++) ctx.getInput().pressKey(InputConstants.KEY_BACKSPACE);
         ctx.getInput().typeChars(text);
@@ -367,7 +367,7 @@ public class Selftest implements FabricClientGameTest {
         type(tr("questsicons.form.entity"), "minecraft:zombiee");
         press(tr("questsicons.edit.save"));
         check("editor: a typo in the mob is refused (the form stays open)", onScreen(FormScreen.class)
-                && ctx.computeOnClient(mc -> mc.gui.screen() instanceof FormScreen f && !f.valid()));
+                && ctx.computeOnClient(mc -> mc.screen instanceof FormScreen f && !f.valid()));
         ctx.takeScreenshot("qi_editor_validation");
         type(tr("questsicons.form.entity"), "minecraft:zombie");
         type(tr("questsicons.form.amount"), "3");
@@ -532,7 +532,7 @@ public class Selftest implements FabricClientGameTest {
             return;
         }
         try (TestDedicatedServerContext server = ctx.worldBuilder().createServer()) {
-            try (TestDedicatedServerConnection connection = server.connect()) {
+            try (TestServerConnection connection = server.connect()) {
                 ctx.waitFor(mc -> ClientQuests.book != null, 1200);
                 String name = ctx.computeOnClient(mc -> mc.player.getGameProfile().name());
                 server.runCommand("op " + name);
@@ -595,23 +595,23 @@ public class Selftest implements FabricClientGameTest {
     }
 
     private static QuestBookScreen screen(Minecraft mc) {
-        return (QuestBookScreen) mc.gui.screen();
+        return (QuestBookScreen) mc.screen;
     }
 
     private boolean bookOpen() {
-        return ctx.computeOnClient(mc -> mc.gui.screen() instanceof QuestBookScreen);
+        return ctx.computeOnClient(mc -> mc.screen instanceof QuestBookScreen);
     }
 
     private long selected() {
-        return ctx.computeOnClient(mc -> mc.gui.screen() instanceof QuestBookScreen s && s.selectedQuest() != null ? s.selectedQuest().id : 0L);
+        return ctx.computeOnClient(mc -> mc.screen instanceof QuestBookScreen s && s.selectedQuest() != null ? s.selectedQuest().id : 0L);
     }
 
     private float[] zone(String text) {
-        return ctx.computeOnClient(mc -> mc.gui.screen() instanceof QuestBookScreen s ? s.zonePos(text) : null);
+        return ctx.computeOnClient(mc -> mc.screen instanceof QuestBookScreen s ? s.zonePos(text) : null);
     }
 
     private void clickQuest(long id) {
-        float[] pos = ctx.computeOnClient(mc -> mc.gui.screen() instanceof QuestBookScreen s ? s.questScreenPos(id) : null);
+        float[] pos = ctx.computeOnClient(mc -> mc.screen instanceof QuestBookScreen s ? s.questScreenPos(id) : null);
         if (pos == null) throw new AssertionError("quest not on the map: " + QuestObject.idToString(id));
         click(pos[0], pos[1]);
     }
@@ -802,7 +802,7 @@ public class Selftest implements FabricClientGameTest {
             check("dedicated server: the import runs (" + quests + " quests)", run.ok() && quests > 0
                     && server.computeOnServer(s -> QuestServer.get().book.questCount()) == quests);
             System.out.println("[selftest] dedicated server import: " + run.report().result + "; unknown ids " + run.report().count(ImportReport.Kind.UNKNOWN));
-            try (TestDedicatedServerConnection connection = server.connect()) {
+            try (TestServerConnection connection = server.connect()) {
                 ctx.waitFor(mc -> ClientQuests.book != null && ClientQuests.book.questCount() == quests, 2400);
                 int size = server.computeOnServer(s -> QuestNet.compress(QuestServer.get().book.writeAll()).length);
                 check("dedicated server: the client gets the whole book over the network (" + size / 1024 + " KiB packed)",
@@ -931,7 +931,7 @@ public class Selftest implements FabricClientGameTest {
             AdvancementHolder h = s.getAdvancements().get(Identifier.fromNamespaceAndPath("questsicons", "dream_star"));
             return h != null && player(s).getAdvancements().getOrStartProgress(h).isDone();
         }));
-        ctx.getInput().lookAt(PEDESTAL);
+        lookAt(PEDESTAL);
         ctx.waitTicks(5);
 
         // Right-click with the star puts it on display; the pedestal lights up.
@@ -942,7 +942,7 @@ public class Selftest implements FabricClientGameTest {
         check("the client sees the star", ctx.computeOnClient(mc -> mc.level.getBlockEntity(PEDESTAL) instanceof DreamStarPedestalBlockEntity be
                 && be.getStar().is(ModItems.DREAM_STAR)));
         ctx.runOnClient(mc -> {
-            if (!mc.gui.hud.isHidden()) mc.gui.hud.toggle();
+            mc.options.hideGui = true;
         });
         ctx.waitTicks(60);
         ctx.takeScreenshot("qi_pedestal_star");
@@ -950,11 +950,11 @@ public class Selftest implements FabricClientGameTest {
         ctx.waitTicks(30);
         ctx.takeScreenshot("qi_pedestal_star_side");
         ctx.runOnClient(mc -> {
-            if (mc.gui.hud.isHidden()) mc.gui.hud.toggle();
+            mc.options.hideGui = false;
         });
         server.runCommand("tp @a 0.5 151 -2.5 0 25");
         ctx.waitTicks(5);
-        ctx.getInput().lookAt(PEDESTAL);
+        lookAt(PEDESTAL);
         ctx.waitTicks(5);
 
         // Right-click with an empty hand takes it back.
@@ -978,7 +978,7 @@ public class Selftest implements FabricClientGameTest {
         ctx.waitTicks(5);
 
         // Breaking the pedestal drops the star and the pedestal.
-        ctx.getInput().lookAt(PEDESTAL);
+        lookAt(PEDESTAL);
         ctx.getInput().pressKey(o -> o.keyUse);
         ctx.waitTicks(10);
         check("the star is back on the pedestal", server.computeOnServer(Selftest::hasStar));
@@ -1026,6 +1026,12 @@ public class Selftest implements FabricClientGameTest {
         server.runCommand("time set day");
     }
 
+    /** Turns the player to look at the middle of a block (the 1.21.11 test input has no lookAt yet). */
+    private void lookAt(BlockPos pos) {
+        ctx.runOnClient(mc -> mc.player.lookAt(net.minecraft.commands.arguments.EntityAnchorArgument.Anchor.EYES, net.minecraft.world.phys.Vec3.atCenterOf(pos)));
+        ctx.waitTick();
+    }
+
     private static boolean hasRecipe(MinecraftServer s, String path) {
         return s.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath("questsicons", path))).isPresent();
     }
@@ -1035,6 +1041,6 @@ public class Selftest implements FabricClientGameTest {
         for (Item i : grid) items.add(i == Items.AIR ? ItemStack.EMPTY : new ItemStack(i));
         CraftingInput input = CraftingInput.of(3, 3, items);
         return s.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, s.overworld())
-                .map(h -> h.value().assemble(input).is(result)).orElse(false);
+                .map(h -> h.value().assemble(input, s.registryAccess()).is(result)).orElse(false);
     }
 }

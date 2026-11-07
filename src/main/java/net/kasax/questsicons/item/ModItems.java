@@ -72,7 +72,7 @@ public final class ModItems {
     /** The Dreamcraft endgame trophy. */
     public static final Item DREAM_STAR = register("dream_star", DreamStarItem::new, new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)
             .component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)
-            .delayedComponent(DataComponents.DAMAGE_RESISTANT, ctx -> new DamageResistant(ctx.getOrThrow(DREAM_STAR_IMMUNE))));
+            .component(DataComponents.DAMAGE_RESISTANT, new DamageResistant(DREAM_STAR_IMMUNE)));
 
     public static final Item QUEST_REWARD = register("quest_reward", QuestRewardItem::new, new Item.Properties().stacksTo(1).durability(5));
 

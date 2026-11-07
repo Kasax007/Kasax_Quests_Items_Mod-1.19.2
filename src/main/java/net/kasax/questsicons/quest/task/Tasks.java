@@ -280,8 +280,8 @@ public final class Tasks {
         protected ItemStack defaultIcon(HolderLookup.Provider r) {
             EntityType<?> t = entityType();
             if (t != null) {
-                var egg = SpawnEggItem.byId(t);
-                if (egg.isPresent()) return new ItemStack(egg.get());
+                SpawnEggItem egg = SpawnEggItem.byId(t);
+                if (egg != null) return new ItemStack(egg);
             }
             return new ItemStack(Items.IRON_SWORD);
         }

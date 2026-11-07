@@ -4,7 +4,7 @@ import net.kasax.questsicons.client.ClientQuests;
 import net.kasax.questsicons.client.EditorData;
 import net.kasax.questsicons.quest.ItemSpec;
 import net.kasax.questsicons.quest.QuestBook;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -86,13 +86,13 @@ public class FormScreen extends QiScreen {
     }
 
     @Override
-    protected void draw(GuiGraphicsExtractor g, int mouseX, int mouseY, float a) {
+    protected void draw(GuiGraphics g, int mouseX, int mouseY, float a) {
         int fx = formX();
         int fw = formW();
         int top = 26;
         int bottom = height - 30;
         QuestBookScreen.frame(g, fx - 6, top - 4, fw + 12, bottom - top + 8, QuestBookScreen.PANEL, QuestBookScreen.BORDER);
-        g.centeredText(font, title, width / 2, 10, QuestBookScreen.TEXT);
+        g.drawCenteredString(font, title, width / 2, 10, QuestBookScreen.TEXT);
         int total = 0;
         for (Field f : fields) total += f.height(this) + 4;
         contentH = total;
@@ -109,12 +109,12 @@ public class FormScreen extends QiScreen {
             if (err != null) g.fill(fx - 3, y - 1, fx - 1, y + h + 1, QuestBookScreen.RED);
             if (y + h >= top && y <= bottom) {
                 if (f.label != null) {
-                    g.text(font, QuestBookScreen.clip(font, f.label, LABEL_W - 6), fx, y + 5, err != null ? QuestBookScreen.RED : QuestBookScreen.AVAILABLE, false);
+                    g.drawString(font, QuestBookScreen.clip(font, f.label, LABEL_W - 6), fx, y + 5, err != null ? QuestBookScreen.RED : QuestBookScreen.AVAILABLE, false);
                     if (f.help != null && hovered(fx, y, LABEL_W, 16, mouseX, mouseY)) zone(fx, y, LABEL_W, 16, () -> {
                     }, f.help, null);
                 }
                 f.draw(this, g, fx + LABEL_W, y, fw - LABEL_W, mouseX, mouseY);
-                if (err != null) g.text(font, Component.translatable(err), fx + LABEL_W, y + h - 9, QuestBookScreen.RED, false);
+                if (err != null) g.drawString(font, Component.translatable(err), fx + LABEL_W, y + h - 9, QuestBookScreen.RED, false);
             }
             y += h + 4;
         }
@@ -130,7 +130,7 @@ public class FormScreen extends QiScreen {
         int by = height - 24;
         button(g, width / 2 - 104, by, 100, 18, Component.translatable("questsicons.edit.save"), mouseX, mouseY, this::save);
         button(g, width / 2 + 4, by, 100, 18, Component.translatable("gui.cancel"), mouseX, mouseY, this::back);
-        if (!error.isEmpty()) g.centeredText(font, Component.translatable(error), width / 2, by - 11 > bottom ? by - 11 : bottom + 2, QuestBookScreen.RED);
+        if (!error.isEmpty()) g.drawCenteredString(font, Component.translatable(error), width / 2, by - 11 > bottom ? by - 11 : bottom + 2, QuestBookScreen.RED);
     }
 
     public boolean valid() {
@@ -215,7 +215,7 @@ public class FormScreen extends QiScreen {
         void layout(FormScreen f, int x, int y, int w, boolean visible) {
         }
 
-        void draw(FormScreen f, GuiGraphicsExtractor g, int x, int y, int w, int mx, int my) {
+        void draw(FormScreen f, GuiGraphics g, int x, int y, int w, int mx, int my) {
         }
 
         /** Null if fine, else the translation key of the problem. */
@@ -294,16 +294,16 @@ public class FormScreen extends QiScreen {
         }
 
         @Override
-        void draw(FormScreen f, GuiGraphicsExtractor g, int x, int y, int w, int mx, int my) {
+        void draw(FormScreen f, GuiGraphics g, int x, int y, int w, int mx, int my) {
             if (picker != null) {
                 f.button(g, x + w - 20, y + 2, 20, 16, Component.literal("…"), mx, my, () ->
-                        f.minecraft.gui.setScreen(picker.apply(f, v -> f.tag.putString(key, v))));
+                        f.minecraft.setScreen(picker.apply(f, v -> f.tag.putString(key, v))));
                 return;
             }
             if (kind == null) return;
             f.button(g, x + w - 20, y + 2, 20, 16, Component.literal("…"), mx, my, () -> {
                 List<String> ids = EditorData.ids(kind);
-                f.minecraft.gui.setScreen(PickerScreen.list(f, label, ids, null, null, v -> f.tag.putString(key, v)));
+                f.minecraft.setScreen(PickerScreen.list(f, label, ids, null, null, v -> f.tag.putString(key, v)));
             });
         }
 
@@ -396,9 +396,9 @@ public class FormScreen extends QiScreen {
         }
 
         @Override
-        void draw(FormScreen f, GuiGraphicsExtractor g, int x, int y, int w, int mx, int my) {
+        void draw(FormScreen f, GuiGraphics g, int x, int y, int w, int mx, int my) {
             String range = decimal ? fmt(min) + " – " + fmt(max) : (long) min + " – " + (max >= Integer.MAX_VALUE ? "∞" : Long.toString((long) max));
-            g.text(f.font, range, x + Math.min(110, w) + 6, y + 6, QuestBookScreen.MUTED, false);
+            g.drawString(f.font, range, x + Math.min(110, w) + 6, y + 6, QuestBookScreen.MUTED, false);
         }
 
         @Override
@@ -429,7 +429,7 @@ public class FormScreen extends QiScreen {
         }
 
         @Override
-        void draw(FormScreen f, GuiGraphicsExtractor g, int x, int y, int w, int mx, int my) {
+        void draw(FormScreen f, GuiGraphics g, int x, int y, int w, int mx, int my) {
             boolean on = f.tag.getBooleanOr(key, def);
             Component t = Component.translatable(on ? "questsicons.form.yes" : "questsicons.form.no");
             f.button(g, x, y + 2, 60, 16, t.copy().withStyle(on ? net.minecraft.ChatFormatting.GREEN : net.minecraft.ChatFormatting.GRAY),
@@ -438,7 +438,7 @@ public class FormScreen extends QiScreen {
                         if (n == def) f.tag.remove(key);
                         else f.tag.putBoolean(key, n);
                     });
-            if (help != null) g.text(f.font, QuestBookScreen.clip(f.font, help, w - 68), x + 66, y + 6, QuestBookScreen.MUTED, false);
+            if (help != null) g.drawString(f.font, QuestBookScreen.clip(f.font, help, w - 68), x + 66, y + 6, QuestBookScreen.MUTED, false);
         }
     }
 
@@ -461,7 +461,7 @@ public class FormScreen extends QiScreen {
         }
 
         @Override
-        void draw(FormScreen f, GuiGraphicsExtractor g, int x, int y, int w, int mx, int my) {
+        void draw(FormScreen f, GuiGraphics g, int x, int y, int w, int mx, int my) {
             int i = index(f);
             f.button(g, x, y + 2, Math.min(170, w), 16, Component.literal("◀ ").append(names.get(i)).append(" ▶"), mx, my, () -> {
                 int n = (index(f) + 1) % values.size();
@@ -524,11 +524,11 @@ public class FormScreen extends QiScreen {
         }
 
         @Override
-        void draw(FormScreen f, GuiGraphicsExtractor g, int x, int y, int w, int mx, int my) {
+        void draw(FormScreen f, GuiGraphics g, int x, int y, int w, int mx, int my) {
             if (help != null) {
                 int yy = y + lines * 9 + 11;
                 for (var line : f.font.split(help, w)) {
-                    g.text(f.font, line, x, yy, QuestBookScreen.MUTED, false);
+                    g.drawString(f.font, line, x, yy, QuestBookScreen.MUTED, false);
                     yy += 10;
                 }
             }
@@ -555,10 +555,10 @@ public class FormScreen extends QiScreen {
         }
 
         @Override
-        void draw(FormScreen f, GuiGraphicsExtractor g, int x, int y, int w, int mx, int my) {
+        void draw(FormScreen f, GuiGraphics g, int x, int y, int w, int mx, int my) {
             int yy = y + 1;
             for (var line : f.font.split(text, f.formW())) {
-                g.text(f.font, line, x - LABEL_W, yy, QuestBookScreen.MUTED, false);
+                g.drawString(f.font, line, x - LABEL_W, yy, QuestBookScreen.MUTED, false);
                 yy += 10;
             }
         }
@@ -576,7 +576,7 @@ public class FormScreen extends QiScreen {
         }
 
         @Override
-        void draw(FormScreen f, GuiGraphicsExtractor g, int x, int y, int w, int mx, int my) {
+        void draw(FormScreen f, GuiGraphics g, int x, int y, int w, int mx, int my) {
             f.button(g, x, y + 2, Math.min(w, f.font.width(text) + 16), 16, text, mx, my, () -> {
                 action.accept(f);
                 f.rebuildWidgets();
@@ -643,19 +643,19 @@ public class FormScreen extends QiScreen {
         }
 
         @Override
-        void draw(FormScreen f, GuiGraphicsExtractor g, int x, int y, int w, int mx, int my) {
+        void draw(FormScreen f, GuiGraphics g, int x, int y, int w, int mx, int my) {
             QuestBookScreen.frame(g, x, y + 1, 20, 20, 0xFF1C1230, 0xFF5B3A86);
             HolderLookup.Provider reg = reg();
             ItemSpec s = spec(f);
             if (!s.isEmpty() && reg != null) {
                 ItemStack st = s.stack(reg);
-                g.fakeItem(st, x + 2, y + 3);
+                g.renderFakeItem(st, x + 2, y + 3);
                 if (f.hovered(x, y + 1, 20, 20, mx, my)) f.zone(x, y + 1, 20, 20, () -> {
                 }, st.getHoverName(), null);
             }
             int bx = x + w - 100;
             f.button(g, bx, y + 3, 50, 16, Component.translatable("questsicons.form.pick"), mx, my, () ->
-                    f.minecraft.gui.setScreen(PickerScreen.items(f, label, iconsFirst, st -> set(f, st))));
+                    f.minecraft.setScreen(PickerScreen.items(f, label, iconsFirst, st -> set(f, st))));
             f.button(g, bx + 52, y + 3, 48, 16, Component.translatable("questsicons.form.hand"), mx, my, () -> {
                 if (f.minecraft.player != null && !f.minecraft.player.getMainHandItem().isEmpty()) {
                     set(f, f.minecraft.player.getMainHandItem().copyWithCount(1));
@@ -770,11 +770,11 @@ public class FormScreen extends QiScreen {
         }
 
         @Override
-        void draw(FormScreen f, GuiGraphicsExtractor g, int x, int y, int w, int mx, int my) {
+        void draw(FormScreen f, GuiGraphics g, int x, int y, int w, int mx, int my) {
             ListTag l = list(f);
             int yy = y;
             if (l.isEmpty()) {
-                g.text(f.font, Component.translatable("questsicons.form.none"), x + 4, yy + 5, QuestBookScreen.MUTED, false);
+                g.drawString(f.font, Component.translatable("questsicons.form.none"), x + 4, yy + 5, QuestBookScreen.MUTED, false);
                 yy += 18;
             }
             for (int i = 0; i < l.size(); i++) {
@@ -784,7 +784,7 @@ public class FormScreen extends QiScreen {
                 ItemStack icon = rowIcon.apply(e);
                 int tx = x + 4;
                 if (icon != null && !icon.isEmpty()) {
-                    g.fakeItem(icon, x + 1, yy);
+                    g.renderFakeItem(icon, x + 1, yy);
                     tx = x + 20;
                 }
                 int bw = 16;
@@ -805,7 +805,7 @@ public class FormScreen extends QiScreen {
                     right -= ew + 1;
                     f.button(g, right, yy + 1, ew, 15, et, mx, my, () -> onEdit.accept(f, idx));
                 }
-                g.text(f.font, QuestBookScreen.clip(f.font, rowText.apply(e), right - tx - 4), tx, yy + 5, QuestBookScreen.TEXT, false);
+                g.drawString(f.font, QuestBookScreen.clip(f.font, rowText.apply(e), right - tx - 4), tx, yy + 5, QuestBookScreen.TEXT, false);
                 yy += 18;
             }
             int aw = f.font.width(addText) + 14;
@@ -849,7 +849,7 @@ public class FormScreen extends QiScreen {
         }
 
         @Override
-        void draw(FormScreen f, GuiGraphicsExtractor g, int x, int y, int w, int mx, int my) {
+        void draw(FormScreen f, GuiGraphics g, int x, int y, int w, int mx, int my) {
             int state = !f.tag.contains(key) ? 0 : f.tag.getBooleanOr(key, false) ? 1 : 2;
             Component t = Component.translatable(state == 0 ? "questsicons.form.default" : state == 1 ? "questsicons.form.yes" : "questsicons.form.no");
             f.button(g, x, y + 2, 80, 16, t, mx, my, () -> {
@@ -895,7 +895,7 @@ public class FormScreen extends QiScreen {
         }
 
         @Override
-        void draw(FormScreen f, GuiGraphicsExtractor g, int x, int y, int w, int mx, int my) {
+        void draw(FormScreen f, GuiGraphics g, int x, int y, int w, int mx, int my) {
             int c = f.tag.getIntOr(key, def);
             g.fill(x + 76, y + 3, x + 90, y + 17, 0xFF000000 | c);
         }
@@ -941,7 +941,7 @@ public class FormScreen extends QiScreen {
         }
 
         @Override
-        void draw(FormScreen f, GuiGraphicsExtractor g, int x, int y, int w, int mx, int my) {
+        void draw(FormScreen f, GuiGraphics g, int x, int y, int w, int mx, int my) {
             f.button(g, x + w - 46, y + 2, 46, 16, Component.translatable("questsicons.form.add"), mx, my, () -> {
                 String v = edit.getValue().trim();
                 err = checkItem(StringTag.valueOf(v), allowTags);
@@ -950,7 +950,7 @@ public class FormScreen extends QiScreen {
                     edit.setValue("");
                 }
             });
-            if (err != null) g.text(f.font, Component.translatable(err), x, y + 21, QuestBookScreen.RED, false);
+            if (err != null) g.drawString(f.font, Component.translatable(err), x, y + 21, QuestBookScreen.RED, false);
         }
 
         @Override

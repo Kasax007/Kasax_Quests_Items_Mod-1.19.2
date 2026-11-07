@@ -1,7 +1,7 @@
 package net.kasax.questsicons.client.gui;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.toasts.Toast;
 import net.minecraft.client.gui.components.toasts.ToastManager;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -44,10 +44,10 @@ public class QuestToast implements Toast {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor g, Font font, long fullyVisibleForMs) {
+    public void render(GuiGraphics g, Font font, long fullyVisibleForMs) {
         g.blitSprite(RenderPipelines.GUI_TEXTURED, BACKGROUND, 0, 0, width(), height());
-        g.text(font, header, 30, 7, big ? 0xFFFF88FF : 0xFFFFFF55, false);
-        g.text(font, QuestBookScreen.clip(font, title, 125), 30, 18, 0xFFFFFFFF, false);
-        g.fakeItem(icon, 8, 8);
+        g.drawString(font, header, 30, 7, big ? 0xFFFF88FF : 0xFFFFFF55, false);
+        g.drawString(font, QuestBookScreen.clip(font, title, 125), 30, 18, 0xFFFFFFFF, false);
+        g.renderFakeItem(icon, 8, 8);
     }
 }

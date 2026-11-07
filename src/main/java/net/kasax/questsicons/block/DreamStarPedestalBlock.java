@@ -1,5 +1,6 @@
 package net.kasax.questsicons.block;
 
+import com.mojang.serialization.MapCodec;
 import net.kasax.questsicons.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
  * to take it back. While the star is on it, the pedestal glows (light 15) and sparkles. No hopper can take the star.
  */
 public class DreamStarPedestalBlock extends BaseEntityBlock {
+    public static final MapCodec<DreamStarPedestalBlock> CODEC = simpleCodec(DreamStarPedestalBlock::new);
     public static final BooleanProperty HAS_STAR = BooleanProperty.create("has_star");
     private static final VoxelShape SHAPE = Shapes.or(
             Block.box(2, 0, 2, 14, 3, 14),
@@ -39,6 +41,11 @@ public class DreamStarPedestalBlock extends BaseEntityBlock {
     public DreamStarPedestalBlock(Properties properties) {
         super(properties);
         registerDefaultState(this.stateDefinition.any().setValue(HAS_STAR, false));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 
     @Override

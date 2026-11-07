@@ -2,7 +2,7 @@ package net.kasax.questsicons.client.gui;
 
 import net.kasax.questsicons.icons.IconLibrary;
 import net.kasax.questsicons.item.ModItems;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -187,12 +187,12 @@ public class PickerScreen extends QiScreen {
         // The value first (the form behind rebuilds its fields from it), then back - unless the callback opened a screen.
         if (onItem != null) onItem.accept(e.stack().copy());
         if (onValue != null) onValue.accept(e.value());
-        if (minecraft != null && minecraft.gui.screen() == this) back();
+        if (minecraft != null && minecraft.screen == this) back();
     }
 
     @Override
-    protected void draw(GuiGraphicsExtractor g, int mouseX, int mouseY, float a) {
-        g.centeredText(font, title, width / 2, 8, QuestBookScreen.TEXT);
+    protected void draw(GuiGraphics g, int mouseX, int mouseY, float a) {
+        g.drawCenteredString(font, title, width / 2, 8, QuestBookScreen.TEXT);
         int top = 44;
         int bottom = height - 28;
         int left = 10;
@@ -209,7 +209,7 @@ public class PickerScreen extends QiScreen {
                 boolean hov = hovered(6, ty, TAB_W, 12, mouseX, mouseY);
                 if (sel) g.fill(6, ty, 6 + TAB_W, ty + 12, 0x807E0CC9);
                 else if (hov) g.fill(6, ty, 6 + TAB_W, ty + 12, 0x30FFFFFF);
-                g.text(font, QuestBookScreen.clip(font, t.name(), TAB_W - 6), 9, ty + 2, sel ? 0xFFFFFFFF : QuestBookScreen.AVAILABLE, false);
+                g.drawString(font, QuestBookScreen.clip(font, t.name(), TAB_W - 6), 9, ty + 2, sel ? 0xFFFFFFFF : QuestBookScreen.AVAILABLE, false);
                 final int idx = i;
                 zone(6, ty, TAB_W, 12, () -> {
                     tab = idx;
@@ -242,14 +242,14 @@ public class PickerScreen extends QiScreen {
                         g.pose().pushMatrix();
                         g.pose().translate(left + 2, y + 1);
                         g.pose().scale(0.75f, 0.75f);
-                        g.fakeItem(e.stack(), 0, 0);
+                        g.renderFakeItem(e.stack(), 0, 0);
                         g.pose().popMatrix();
                         tx += 14;
                     }
-                    g.text(font, QuestBookScreen.clip(font, e.label(), areaW - (tx - left) - 4), tx, y + 3, hov ? 0xFFFFFFFF : QuestBookScreen.TEXT, false);
+                    g.drawString(font, QuestBookScreen.clip(font, e.label(), areaW - (tx - left) - 4), tx, y + 3, hov ? 0xFFFFFFFF : QuestBookScreen.TEXT, false);
                     if (!e.label().getString().equals(e.value())) {
                         int w = font.width(e.value());
-                        if (font.width(e.label()) + w + 30 < areaW) g.text(font, e.value(), left + areaW - w - 4, y + 3, QuestBookScreen.MUTED, false);
+                        if (font.width(e.label()) + w + 30 < areaW) g.drawString(font, e.value(), left + areaW - w - 4, y + 3, QuestBookScreen.MUTED, false);
                     }
                     zone(left, y, areaW, rowH, () -> pick(e), null, e.value());
                 }
@@ -277,7 +277,7 @@ public class PickerScreen extends QiScreen {
                     g.blit(RenderPipelines.GUI_TEXTURED, Identifier.parse(m.texture()), x + (cell - 2 - w) / 2, y + (cell - 2 - h) / 2,
                             0, 0, w, h, w, h, w, h);
                 } else {
-                    g.fakeItem(e.stack(), x + (cell - 18) / 2, y + (cell - 18) / 2);
+                    g.renderFakeItem(e.stack(), x + (cell - 18) / 2, y + (cell - 18) / 2);
                 }
                 zone(x, y, cell - 2, cell - 2, () -> pick(e), e.label(), e.value());
             }
@@ -285,7 +285,7 @@ public class PickerScreen extends QiScreen {
         clipTop = Integer.MIN_VALUE;
         clipBottom = Integer.MAX_VALUE;
         g.disableScissor();
-        if (list.isEmpty()) g.centeredText(font, Component.translatable("questsicons.picker.nothing"), left + areaW / 2, top + 20, QuestBookScreen.MUTED);
+        if (list.isEmpty()) g.drawCenteredString(font, Component.translatable("questsicons.picker.nothing"), left + areaW / 2, top + 20, QuestBookScreen.MUTED);
         // Footer.
         int fy = height - 22;
         int x = width / 2 - 50;
@@ -297,7 +297,7 @@ public class PickerScreen extends QiScreen {
                     BuiltInRegistries.ITEM.getKey(hand.getItem()).toString(), hand.getHoverName(), "")));
         }
         button(g, x, fy, 100, 16, Component.translatable("gui.cancel"), mouseX, mouseY, this::back);
-        g.text(font, Component.translatable("questsicons.picker.count", list.size()), width - 10 - font.width(Component.translatable("questsicons.picker.count", list.size())), fy + 4, QuestBookScreen.MUTED, false);
+        g.drawString(font, Component.translatable("questsicons.picker.count", list.size()), width - 10 - font.width(Component.translatable("questsicons.picker.count", list.size())), fy + 4, QuestBookScreen.MUTED, false);
     }
 
     @Override

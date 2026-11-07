@@ -16,7 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** All teams and their quest progress, stored with the world ({@code data/questsicons/quest_progress.dat}). */
+/** All teams and their quest progress, stored with the world ({@code data/questsicons_quest_progress.dat}). */
 public final class QuestSavedData extends SavedData {
     public final Map<UUID, TeamData> teams = new LinkedHashMap<>();
     public final Map<UUID, UUID> playerTeam = new HashMap<>();
@@ -24,7 +24,7 @@ public final class QuestSavedData extends SavedData {
     private static final Codec<QuestSavedData> CODEC = CompoundTag.CODEC.xmap(QuestSavedData::fromTag, QuestSavedData::toTag);
 
     public static final SavedDataType<QuestSavedData> TYPE = new SavedDataType<>(
-            Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "quest_progress"), QuestSavedData::new, CODEC, DataFixTypes.LEVEL);
+            QuestsIcons.MOD_ID + "_quest_progress", QuestSavedData::new, CODEC, DataFixTypes.LEVEL);
 
     public static QuestSavedData get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(TYPE);

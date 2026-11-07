@@ -65,7 +65,7 @@
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipes": "questsicons:dream_star"
+        "recipe": "questsicons:dream_star"
       }
     }
   },
