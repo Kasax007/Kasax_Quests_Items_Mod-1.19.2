@@ -38,6 +38,8 @@ public class TablesScreen extends QiScreen {
         for (String key : keys) {
             RewardTable t = b.rewardTables.get(key);
             g.fill(x, y, x + w, y + 18, 0x30FFFFFF);
+            zone(x, y, w, 18, () -> {
+            }, null, "table:" + key);
             Component name = Component.literal(key).withStyle(t == null ? net.minecraft.ChatFormatting.GRAY : net.minecraft.ChatFormatting.WHITE);
             if (t != null) name = name.copy().append(Component.literal("  " + Component.translatable("questsicons.tables.entries", t.entries.size()).getString())
                     .withStyle(net.minecraft.ChatFormatting.GRAY));
@@ -66,8 +68,6 @@ public class TablesScreen extends QiScreen {
             right -= ew;
             button(g, right, y + 1, ew, 16, ed, mx, my, () -> edit(key, t));
             g.text(font, QuestBookScreen.clip(font, name, right - x - 8), x + 4, y + 5, QuestBookScreen.TEXT, false);
-            zone(x, y, w, 18, () -> {
-            }, null, "table:" + key);
             y += 20;
         }
         button(g, x, y + 4, 120, 16, Component.translatable("questsicons.tables.new"), mx, my, () -> {

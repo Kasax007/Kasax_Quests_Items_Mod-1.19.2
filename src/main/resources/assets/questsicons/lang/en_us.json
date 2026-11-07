@@ -102,7 +102,7 @@
   "questsicons.toast.chapter_complete": "Chapter completed!",
   "questsicons.edit.on": "Edit: ON",
   "questsicons.edit.off": "Edit",
-  "questsicons.edit.mode_hint": "Edit mode: drag quests · Shift-drag links · Ctrl-click/drag selects · right-click for options · Ctrl+Z undo",
+  "questsicons.edit.mode_hint": "Right-click: options · Shift-drag: link · Ctrl: select · Ctrl+Z: undo",
   "questsicons.edit.linking": "Click the quest that must be finished first (Esc cancels)",
   "questsicons.edit.open": "Open",
   "questsicons.edit.edit_snbt": "Edit as SNBT",
@@ -932,5 +932,6 @@
   "questsicons.reward_type.loot": "Loot table",
   "questsicons.reward_help.loot": "Rolls a loot table (vanilla or from a data pack).",
   "questsicons.reward_type.advancement": "Advancement",
-  "questsicons.reward_help.advancement": "Grants an advancement."
+  "questsicons.reward_help.advancement": "Grants an advancement.",
+  "questsicons.edit.empty_group": "(empty)"
 }

@@ -653,6 +653,20 @@ public class QuestBookScreen extends Screen {
             y += 22;
         }
         if (editMode) {
+            // Groups without chapters: shown in edit mode so chapters can be dragged into them.
+            for (ChapterGroup grp : book().groups) {
+                boolean used = false;
+                for (Chapter c : list) if (c.group.equals(grp.idString()) || c.group.equals(grp.title)) used = true;
+                if (used) continue;
+                y += 3;
+                g.text(font, grp.displayTitle(), 6, y + 2, MUTED, false);
+                g.text(font, Component.translatable("questsicons.edit.empty_group"), SIDEBAR - 8 - font.width(Component.translatable("questsicons.edit.empty_group")), y + 2, LOCKED, false);
+                g.fill(6, y + 12, SIDEBAR - 8, y + 13, 0x40FFFFFF);
+                rows.add(new Row(null, grp, y, 14));
+                y += 16;
+            }
+        }
+        if (editMode) {
             int by = y + 4;
             int half = (SIDEBAR - 14) / 2;
             button(g, 6, by, half, 16, Component.translatable("questsicons.edit.new_chapter"), mouseX, mouseY, () -> newChapter(""));
@@ -1145,13 +1159,13 @@ public class QuestBookScreen extends Screen {
                     linkSource = null;
                     return true;
                 }
-                if (editMode && event.hasShiftDown()) {
+                if (editMode && (event.hasShiftDown() || minecraft.hasShiftDown())) {
                     linkDrag = q;
                     linkX = mx;
                     linkY = my;
                     return true;
                 }
-                if (editMode && event.hasControlDown()) {
+                if (editMode && (event.hasControlDown() || minecraft.hasControlDown())) {
                     if (!selection.remove(q.id)) selection.add(q.id);
                     return true;
                 }
@@ -1173,7 +1187,7 @@ public class QuestBookScreen extends Screen {
             linkSource = null;
             if (editMode) {
                 int img = imageAt(mx, my);
-                if (event.hasControlDown()) {
+                if (event.hasControlDown() || minecraft.hasControlDown()) {
                     boxSelecting = true;
                     boxX0 = boxX1 = mx;
                     boxY0 = boxY1 = my;
@@ -1396,7 +1410,7 @@ public class QuestBookScreen extends Screen {
             }
         }
         if (editMode && selected == null && menu == null && choosing == null) {
-            if (event.hasControlDown() && event.key() == InputConstants.KEY_Z) {
+            if ((event.hasControlDown() || minecraft.hasControlDown()) && event.key() == InputConstants.KEY_Z) {
                 undo();
                 return true;
             }

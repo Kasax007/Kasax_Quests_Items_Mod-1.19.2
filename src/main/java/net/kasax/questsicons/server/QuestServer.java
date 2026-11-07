@@ -137,7 +137,9 @@ public final class QuestServer {
     }
 
     public void sendBook(ServerPlayer p) {
-        ServerPlayNetworking.send(p, new QuestNet.BookSync(bookBytes, canEdit(p)));
+        boolean can = canEdit(p);
+        editors.put(p.getUUID(), can);
+        ServerPlayNetworking.send(p, new QuestNet.BookSync(bookBytes, can));
     }
 
     // ------------------------------------------------------------------------------- teams
@@ -177,8 +179,17 @@ public final class QuestServer {
 
     // ------------------------------------------------------------------------------- progress
 
+    /** Who could edit at the last check: an operator made or removed while online gets the edit button at once. */
+    private final java.util.Map<java.util.UUID, Boolean> editors = new java.util.HashMap<>();
+
     private void tick() {
         tick++;
+        if (tick % 20 == 0) {
+            for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+                Boolean was = editors.get(p.getUUID());
+                if (was != null && was != canEdit(p)) sendBook(p);
+            }
+        }
         if (!detectTasks.isEmpty()) {
             for (ServerPlayer p : server.getPlayerList().getPlayers()) {
                 if (p.isSpectator()) continue;
