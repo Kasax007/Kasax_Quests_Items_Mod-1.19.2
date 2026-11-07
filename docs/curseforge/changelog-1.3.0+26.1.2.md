@@ -4,6 +4,9 @@
 for 26.1: FTB Quests for 26.1 is NeoForge-only, so on Fabric this is the quest book, and `/quests import ftbquests`
 brings an FTB Quests book over. Same features and file format as on 26.3.
 
+Everything of Quest Icons 1.0 to 1.2 comes with it: chapters and groups, quest maps with 10 shapes, 11 task and 8
+reward types, teams, "Claim all", toasts, pins, four Loot Crates, the Mystery Reward, and the Dream Star with its pedestal.
+
 ### New: 470 quest icons
 From 32 to 470 icons, all 16×16 in vanilla style, made for every kind of modpack. Thanks for the ideas in the
 comments: letters, NPC markers and science / industrial icons are in.

@@ -59,7 +59,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Opens the quest book in a fresh world and clicks through it with real mouse clicks and keys (26.3: SDL numbering),
+ * Opens the quest book in a fresh world and clicks through it with real mouse clicks and keys (26.1: GLFW numbering),
  * then checks the Dream Star and its pedestal. Saves screenshots and fails if a check fails.
  */
 public class Selftest implements FabricClientGameTest {
@@ -109,7 +109,7 @@ public class Selftest implements FabricClientGameTest {
         ctx.setScreen(QuestBookScreen::new);
         ctx.waitTicks(10);
         ctx.takeScreenshot("qi_book_map");
-        // A real left click on the first quest must open its panel (26.3 reports left = 1, not 0).
+        // A real left click on the first quest must open its panel (26.1 reports left = 0 (GLFW); 26.3 reports 1).
         clickQuest(welcome);
         check("left click opens the quest", selected() == welcome);
         ctx.takeScreenshot("qi_click_quest");
@@ -129,7 +129,7 @@ public class Selftest implements FabricClientGameTest {
         check("click Unpin", clickLabel(tr("questsicons.gui.unpin")));
         check("the quest is unpinned", !ClientQuests.pinned.contains(welcome));
 
-        // Escape closes only the panel (26.3: Escape is key 41, not 256), a second Escape the book.
+        // Escape closes only the panel (26.1: Escape is key 256 (GLFW)), a second Escape the book.
         ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);
         ctx.waitTicks(3);
         check("Escape closes the quest panel", bookOpen() && selected() == 0);
