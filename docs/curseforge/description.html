@@ -1,15 +1,20 @@
 <!-- CurseForge project description (HTML, with CurseForge's own spoiler box: <div class="spoiler">).
      Paste it into the description editor's HTML view. The images load from this public repo (branch 26.3);
-     docs/curseforge/make_images_v2.py builds them. -->
-<p style="text-align:center"><img src="https://raw.githubusercontent.com/Kasax007/Kasax_Quests_Items_Mod-1.19.2/26.3/docs/curseforge/img/header_v2.png" alt="Quest Icons 1.1 - icons and a whole quest book"></p>
+     docs/curseforge/make_images_v2.py and make_images_v3.py (the *_v3 images of 1.2) build them. -->
+<p style="text-align:center"><img src="https://raw.githubusercontent.com/Kasax007/Kasax_Quests_Items_Mod-1.19.2/26.3/docs/curseforge/img/header_v3.png" alt="Quest Icons 1.2 - icons, a whole quest book and an FTB Quests import"></p>
 <h3 style="text-align:center"><strong>Made with love, sweat and tears<br>Fabric only</strong></h3>
 <p style="text-align:center"><a href="https://bisecthosting.com/kasax007" rel="nofollow"><img src="https://i.imgur.com/fRoy5Eh.png" alt="BisectHosting: use code KASAX007 for 25% off"></a></p>
 <p>&nbsp;</p>
 
-<h3 style="text-align:center"><strong>Icons for your quest book, your rewards or anything you wish for.<br>And a complete quest book in the style of FTB Quests: chapters, quest maps, tasks, rewards, loot crates, teams and an in-game editor.</strong></h3>
+<h3 style="text-align:center"><strong>Icons for your quest book, your rewards or anything you wish for.<br>And a complete quest book in the style of FTB Quests: chapters, quest maps, tasks, rewards, loot crates, teams and an in-game editor.<br>New in 1.2: bring your FTB Quests book with one command, on Minecraft 26.3 and 26.2.</strong></h3>
 <p>&nbsp;</p>
 
-<p style="text-align:center"><img src="https://raw.githubusercontent.com/Kasax007/Kasax_Quests_Items_Mod-1.19.2/26.3/docs/curseforge/img/glance_v2.png" alt="Quest Icons at a glance: 32 icons, 11 task types, 8 reward types, 10 quest shapes, 4 loot crates, 4 pinned quests"></p>
+<p style="text-align:center"><img src="https://raw.githubusercontent.com/Kasax007/Kasax_Quests_Items_Mod-1.19.2/26.3/docs/curseforge/img/glance_v3.png" alt="Quest Icons at a glance: 32 icons, 11 task types, 8 reward types, 10 quest shapes, 4 loot crates, 4 pinned quests, and what is new in 1.2"></p>
+<p>&nbsp;</p>
+
+<p><img src="https://raw.githubusercontent.com/Kasax007/Kasax_Quests_Items_Mod-1.19.2/26.3/docs/curseforge/img/strip_import_v3.png" alt="New in 1.2: import from FTB Quests"></p>
+<p style="text-align:center"><img src="https://raw.githubusercontent.com/Kasax007/Kasax_Quests_Items_Mod-1.19.2/26.3/docs/curseforge/img/import_v3.png" alt="Copy config/ftbquests/quests, run /quests import ftbquests for a preview, then /quests import ftbquests run"></p>
+<p style="text-align:center">Works with the books of FTB Quests for 1.20, 1.21 and 26.1. Quest progress is not imported: players start the book fresh.</p>
 <p>&nbsp;</p>
 
 <p><img src="https://raw.githubusercontent.com/Kasax007/Kasax_Quests_Items_Mod-1.19.2/26.3/docs/curseforge/img/strip_icons_v2.png" alt="The icons"></p>
@@ -38,7 +43,7 @@
 <p style="text-align:center">Make a team with your friends and share your quest progress.</p>
 <p>&nbsp;</p>
 
-<p><img src="https://raw.githubusercontent.com/Kasax007/Kasax_Quests_Items_Mod-1.19.2/26.3/docs/curseforge/img/strip_star_v2.png" alt="New in 1.1: the Dream Star"></p>
+<p><img src="https://raw.githubusercontent.com/Kasax007/Kasax_Quests_Items_Mod-1.19.2/26.3/docs/curseforge/img/strip_star_v3.png" alt="The Dream Star"></p>
 <p style="text-align:center"><img src="https://raw.githubusercontent.com/Kasax007/Kasax_Quests_Items_Mod-1.19.2/26.3/docs/curseforge/img/star_v2.png" alt="The Dream Star, its pedestal and the recipes"></p>
 <p style="text-align:center">The endgame trophy of my modpack Dreamcraft, like the ATM Star of All The Mods packs.</p>
 <p>&nbsp;</p>
@@ -58,11 +63,11 @@
 <div class="spoiler">
 <p><strong>Requirements</strong></p>
 <ul>
-<li>Minecraft 26.3, Fabric Loader 0.19.5 or newer and Fabric API. On a server, install it on the server and on every client.</li>
+<li>Minecraft 26.3 with Fabric Loader 0.19.5 or newer, or Minecraft 26.2 with Fabric Loader 0.18.4 or newer. Fabric API. On a server, install it on the server and on every client.</li>
 </ul>
 <p><strong>Commands</strong></p>
 <ul>
-<li>Everyone: <strong>/quests open</strong> and <strong>/quests team info | create | invite | join | leave</strong>. Operators: <strong>reload</strong>, <strong>givebook</strong>, <strong>complete</strong> and <strong>reset</strong>. <strong>/questbook</strong> works the same.</li>
+<li>Everyone: <strong>/quests open</strong> and <strong>/quests team info | create | invite | join | leave</strong>. Operators: <strong>reload</strong>, <strong>givebook</strong>, <strong>complete</strong>, <strong>reset</strong> and <strong>import ftbquests [preview | run | merge] [folder]</strong>. <strong>/questbook</strong> works the same.</li>
 <li>Joining a team replaces your progress with the team's. Leaving starts you over with empty progress.</li>
 </ul>
 <p><strong>Quest files</strong></p>
@@ -70,6 +75,12 @@
 <li>Commas are optional. IDs are 16-digit hex numbers or any readable name.</li>
 <li>Text takes &amp; colour codes, translation keys like {mypack.quest.title} and JSON text. Pictures: {image:namespace:path.png width:120 height:60}.</li>
 <li>Rewards can go to the whole team (<strong>team_reward</strong>) or be claimed on their own (<strong>auto</strong>).</li>
+</ul>
+<p><strong>FTB Quests import</strong></p>
+<ul>
+<li><strong>preview</strong> (the default) changes nothing and writes <strong>config/questsicons/ftbquests-import-report.txt</strong>. <strong>run</strong> replaces the book, <strong>merge</strong> keeps your own chapters and adds the FTB ones. Both back up your quest files to <strong>config/questsicons/backups/</strong> first.</li>
+<li>The folder is <strong>config/ftbquests/quests</strong> by default; an instance folder, a config folder or a full path works too.</li>
+<li>Fluid, energy, game stage and KubeJS tasks become checkmark tasks with a clear title. Currency, game stage and KubeJS rewards are skipped. The report lists every case and every id of a mod that is not installed.</li>
 </ul>
 <p><strong>The Dream Star in Dreamcraft</strong></p>
 <ul>
