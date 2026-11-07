@@ -54,7 +54,7 @@ class FtbImporterTest {
     static void boot() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        int current = SharedConstants.getCurrentVersion().dataVersion().version();
+        int current = SharedConstants.getCurrentVersion().getDataVersion().getVersion();
         options = new FtbImporter.Options();
         options.fixer = (stack, from) -> (CompoundTag) DataFixers.getDataFixer()
                 .update(References.ITEM_STACK, new Dynamic<>(NbtOps.INSTANCE, stack), from, current).getValue();
@@ -133,7 +133,7 @@ class FtbImporterTest {
         assertEquals(3.0, t.getDoubleOr("d", 0));
         assertTrue(t.getBooleanOr("e", false));
         assertEquals("x\ny", t.getStringOr("f g", ""), "an unknown escape drops the character, like FTB");
-        assertEquals(3, t.getIntArray("h").orElseThrow().length);
+        assertEquals(3, t.getIntArray("h").length);
         assertEquals(2, t.getListOrEmpty("i").size());
         assertEquals(12345678901.0, t.getDoubleOr("big", 0), "a plain number that is no int is a double in FTB's SNBT");
         assertFalse(t.contains("n"));
@@ -243,7 +243,10 @@ class FtbImporterTest {
         Tasks.ItemTask sword = task(b, "6000000000000002", Tasks.ItemTask.class);
         assertEquals("minecraft:diamond_sword", sword.item.idString());
         CompoundTag comps = ((CompoundTag) sword.item.write()).getCompoundOrEmpty("components");
-        assertEquals(5, comps.getCompoundOrEmpty("minecraft:enchantments").getIntOr("minecraft:sharpness", 0),
+        // 1.21.1 component format: {levels: {"minecraft:sharpness": 5}}. The JSON5 book comes from FTB Quests 26.1, whose
+        // newer format ({"minecraft:sharpness": 5}) Minecraft 1.21.1 cannot fix down: it stays as it is.
+        CompoundTag ench = comps.getCompoundOrEmpty("minecraft:enchantments");
+        assertEquals(5, ench.contains("levels") ? ench.getCompoundOrEmpty("levels").getIntOr("minecraft:sharpness", 0) : ench.getIntOr("minecraft:sharpness", 0),
                 "1.20 NBT and the 1.21 component are both upgraded: " + sword.item);
         assertTrue(sword.matchComponents);
         assertFalse(sword.fuzzyMatch);
@@ -395,7 +398,7 @@ class FtbImporterTest {
         FtbImporter.Options o = new FtbImporter.Options();
         o.game = new FtbImporter.GameData() {
             public boolean item(String id) {
-                return net.minecraft.core.registries.BuiltInRegistries.ITEM.containsKey(net.minecraft.resources.Identifier.parse(id));
+                return net.minecraft.core.registries.BuiltInRegistries.ITEM.containsKey(net.minecraft.resources.ResourceLocation.parse(id));
             }
 
             public boolean itemTag(String id) {
@@ -403,7 +406,7 @@ class FtbImporterTest {
             }
 
             public boolean entity(String id) {
-                return net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.containsKey(net.minecraft.resources.Identifier.parse(id));
+                return net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.containsKey(net.minecraft.resources.ResourceLocation.parse(id));
             }
 
             public boolean entityTag(String id) {

@@ -25,11 +25,11 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
 import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.util.datafix.fixes.References;
 import org.jetbrains.annotations.Nullable;
@@ -87,7 +87,7 @@ public final class FtbImportCommand {
             ftb.then(Commands.literal(name).executes(c -> start(c, m, null))
                     .then(Commands.argument("folder", StringArgumentType.greedyString()).executes(c -> start(c, m, StringArgumentType.getString(c, "folder")))));
         }
-        return Commands.literal("import").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).then(ftb);
+        return Commands.literal("import").requires(s -> s.hasPermission(2)).then(ftb);
     }
 
     private static int start(CommandContext<CommandSourceStack> c, Mode mode, @Nullable String folder) {
@@ -269,8 +269,8 @@ public final class FtbImportCommand {
         }
         String reportPath = shown(gameDir, file.toAbsolutePath().normalize());
         MutableComponent link = Component.literal(reportPath).withStyle(s -> s.withColor(ChatFormatting.AQUA).withUnderlined(true)
-                .withClickEvent(new ClickEvent.CopyToClipboard(file.toAbsolutePath().toString()))
-                .withHoverEvent(new HoverEvent.ShowText(Component.translatable("questsicons.import.open_report"))));
+                .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, file.toAbsolutePath().toString()))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("questsicons.import.open_report"))));
         src.sendSuccess(() -> Component.translatable("questsicons.import.report", link), false);
         if (backup != null) {
             src.sendSuccess(() -> Component.translatable("questsicons.import.backup", shown(gameDir, backup.toAbsolutePath().normalize())).withStyle(ChatFormatting.GRAY), false);
@@ -278,7 +278,7 @@ public final class FtbImportCommand {
         if (mode == Mode.PREVIEW) {
             String cmd = "/quests import ftbquests run" + (folder == null || folder.isBlank() ? "" : " " + folder.trim());
             src.sendSuccess(() -> Component.translatable("questsicons.import.next", Component.literal(cmd).withStyle(s -> s.withColor(ChatFormatting.GREEN)
-                    .withClickEvent(new ClickEvent.SuggestCommand(cmd)).withHoverEvent(new HoverEvent.ShowText(Component.literal(cmd))))), false);
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, cmd)).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(cmd))))), false);
         }
     }
 
@@ -290,7 +290,7 @@ public final class FtbImportCommand {
 
     /** Upgrades FTB's 1.20/1.21 item stacks with Minecraft's own data fixer (enchantments, potions, names, renames). */
     static FtbImporter.ItemFixer vanillaFixer() {
-        int current = SharedConstants.getCurrentVersion().dataVersion().version();
+        int current = SharedConstants.getCurrentVersion().getDataVersion().getVersion();
         return (stack, from) -> (CompoundTag) DataFixers.getDataFixer()
                 .update(References.ITEM_STACK, new Dynamic<>(NbtOps.INSTANCE, stack), from, current).getValue();
     }
@@ -299,17 +299,17 @@ public final class FtbImportCommand {
         var access = server.registryAccess();
         return new FtbImporter.GameData() {
             private <T> boolean has(Registry<T> reg, String id) {
-                Identifier rl = Identifier.tryParse(id);
+                ResourceLocation rl = ResourceLocation.tryParse(id);
                 return rl != null && reg.containsKey(rl);
             }
 
             private <T> boolean hasTag(net.minecraft.core.HolderLookup.RegistryLookup<T> reg, ResourceKey<? extends Registry<T>> key, String id) {
-                Identifier rl = Identifier.tryParse(id.startsWith("#") ? id.substring(1) : id);
+                ResourceLocation rl = ResourceLocation.tryParse(id.startsWith("#") ? id.substring(1) : id);
                 return rl != null && reg.get(TagKey.create(key, rl)).isPresent();
             }
 
             private <T> boolean hasKey(ResourceKey<? extends Registry<T>> key, String id) {
-                Identifier rl = Identifier.tryParse(id);
+                ResourceLocation rl = ResourceLocation.tryParse(id);
                 return rl != null && access.lookupOrThrow(key).get(ResourceKey.create(key, rl)).isPresent();
             }
 
@@ -335,13 +335,13 @@ public final class FtbImportCommand {
 
             @Override
             public boolean advancement(String id) {
-                Identifier rl = Identifier.tryParse(id);
+                ResourceLocation rl = ResourceLocation.tryParse(id);
                 return rl != null && server.getAdvancements().get(rl) != null;
             }
 
             @Override
             public boolean dimension(String id) {
-                Identifier rl = Identifier.tryParse(id);
+                ResourceLocation rl = ResourceLocation.tryParse(id);
                 return rl != null && server.levelKeys().contains(ResourceKey.create(Registries.DIMENSION, rl));
             }
 
@@ -382,7 +382,7 @@ public final class FtbImportCommand {
 
             @Override
             public boolean lootTable(String id) {
-                Identifier rl = Identifier.tryParse(id);
+                ResourceLocation rl = ResourceLocation.tryParse(id);
                 return rl != null && server.reloadableRegistries().lookup().lookupOrThrow(Registries.LOOT_TABLE)
                         .get(ResourceKey.create(Registries.LOOT_TABLE, rl)).isPresent();
             }
@@ -399,7 +399,7 @@ public final class FtbImportCommand {
             @Override
             public List<String> itemIds() {
                 List<String> l = new ArrayList<>();
-                for (Identifier rl : BuiltInRegistries.ITEM.keySet()) l.add(rl.toString());
+                for (ResourceLocation rl : BuiltInRegistries.ITEM.keySet()) l.add(rl.toString());
                 return l;
             }
         };

@@ -1,5 +1,6 @@
 package net.kasax.questsicons.quest;
 
+import net.kasax.questsicons.compat.QiListTag;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import net.kasax.questsicons.QuestsIcons;
@@ -120,10 +121,10 @@ public final class QuestBook {
 
     public CompoundTag writeAll() {
         CompoundTag tag = writeData();
-        ListTag gl = new ListTag();
+        ListTag gl = QiListTag.mixed();
         for (ChapterGroup g : groups) gl.add(g.write());
         tag.put("chapter_groups", gl);
-        ListTag cl = new ListTag();
+        ListTag cl = QiListTag.mixed();
         for (Chapter c : chapters) cl.add(c.write());
         tag.put("chapters", cl);
         CompoundTag tables = new CompoundTag();
@@ -223,7 +224,7 @@ public final class QuestBook {
         Files.createDirectories(dir.resolve("chapters"));
         Snbt.write(dir.resolve("data.snbt"), writeData());
         CompoundTag g = new CompoundTag();
-        ListTag gl = new ListTag();
+        ListTag gl = QiListTag.mixed();
         for (ChapterGroup cg : groups) gl.add(cg.write());
         g.put("chapter_groups", gl);
         Snbt.write(dir.resolve("chapter_groups.snbt"), g);

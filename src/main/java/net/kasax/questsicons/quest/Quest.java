@@ -1,5 +1,6 @@
 package net.kasax.questsicons.quest;
 
+import net.kasax.questsicons.compat.QiListTag;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import net.kasax.questsicons.QuestsIcons;
 import net.kasax.questsicons.quest.reward.Reward;
@@ -126,7 +127,7 @@ public final class Quest extends QuestObject {
         writeBase(tag);
         if (!subtitle.isEmpty()) tag.putString("subtitle", subtitle);
         if (!description.isEmpty()) {
-            ListTag l = new ListTag();
+            ListTag l = QiListTag.mixed();
             for (String s : description) l.add(StringTag.valueOf(s));
             tag.put("description", l);
         }
@@ -135,7 +136,7 @@ public final class Quest extends QuestObject {
         if (!shape.isEmpty()) tag.putString("shape", shape);
         if (size != 1.0) tag.putDouble("size", size);
         if (!dependencies.isEmpty()) {
-            ListTag l = new ListTag();
+            ListTag l = QiListTag.mixed();
             for (long dep : dependencies) l.add(StringTag.valueOf(idToString(dep)));
             tag.put("dependencies", l);
         }
@@ -146,10 +147,10 @@ public final class Quest extends QuestObject {
         if (hideDependentLines) tag.putBoolean("hide_dependent_lines", true);
         if (invisible) tag.putBoolean("invisible", true);
         if (disableToast) tag.putBoolean("disable_toast", true);
-        ListTag tl = new ListTag();
+        ListTag tl = QiListTag.mixed();
         for (Task t : tasks) tl.add(t.write());
         tag.put("tasks", tl);
-        ListTag rl = new ListTag();
+        ListTag rl = QiListTag.mixed();
         for (Reward r : rewards) rl.add(r.write());
         if (!rl.isEmpty()) tag.put("rewards", rl);
         return tag;

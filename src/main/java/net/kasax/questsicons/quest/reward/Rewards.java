@@ -1,5 +1,6 @@
 package net.kasax.questsicons.quest.reward;
 
+import net.kasax.questsicons.compat.QiListTag;
 import net.kasax.questsicons.QuestsIcons;
 import net.kasax.questsicons.quest.ItemSpec;
 import net.kasax.questsicons.quest.RewardTable;
@@ -10,11 +11,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.permissions.LevelBasedPermissionSet;
+
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -212,8 +213,8 @@ public final class Rewards {
 
         @Override
         public void claim(ServerPlayer player, int choice) {
-            MinecraftServer server = player.level().getServer();
-            String cmd = command.replace("{p}", player.getGameProfile().name())
+            MinecraftServer server = player.getServer();
+            String cmd = command.replace("{p}", player.getGameProfile().getName())
                     .replace("{x}", String.valueOf(player.getBlockX()))
                     .replace("{y}", String.valueOf(player.getBlockY()))
                     .replace("{z}", String.valueOf(player.getBlockZ()))
@@ -235,8 +236,7 @@ public final class Rewards {
             }
             if (cmd.startsWith("/")) cmd = cmd.substring(1);
             var source = player.createCommandSourceStack();
-            if (elevatePerms) source = source.withPermission(permissionLevel >= 4 ? LevelBasedPermissionSet.OWNER
-                    : permissionLevel == 3 ? LevelBasedPermissionSet.ADMIN : LevelBasedPermissionSet.GAMEMASTER);
+            if (elevatePerms) source = source.withPermission(permissionLevel >= 4 ? 4 : permissionLevel == 3 ? 3 : 2);
             if (silent) source = source.withSuppressedOutput();
             server.getCommands().performPrefixedCommand(source, cmd);
         }
@@ -267,7 +267,7 @@ public final class Rewards {
             super.write(tag);
             if (!table.isEmpty()) tag.putString("table", table);
             if (!inline.isEmpty()) {
-                ListTag l = new ListTag();
+                ListTag l = QiListTag.mixed();
                 for (RewardTable.Entry e : inline) l.add(e.write());
                 tag.put("items", l);
             }
@@ -319,7 +319,7 @@ public final class Rewards {
         @Override
         public void write(CompoundTag tag) {
             super.write(tag);
-            ListTag l = new ListTag();
+            ListTag l = QiListTag.mixed();
             for (ItemSpec s : items) l.add(s.write());
             tag.put("items", l);
         }
@@ -396,10 +396,10 @@ public final class Rewards {
         @Override
         public void claim(ServerPlayer player, int choice) {
             try {
-                ResourceKey<LootTable> key = ResourceKey.create(Registries.LOOT_TABLE, Identifier.parse(lootTable));
-                LootTable table = player.level().getServer().reloadableRegistries().getLootTable(key);
+                ResourceKey<LootTable> key = ResourceKey.create(Registries.LOOT_TABLE, ResourceLocation.parse(lootTable));
+                LootTable table = player.getServer().reloadableRegistries().getLootTable(key);
                 for (int i = 0; i < Math.max(1, rolls); i++) {
-                    LootParams params = new LootParams.Builder(player.level())
+                    LootParams params = new LootParams.Builder(player.serverLevel())
                             .withParameter(LootContextParams.ORIGIN, player.position())
                             .withParameter(LootContextParams.THIS_ENTITY, player)
                             .create(LootContextParamSets.CHEST);
@@ -443,8 +443,8 @@ public final class Rewards {
 
         @Override
         public void claim(ServerPlayer player, int choice) {
-            Identifier id = Identifier.tryParse(advancement);
-            AdvancementHolder h = id == null ? null : player.level().getServer().getAdvancements().get(id);
+            ResourceLocation id = ResourceLocation.tryParse(advancement);
+            AdvancementHolder h = id == null ? null : player.getServer().getAdvancements().get(id);
             if (h == null) return;
             for (String c : h.value().criteria().keySet()) player.getAdvancements().award(h, c);
         }

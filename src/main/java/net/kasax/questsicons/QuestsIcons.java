@@ -27,12 +27,14 @@ public class QuestsIcons implements ModInitializer {
         ModItems.registerModItems();
         ModBlocks.registerBlocks();
         ModItemGroup.registerItemGroups();
-        // A dropped Dream Star never despawns (fire and explosions cannot hurt it either, see ModItems). Not the fake
-        // item /give spawns for its pickup animation (ItemEntity.makeFakeItem: age 5999, nobody can pick it up): made
-        // permanent, it floated at the player's feet forever.
+        // A dropped Dream Star never despawns and nothing but the void destroys it: fire and lava (it floats like
+        // netherite, see ModItems), explosions, cactus and lightning. (1.21.1 has no damage_resistant component, so the
+        // item entity is made invulnerable.) Not the fake item /give spawns for its pickup animation
+        // (ItemEntity.makeFakeItem: age 5999, nobody can pick it up): made permanent, it floated at the player's feet forever.
         ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
             if (entity instanceof ItemEntity item && item.getItem().is(ModItems.DREAM_STAR) && item.getAge() != FAKE_ITEM_AGE) {
                 item.setUnlimitedLifetime();
+                item.setInvulnerable(true);
             }
         });
         QuestNet.register();

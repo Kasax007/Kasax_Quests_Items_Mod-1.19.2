@@ -1,5 +1,6 @@
 package net.kasax.questsicons.importer;
 
+import net.kasax.questsicons.compat.QiListTag;
 import net.minecraft.nbt.ByteTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
@@ -132,7 +133,7 @@ public final class Json5Reader {
 
     private ListTag array() {
         pos++;
-        ListTag list = new ListTag();
+        ListTag list = QiListTag.mixed();
         while (true) {
             ws();
             if (peek() == ']') {

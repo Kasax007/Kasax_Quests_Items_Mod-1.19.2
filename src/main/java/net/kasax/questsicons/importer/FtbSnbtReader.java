@@ -1,5 +1,6 @@
 package net.kasax.questsicons.importer;
 
+import net.kasax.questsicons.compat.QiListTag;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.ByteTag;
 import net.minecraft.nbt.CompoundTag;
@@ -171,7 +172,7 @@ public final class FtbSnbtReader {
         char b = nextNs();
         if (b == ';' && "IiLlBb".indexOf(a) >= 0) return readArray(Character.toLowerCase(a));
         pos = prev;
-        ListTag list = new ListTag();
+        ListTag list = QiListTag.mixed();
         while (true) {
             char c = nextNs();
             if (c == ']') return list;

@@ -11,7 +11,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 
@@ -36,7 +36,11 @@ public final class EditorData {
     private static boolean requested;
 
     public static void init() {
-        ClientPlayNetworking.registerGlobalReceiver(QuestNet.EditorLists.TYPE, (payload, ctx) -> server = payload.data());
+        ClientPlayNetworking.registerGlobalReceiver(QuestNet.EditorLists.TYPE, (payload, ctx) -> onLists(payload));
+    }
+
+    static void onLists(QuestNet.EditorLists payload) {
+        server = payload.data();
     }
 
     public static void reset() {
@@ -51,7 +55,7 @@ public final class EditorData {
         requested = true;
         CompoundTag op = new CompoundTag();
         op.putString("op", "lists");
-        ClientPlayNetworking.send(new QuestNet.Edit(op));
+        ClientNet.send(new QuestNet.Edit(op));
     }
 
     public static boolean hasServerLists() {
@@ -71,23 +75,23 @@ public final class EditorData {
         switch (kind) {
             case "entity" -> {
                 BuiltInRegistries.ENTITY_TYPE.keySet().forEach(k -> out.add(k.toString()));
-                BuiltInRegistries.ENTITY_TYPE.getTags().forEach(t -> out.add("#" + t.key().location()));
+                BuiltInRegistries.ENTITY_TYPE.getTagNames().forEach(t -> out.add("#" + t.location()));
             }
             case "entity_only" -> BuiltInRegistries.ENTITY_TYPE.keySet().forEach(k -> out.add(k.toString()));
             case "block" -> {
                 BuiltInRegistries.BLOCK.keySet().forEach(k -> out.add(k.toString()));
-                BuiltInRegistries.BLOCK.getTags().forEach(t -> out.add("#" + t.key().location()));
+                BuiltInRegistries.BLOCK.getTagNames().forEach(t -> out.add("#" + t.location()));
             }
             case "stat" -> BuiltInRegistries.CUSTOM_STAT.keySet().forEach(k -> out.add(k.toString()));
             case "biome" -> {
                 if (mc.level != null) {
-                    mc.level.registryAccess().lookupOrThrow(Registries.BIOME).listElementIds().forEach(k -> out.add(k.identifier().toString()));
+                    mc.level.registryAccess().lookupOrThrow(Registries.BIOME).listElementIds().forEach(k -> out.add(k.location().toString()));
                     mc.level.registryAccess().lookupOrThrow(Registries.BIOME).listTagIds().forEach(k -> out.add("#" + k.location()));
                 }
                 out.addAll(serverList("biome_tags"));
             }
             case "dimension" -> {
-                if (mc.getConnection() != null) for (ResourceKey<Level> k : mc.getConnection().levels()) out.add(k.identifier().toString());
+                if (mc.getConnection() != null) for (ResourceKey<Level> k : mc.getConnection().levels()) out.add(k.location().toString());
                 out.addAll(serverList("dimensions"));
             }
             case "structure" -> {
@@ -96,7 +100,7 @@ public final class EditorData {
             }
             case "advancement" -> out.addAll(serverList("advancements"));
             case "loot_table" -> out.addAll(serverList("loot_tables"));
-            case "item_tag" -> BuiltInRegistries.ITEM.getTags().forEach(t -> out.add("#" + t.key().location()));
+            case "item_tag" -> BuiltInRegistries.ITEM.getTagNames().forEach(t -> out.add("#" + t.location()));
             case "table" -> {
                 QuestBook b = ClientQuests.book;
                 if (b != null) out.addAll(b.rewardTables.keySet());
@@ -122,8 +126,8 @@ public final class EditorData {
         if (v.isEmpty()) return "questsicons.form.error.empty";
         boolean tag = v.startsWith("#");
         String id = tag ? v.substring(1) : v;
-        if (Identifier.tryParse(id) == null) return "questsicons.form.error.bad_id";
-        String full = (tag ? "#" : "") + Identifier.parse(id);
+        if (ResourceLocation.tryParse(id) == null) return "questsicons.form.error.bad_id";
+        String full = (tag ? "#" : "") + ResourceLocation.parse(id);
         if (kind.equals("advancement") || kind.equals("loot_table") || kind.equals("structure")
                 || kind.equals("dimension")) {
             if (!hasServerLists() && !kind.equals("dimension")) return null;

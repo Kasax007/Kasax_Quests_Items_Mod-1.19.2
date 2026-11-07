@@ -1,5 +1,6 @@
 package net.kasax.questsicons.quest;
 
+import net.kasax.questsicons.compat.QiListTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -34,7 +35,7 @@ public final class RewardTable {
         CompoundTag tag = new CompoundTag();
         if (!title.isEmpty()) tag.putString("title", title);
         if (!icon.isEmpty()) tag.put("icon", icon.write());
-        ListTag l = new ListTag();
+        ListTag l = QiListTag.mixed();
         for (Entry e : entries) l.add(e.write());
         tag.put("entries", l);
         return tag;

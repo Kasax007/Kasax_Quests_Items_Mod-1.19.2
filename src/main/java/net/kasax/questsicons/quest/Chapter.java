@@ -1,5 +1,6 @@
 package net.kasax.questsicons.quest;
 
+import net.kasax.questsicons.compat.QiListTag;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -63,7 +64,7 @@ public final class Chapter extends QuestObject {
         writeBase(tag);
         tag.putString("filename", filename);
         if (!subtitle.isEmpty()) {
-            ListTag l = new ListTag();
+            ListTag l = QiListTag.mixed();
             for (String s : subtitle) l.add(StringTag.valueOf(s));
             tag.put("subtitle", l);
         }
@@ -73,11 +74,11 @@ public final class Chapter extends QuestObject {
         if (defaultQuestSize != 1.0) tag.putDouble("default_quest_size", defaultQuestSize);
         if (hideUntilStartable) tag.putBoolean("hide_until_startable", true);
         if (alwaysInvisible) tag.putBoolean("always_invisible", true);
-        ListTag ql = new ListTag();
+        ListTag ql = QiListTag.mixed();
         for (Quest q : quests) ql.add(q.write());
         tag.put("quests", ql);
         if (!images.isEmpty()) {
-            ListTag il = new ListTag();
+            ListTag il = QiListTag.mixed();
             for (ChapterImage i : images) il.add(i.write());
             tag.put("images", il);
         }

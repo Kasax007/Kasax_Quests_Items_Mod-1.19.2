@@ -56,25 +56,25 @@ public final class QuestCommands {
                     qs().openBook(c.getSource().getPlayerOrException());
                     return 1;
                 }))
-                .then(Commands.literal("reload").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(c -> {
+                .then(Commands.literal("reload").requires(s -> s.hasPermission(2)).executes(c -> {
                     qs().load();
                     c.getSource().sendSuccess(() -> Component.translatable("questsicons.command.reloaded", qs().book.chapters.size()), true);
                     return 1;
                 }))
-                .then(Commands.literal("givebook").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .then(Commands.literal("givebook").requires(s -> s.hasPermission(2))
                         .then(Commands.argument("targets", EntityArgument.players()).executes(c -> {
                             for (ServerPlayer p : EntityArgument.getPlayers(c, "targets")) {
                                 ItemStack s = new ItemStack(ModItems.QUEST_BOOK);
-                                if (!p.getInventory().add(s)) p.drop(s, false, net.minecraft.util.Prediction.SERVER_ONLY);
+                                if (!p.getInventory().add(s)) p.drop(s, false);
                             }
                             return 1;
                         })))
-                .then(Commands.literal("complete").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .then(Commands.literal("complete").requires(s -> s.hasPermission(2))
                         .then(Commands.argument("quest", StringArgumentType.word()).suggests(QUESTS)
                                 .executes(c -> complete(c, List.of(c.getSource().getPlayerOrException())))
                                 .then(Commands.argument("targets", EntityArgument.players())
                                         .executes(c -> complete(c, EntityArgument.getPlayers(c, "targets"))))))
-                .then(Commands.literal("reset").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .then(Commands.literal("reset").requires(s -> s.hasPermission(2))
                         .then(Commands.argument("quest", StringArgumentType.word()).suggests(QUESTS)
                                 .executes(c -> reset(c, List.of(c.getSource().getPlayerOrException())))
                                 .then(Commands.argument("targets", EntityArgument.players())
@@ -146,7 +146,7 @@ public final class QuestCommands {
             current.name = name;
         } else {
             leave(qs, p, current);
-            TeamData t = data.teamOf(p.getUUID(), p.getGameProfile().name());
+            TeamData t = data.teamOf(p.getUUID(), p.getGameProfile().getName());
             t.name = name;
         }
         qs.markDirty(qs.team(p));
@@ -160,10 +160,10 @@ public final class QuestCommands {
         TeamData t = qs().team(p);
         t.invites.add(target.getUUID());
         qs().data().setDirty();
-        String join = "/quests team join " + p.getGameProfile().name();
-        target.sendSystemMessage(Component.translatable("questsicons.team.invited", p.getDisplayName(), t.name, p.getGameProfile().name())
-                .withStyle(s -> s.withColor(ChatFormatting.GOLD).withClickEvent(new ClickEvent.SuggestCommand(join))
-                        .withHoverEvent(new HoverEvent.ShowText(Component.literal(join)))));
+        String join = "/quests team join " + p.getGameProfile().getName();
+        target.sendSystemMessage(Component.translatable("questsicons.team.invited", p.getDisplayName(), t.name, p.getGameProfile().getName())
+                .withStyle(s -> s.withColor(ChatFormatting.GOLD).withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, join))
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(join)))));
         c.getSource().sendSuccess(() -> Component.translatable("questsicons.team.invite_sent", target.getDisplayName()), false);
         return 1;
     }
@@ -184,7 +184,7 @@ public final class QuestCommands {
         removeFromTeam(qs, p, current);
         target.invites.remove(p.getUUID());
         target.members.add(p.getUUID());
-        target.memberNames.put(p.getUUID(), p.getGameProfile().name());
+        target.memberNames.put(p.getUUID(), p.getGameProfile().getName());
         target.gotBook.add(p.getUUID());           // they already got their book; without this the next login gave a second one
         qs.data().playerTeam.put(p.getUUID(), target.id);
         qs.markDirty(target);
@@ -226,9 +226,9 @@ public final class QuestCommands {
     private static void leave(QuestServer qs, ServerPlayer p, TeamData team) {
         UUID u = p.getUUID();
         removeFromTeam(qs, p, team);
-        TeamData fresh = new TeamData(UUID.randomUUID(), p.getGameProfile().name(), u);
+        TeamData fresh = new TeamData(UUID.randomUUID(), p.getGameProfile().getName(), u);
         fresh.members.add(u);
-        fresh.memberNames.put(u, p.getGameProfile().name());
+        fresh.memberNames.put(u, p.getGameProfile().getName());
         fresh.gotBook.add(u);
         qs.data().teams.put(fresh.id, fresh);
         qs.data().playerTeam.put(u, fresh.id);

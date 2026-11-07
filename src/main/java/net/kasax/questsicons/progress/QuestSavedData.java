@@ -1,36 +1,43 @@
 package net.kasax.questsicons.progress;
 
-import com.mojang.serialization.Codec;
+import net.kasax.questsicons.compat.QiListTag;
+import net.minecraft.core.HolderLookup;
 import net.kasax.questsicons.QuestsIcons;
+import net.kasax.questsicons.compat.MixedLists;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.saveddata.SavedDataType;
+
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** All teams and their quest progress, stored with the world ({@code data/questsicons/quest_progress.dat}). */
+/** All teams and their quest progress, stored with the world ({@code data/questsicons_quest_progress.dat}). */
 public final class QuestSavedData extends SavedData {
     public final Map<UUID, TeamData> teams = new LinkedHashMap<>();
     public final Map<UUID, UUID> playerTeam = new HashMap<>();
 
-    private static final Codec<QuestSavedData> CODEC = CompoundTag.CODEC.xmap(QuestSavedData::fromTag, QuestSavedData::toTag);
-
-    public static final SavedDataType<QuestSavedData> TYPE = new SavedDataType<>(
-            Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "quest_progress"), QuestSavedData::new, CODEC, DataFixTypes.LEVEL);
+    public static final SavedData.Factory<QuestSavedData> TYPE = new SavedData.Factory<>(
+            QuestSavedData::new, (tag, registries) -> fromTag(tag), DataFixTypes.LEVEL);
 
     public static QuestSavedData get(MinecraftServer server) {
-        return server.overworld().getDataStorage().computeIfAbsent(TYPE);
+        return server.overworld().getDataStorage().computeIfAbsent(TYPE, QuestsIcons.MOD_ID + "_quest_progress");
+    }
+
+    @Override
+    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+        tag.merge(toTag());
+        return tag;
     }
 
     private static QuestSavedData fromTag(CompoundTag tag) {
+        MixedLists.unwrap(tag);
         QuestSavedData d = new QuestSavedData();
         for (Tag t : tag.getListOrEmpty("teams")) {
             if (!(t instanceof CompoundTag c)) continue;
@@ -68,7 +75,7 @@ public final class QuestSavedData extends SavedData {
 
     private CompoundTag toTag() {
         CompoundTag tag = new CompoundTag();
-        ListTag l = new ListTag();
+        ListTag l = QiListTag.mixed();
         for (TeamData t : teams.values()) l.add(t.write());
         tag.put("teams", l);
         return tag;

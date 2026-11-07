@@ -2,10 +2,18 @@
   "type": "minecraft:crafting_shaped",
   "category": "building",
   "key": {
-    "G": "minecraft:gold_ingot",
-    "A": "minecraft:amethyst_shard",
-    "Q": "minecraft:quartz_pillar",
-    "B": "minecraft:polished_blackstone"
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "Q": {
+      "item": "minecraft:quartz_pillar"
+    },
+    "B": {
+      "item": "minecraft:polished_blackstone"
+    }
   },
   "pattern": [
     "GAG",

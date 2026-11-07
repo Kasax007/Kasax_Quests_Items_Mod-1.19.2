@@ -1,5 +1,6 @@
 package net.kasax.questsicons.progress;
 
+import net.kasax.questsicons.compat.QiListTag;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.kasax.questsicons.quest.ProgressView;
@@ -73,7 +74,7 @@ public final class TeamData {
         t.putString("id", id.toString());
         t.putString("name", name);
         t.putString("owner", owner.toString());
-        ListTag m = new ListTag();
+        ListTag m = QiListTag.mixed();
         for (UUID u : members) {
             CompoundTag c = new CompoundTag();
             c.putString("uuid", u.toString());
@@ -81,7 +82,7 @@ public final class TeamData {
             m.add(c);
         }
         t.put("members", m);
-        ListTag inv = new ListTag();
+        ListTag inv = QiListTag.mixed();
         for (UUID u : invites) inv.add(StringTag.valueOf(u.toString()));
         t.put("invites", inv);
         CompoundTag p = new CompoundTag();
@@ -94,15 +95,15 @@ public final class TeamData {
         t.put("completed", c);
         CompoundTag cl = new CompoundTag();
         claimed.forEach((u, set) -> {
-            ListTag l = new ListTag();
+            ListTag l = QiListTag.mixed();
             for (long r : set) l.add(StringTag.valueOf(QuestObject.idToString(r)));
             cl.put(u.toString(), l);
         });
         t.put("claimed", cl);
-        ListTag tc = new ListTag();
+        ListTag tc = QiListTag.mixed();
         for (long r : teamClaimed) tc.add(StringTag.valueOf(QuestObject.idToString(r)));
         t.put("team_claimed", tc);
-        ListTag gb = new ListTag();
+        ListTag gb = QiListTag.mixed();
         for (UUID u : gotBook) gb.add(StringTag.valueOf(u.toString()));
         t.put("got_book", gb);
         return t;
@@ -148,7 +149,7 @@ public final class TeamData {
         t.putString("id", id.toString());
         t.putString("name", name);
         t.putString("owner", owner.toString());
-        ListTag m = new ListTag();
+        ListTag m = QiListTag.mixed();
         for (UUID u : members) m.add(StringTag.valueOf(memberNames.getOrDefault(u, "?")));
         t.put("members", m);
         CompoundTag p = new CompoundTag();
@@ -159,11 +160,11 @@ public final class TeamData {
         CompoundTag c = new CompoundTag();
         completed.long2LongEntrySet().forEach(e -> c.putLong(QuestObject.idToString(e.getLongKey()), e.getLongValue()));
         t.put("completed", c);
-        ListTag mine = new ListTag();
+        ListTag mine = QiListTag.mixed();
         LongOpenHashSet set = claimed.get(player);
         if (set != null) for (long r : set) mine.add(StringTag.valueOf(QuestObject.idToString(r)));
         t.put("claimed", mine);
-        ListTag tc = new ListTag();
+        ListTag tc = QiListTag.mixed();
         for (long r : teamClaimed) tc.add(StringTag.valueOf(QuestObject.idToString(r)));
         t.put("team_claimed", tc);
         return t;

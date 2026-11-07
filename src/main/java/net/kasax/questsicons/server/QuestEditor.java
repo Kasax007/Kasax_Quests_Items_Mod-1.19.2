@@ -1,5 +1,6 @@
 package net.kasax.questsicons.server;
 
+import net.kasax.questsicons.compat.QiListTag;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.kasax.questsicons.QuestsIcons;
 import net.kasax.questsicons.net.QuestNet;
@@ -52,7 +53,7 @@ public final class QuestEditor {
         }
         String kind = op.getStringOr("op", "");
         if (kind.equals("lists")) {
-            ServerPlayNetworking.send(player, new QuestNet.EditorLists(lists(qs.server)));
+            QuestNet.sendToPlayer(player, new QuestNet.EditorLists(lists(qs.server)));
             return;
         }
         if (kind.equals("reload")) {
@@ -301,7 +302,7 @@ public final class QuestEditor {
     public static CompoundTag restoreOp(QuestBook book, java.util.Collection<Long> chapterIds, boolean groups, boolean tables, boolean data) {
         CompoundTag op = new CompoundTag();
         op.putString("op", "restore");
-        ListTag list = new ListTag();
+        ListTag list = QiListTag.mixed();
         for (long id : new java.util.LinkedHashSet<>(chapterIds)) {
             CompoundTag e = new CompoundTag();
             e.putString("id", QuestObject.idToString(id));
@@ -315,7 +316,7 @@ public final class QuestEditor {
         }
         op.put("chapters", list);
         if (groups) {
-            ListTag gl = new ListTag();
+            ListTag gl = QiListTag.mixed();
             for (ChapterGroup g : book.groups) gl.add(g.write());
             op.put("groups", gl);
         }
@@ -331,30 +332,29 @@ public final class QuestEditor {
     /** What the editor's pickers offer that only the server knows: advancements, structures, loot tables, dimensions. */
     static CompoundTag lists(MinecraftServer server) {
         CompoundTag t = new CompoundTag();
-        ListTag adv = new ListTag();
+        ListTag adv = QiListTag.mixed();
         CompoundTag criteria = new CompoundTag();
         for (AdvancementHolder h : server.getAdvancements().getAllAdvancements()) {
             String id = h.id().toString();
             adv.add(StringTag.valueOf(id));
-            ListTag cl = new ListTag();
+            ListTag cl = QiListTag.mixed();
             for (String c : h.value().criteria().keySet()) cl.add(StringTag.valueOf(c));
             criteria.put(id, cl);
         }
         t.put("advancements", adv);
         t.put("criteria", criteria);
-        t.put("structures", ids(server.registryAccess().lookupOrThrow(Registries.STRUCTURE).listElementIds().map(k -> k.identifier().toString()).toList()));
+        t.put("structures", ids(server.registryAccess().lookupOrThrow(Registries.STRUCTURE).listElementIds().map(k -> k.location().toString()).toList()));
         t.put("structure_tags", ids(server.registryAccess().lookupOrThrow(Registries.STRUCTURE).listTagIds().map(k -> "#" + k.location()).toList()));
         t.put("biome_tags", ids(server.registryAccess().lookupOrThrow(Registries.BIOME).listTagIds().map(k -> "#" + k.location()).toList()));
         List<String> dims = new ArrayList<>();
-        for (ServerLevel l : server.getAllLevels()) dims.add(l.dimension().identifier().toString());
+        for (ServerLevel l : server.getAllLevels()) dims.add(l.dimension().location().toString());
         t.put("dimensions", ids(dims));
-        t.put("loot_tables", ids(server.reloadableRegistries().lookup().lookupOrThrow(Registries.LOOT_TABLE).listElementIds()
-                .map(ResourceKey::identifier).map(Object::toString).toList()));
+        t.put("loot_tables", ids(server.reloadableRegistries().getKeys(Registries.LOOT_TABLE).stream().map(Object::toString).sorted().toList()));
         return t;
     }
 
     private static ListTag ids(List<String> list) {
-        ListTag l = new ListTag();
+        ListTag l = QiListTag.mixed();
         for (String s : list.stream().sorted().toList()) l.add(StringTag.valueOf(s));
         return l;
     }

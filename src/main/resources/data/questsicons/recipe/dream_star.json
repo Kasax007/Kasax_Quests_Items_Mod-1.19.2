@@ -53,22 +53,46 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "A": "mythicupgrades:ametrine_ingot",
-    "C": "questsicons:quest_crown",
+    "A": {
+      "item": "mythicupgrades:ametrine_ingot"
+    },
+    "C": {
+      "item": "questsicons:quest_crown"
+    },
     "M": [
-      "wizards:staff_netherite_arcane",
-      "wizards:staff_netherite_fire",
-      "wizards:staff_netherite_frost",
-      "paladins:netherite_holy_staff"
+      {
+        "item": "wizards:staff_netherite_arcane"
+      },
+      {
+        "item": "wizards:staff_netherite_fire"
+      },
+      {
+        "item": "wizards:staff_netherite_frost"
+      },
+      {
+        "item": "paladins:netherite_holy_staff"
+      }
     ],
-    "N": "minecraft:nether_star",
-    "T": "techreborn:lapotronic_orb",
-    "P": "#questsicons:dream_star_hearts",
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "T": {
+      "item": "techreborn:lapotronic_orb"
+    },
+    "P": {
+      "tag": "questsicons:dream_star_hearts"
+    },
     "D": [
-      "minecraft:dragon_egg",
-      "minecraft:dragon_head"
+      {
+        "item": "minecraft:dragon_egg"
+      },
+      {
+        "item": "minecraft:dragon_head"
+      }
     ],
-    "H": "raft:heart_of_the_tide"
+    "H": {
+      "item": "raft:heart_of_the_tide"
+    }
   },
   "pattern": [
     "ACA",

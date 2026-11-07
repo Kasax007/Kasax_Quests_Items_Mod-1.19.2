@@ -1,13 +1,13 @@
 package net.kasax.questsicons.item;
 
-import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.kasax.questsicons.QuestsIcons;
 import net.kasax.questsicons.block.ModBlocks;
 import net.kasax.questsicons.icons.IconLibrary;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -18,8 +18,8 @@ import net.minecraft.world.item.ItemStack;
  */
 public final class ModItemGroup {
     public static final CreativeModeTab QUEST_ITEMS = Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB,
-            Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "questitems"),
-            FabricCreativeModeTab.builder()
+            ResourceLocation.fromNamespaceAndPath(QuestsIcons.MOD_ID, "questitems"),
+            FabricItemGroup.builder()
                     .title(Component.translatable("itemgroup.questitems"))
                     .icon(() -> new ItemStack(ModItems.QUEST_CROWN))
                     .displayItems((params, out) -> {
@@ -39,8 +39,8 @@ public final class ModItemGroup {
     static {
         for (IconLibrary.Tab tab : IconLibrary.TABS) {
             if (tab.id().equals("questitems")) continue;
-            Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "icons_" + tab.id()),
-                    FabricCreativeModeTab.builder()
+            Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, ResourceLocation.fromNamespaceAndPath(QuestsIcons.MOD_ID, "icons_" + tab.id()),
+                    FabricItemGroup.builder()
                             .title(Component.translatable("itemgroup.questsicons." + tab.id()))
                             .icon(() -> new ItemStack(ModItems.ICON_BY_ID.get(tab.icon())))
                             .displayItems((params, out) -> {

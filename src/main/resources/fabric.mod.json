@@ -4,7 +4,9 @@
   "version": "${version}",
   "name": "Quest Icons",
   "description": "470 icon items for quest books (letters, numbers, symbols, tiers and chapter themes) - and a complete quest book with an in-game editor: chapters, quest maps, tasks, rewards, loot crates and teams, in the spirit of FTB Quests. Imports FTB Quests books with /quests import ftbquests.",
-  "authors": ["Kasax007"],
+  "authors": [
+    "Kasax007"
+  ],
   "contact": {
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/quest-icons",
     "sources": "https://github.com/Kasax007/Kasax_Quests_Items_Mod-1.19.2"
@@ -13,13 +15,36 @@
   "icon": "assets/questsicons/icon.png",
   "environment": "*",
   "entrypoints": {
-    "main": ["net.kasax.questsicons.QuestsIcons"],
-    "client": ["net.kasax.questsicons.QuestsIconsClient"]
+    "main": [
+      "net.kasax.questsicons.QuestsIcons"
+    ],
+    "client": [
+      "net.kasax.questsicons.QuestsIconsClient"
+    ]
   },
   "depends": {
-    "fabricloader": ">=0.19.5",
-    "fabric-api": "*",
-    "minecraft": "~26.3",
-    "java": ">=25"
+    "fabricloader": ">=0.16.0",
+    "fabric-api": ">=0.116.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21"
+  },
+  "mixins": [
+    "questsicons.mixins.json"
+  ],
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/class_2487": [
+        "net/kasax/questsicons/compat/QiCompoundTag"
+      ],
+      "net/minecraft/class_2499": [
+        "net/kasax/questsicons/compat/QiListTag"
+      ],
+      "net/minecraft/class_2519": [
+        "net/kasax/questsicons/compat/QiStringTag"
+      ],
+      "net/minecraft/class_2514": [
+        "net/kasax/questsicons/compat/QiNumericTag"
+      ]
+    }
   }
 }

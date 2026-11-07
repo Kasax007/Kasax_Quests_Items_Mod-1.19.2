@@ -11,7 +11,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -66,18 +66,18 @@ public final class Tasks {
     }
 
     /** Parses an id from a quest file ("#" for tags is skipped); null instead of an exception for a typo. */
-    static @Nullable Identifier id(String raw) {
-        return Identifier.tryParse(raw.startsWith("#") ? raw.substring(1) : raw);
+    static @Nullable ResourceLocation id(String raw) {
+        return ResourceLocation.tryParse(raw.startsWith("#") ? raw.substring(1) : raw);
     }
 
     static <T> @Nullable TagKey<T> tag(net.minecraft.resources.ResourceKey<? extends net.minecraft.core.Registry<T>> registry, String raw) {
-        Identifier id = id(raw);
+        ResourceLocation id = id(raw);
         return id == null ? null : TagKey.create(registry, id);
     }
 
     static Component name(String id) {
         try {
-            Identifier rl = Identifier.parse(id.startsWith("#") ? id.substring(1) : id);
+            ResourceLocation rl = ResourceLocation.parse(id.startsWith("#") ? id.substring(1) : id);
             String path = rl.getPath();
             String pretty = path.substring(path.lastIndexOf('/') + 1).replace('_', ' ');
             pretty = Character.toUpperCase(pretty.charAt(0)) + pretty.substring(1);
@@ -265,7 +265,7 @@ public final class Tasks {
         }
 
         private @Nullable EntityType<?> entityType() {
-            Identifier id = entity.startsWith("#") ? null : id(entity);
+            ResourceLocation id = entity.startsWith("#") ? null : id(entity);
             return id == null ? null : BuiltInRegistries.ENTITY_TYPE.getOptional(id).orElse(null);
         }
 
@@ -280,8 +280,8 @@ public final class Tasks {
         protected ItemStack defaultIcon(HolderLookup.Provider r) {
             EntityType<?> t = entityType();
             if (t != null) {
-                var egg = SpawnEggItem.byId(t);
-                if (egg.isPresent()) return new ItemStack(egg.get());
+                SpawnEggItem egg = SpawnEggItem.byId(t);
+                if (egg != null) return new ItemStack(egg);
             }
             return new ItemStack(Items.IRON_SWORD);
         }
@@ -332,8 +332,8 @@ public final class Tasks {
 
         @Override
         public void detect(ServerPlayer player, TaskContext ctx) {
-            Identifier id = id(advancement);
-            AdvancementHolder h = id == null ? null : player.level().getServer().getAdvancements().get(id);
+            ResourceLocation id = id(advancement);
+            AdvancementHolder h = id == null ? null : player.getServer().getAdvancements().get(id);
             if (h == null) return;
             AdvancementProgress p = player.getAdvancements().getOrStartProgress(h);
             if (criterion.isEmpty() ? p.isDone() : isCriterionDone(p)) ctx.set(1);
@@ -382,7 +382,7 @@ public final class Tasks {
 
         @Override
         public void detect(ServerPlayer player, TaskContext ctx) {
-            if (player.level().dimension().identifier().toString().equals(dimension)) ctx.set(1);
+            if (player.level().dimension().location().toString().equals(dimension)) ctx.set(1);
         }
     }
 
@@ -423,7 +423,7 @@ public final class Tasks {
 
         @Override
         public void detect(ServerPlayer player, TaskContext ctx) {
-            Identifier id = id(biome);
+            ResourceLocation id = id(biome);
             if (id == null) return;
             Holder<Biome> b = player.level().getBiome(player.blockPosition());
             boolean ok = biome.startsWith("#") ? b.is(TagKey.create(Registries.BIOME, id)) : b.is(ResourceKey.create(Registries.BIOME, id));
@@ -473,9 +473,9 @@ public final class Tasks {
 
         @Override
         public void detect(ServerPlayer player, TaskContext ctx) {
-            Identifier id = id(structure);
+            ResourceLocation id = id(structure);
             if (id == null) return;
-            ServerLevel level = player.level();
+            ServerLevel level = player.serverLevel();
             BlockPos pos = player.blockPosition();
             boolean found;
             if (structure.startsWith("#")) {
@@ -623,9 +623,9 @@ public final class Tasks {
 
         @Override
         public void detect(ServerPlayer player, TaskContext ctx) {
-            Identifier key = id(stat);
+            ResourceLocation key = id(stat);
             if (key == null || !BuiltInRegistries.CUSTOM_STAT.containsKey(key)) return;
-            int v = player.getStats().getValue(Stats.CUSTOM.get(BuiltInRegistries.CUSTOM_STAT.getValue(key)));
+            int v = player.getStats().getValue(Stats.CUSTOM.get(BuiltInRegistries.CUSTOM_STAT.get(key)));
             if (v > ctx.get()) ctx.set(Math.min(v, maxProgress()));
         }
     }
@@ -670,7 +670,7 @@ public final class Tasks {
         @Override
         protected Component defaultTitle(HolderLookup.Provider r) {
             Component n = name(observe);
-            Identifier id = entity || observe.startsWith("#") ? null : id(observe);
+            ResourceLocation id = entity || observe.startsWith("#") ? null : id(observe);
             Block b = id == null ? null : BuiltInRegistries.BLOCK.getOptional(id).orElse(null);
             if (b != null) n = b.getName();
             return Component.translatable("questsicons.task.observe", n);
@@ -678,7 +678,7 @@ public final class Tasks {
 
         @Override
         protected ItemStack defaultIcon(HolderLookup.Provider r) {
-            Identifier id = entity || observe.startsWith("#") ? null : id(observe);
+            ResourceLocation id = entity || observe.startsWith("#") ? null : id(observe);
             Block b = id == null ? null : BuiltInRegistries.BLOCK.getOptional(id).orElse(null);
             if (b != null && !b.asItem().getDefaultInstance().isEmpty()) return new ItemStack(b.asItem());
             return new ItemStack(Items.SPYGLASS);
@@ -770,7 +770,7 @@ public final class Tasks {
 
         @Override
         public void detect(ServerPlayer player, TaskContext ctx) {
-            if (!player.level().dimension().identifier().toString().equals(dimension)) return;
+            if (!player.level().dimension().location().toString().equals(dimension)) return;
             if (player.blockPosition().distSqr(new BlockPos(x, y, z)) <= (double) radius * radius) ctx.set(1);
         }
     }

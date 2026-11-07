@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.kasax.questsicons.compat.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "CompoundTagMixin",
+    "ListTagMixin",
+    "NumericTagMixin",
+    "StringTagMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

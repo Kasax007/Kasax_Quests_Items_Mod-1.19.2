@@ -4,7 +4,7 @@ import net.kasax.questsicons.client.ClientQuests;
 import net.kasax.questsicons.quest.QuestBook;
 import net.kasax.questsicons.quest.RewardTable;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 
@@ -26,8 +26,8 @@ public class TablesScreen extends QiScreen {
     }
 
     @Override
-    protected void draw(GuiGraphicsExtractor g, int mx, int my, float a) {
-        g.centeredText(font, title, width / 2, 10, QuestBookScreen.TEXT);
+    protected void draw(GuiGraphics g, int mx, int my, float a) {
+        g.drawCenteredString(font, title, width / 2, 10, QuestBookScreen.TEXT);
         QuestBook b = ClientQuests.book;
         int w = Math.min(width - 40, 360);
         int x = (width - w) / 2;
@@ -72,12 +72,12 @@ public class TablesScreen extends QiScreen {
             int ew = font.width(ed) + 10;
             right -= ew;
             button(g, right, y + 1, ew, 16, ed, mx, my, () -> edit(key, t));
-            g.text(font, QuestBookScreen.clip(font, name, right - x - 8), x + 4, y + 5, QuestBookScreen.TEXT, false);
+            g.drawString(font, QuestBookScreen.clip(font, name, right - x - 8), x + 4, y + 5, QuestBookScreen.TEXT, false);
             y += 20;
         }
         button(g, x, y + 4, 120, 16, Component.translatable("questsicons.tables.new"), mx, my, () -> {
             CompoundTag t = new CompoundTag();
-            Minecraft.getInstance().gui.setScreen(Forms.table(this, "", t, true, saved -> {
+            Minecraft.getInstance().setScreen(Forms.table(this, "", t, true, saved -> {
                 String key = saved.getStringOr("__key", "");
                 saved.remove("__key");
                 send(key, saved);
@@ -100,7 +100,7 @@ public class TablesScreen extends QiScreen {
 
     private void edit(String key, RewardTable t) {
         CompoundTag tag = t == null ? new CompoundTag() : t.write();
-        minecraft.gui.setScreen(Forms.table(this, key, tag, false, saved -> send(key, saved)));
+        minecraft.setScreen(Forms.table(this, key, tag, false, saved -> send(key, saved)));
     }
 
     private void send(String key, CompoundTag table) {

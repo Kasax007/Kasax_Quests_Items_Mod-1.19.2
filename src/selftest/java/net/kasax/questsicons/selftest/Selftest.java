@@ -35,7 +35,7 @@ import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -199,12 +199,12 @@ public class Selftest implements FabricClientGameTest {
     // ------------------------------------------------------------------------------- in-game editor
 
     private boolean onScreen(Class<?> type) {
-        return ctx.computeOnClient(mc -> type.isInstance(mc.gui.screen()));
+        return ctx.computeOnClient(mc -> type.isInstance(mc.screen));
     }
 
     private float[] findZone(String text) {
-        return ctx.computeOnClient(mc -> mc.gui.screen() instanceof QuestBookScreen s ? s.zonePos(text)
-                : mc.gui.screen() instanceof QiScreen s ? s.zonePos(text) : null);
+        return ctx.computeOnClient(mc -> mc.screen instanceof QuestBookScreen s ? s.zonePos(text)
+                : mc.screen instanceof QiScreen s ? s.zonePos(text) : null);
     }
 
     /** Scrolls a long form or list with the mouse wheel until the condition holds (down first, then up). */
@@ -229,7 +229,7 @@ public class Selftest implements FabricClientGameTest {
         scrollUntil(() -> findZone(text) != null);
         float[] pos = findZone(text);
         if (pos == null) {
-            System.out.println("[selftest] no button '" + text + "' on " + ctx.computeOnClient(mc -> String.valueOf(mc.gui.screen())));
+            System.out.println("[selftest] no button '" + text + "' on " + ctx.computeOnClient(mc -> String.valueOf(mc.screen)));
             return false;
         }
         click(pos[0], pos[1]);
@@ -238,15 +238,15 @@ public class Selftest implements FabricClientGameTest {
 
     /** Clicks into a form's text field (by its label), selects everything and types the new text. */
     private boolean type(String fieldLabel, String text) {
-        scrollUntil(() -> ctx.computeOnClient(mc -> mc.gui.screen() instanceof FormScreen f && f.fieldPos(fieldLabel) != null));
-        float[] pos = ctx.computeOnClient(mc -> mc.gui.screen() instanceof FormScreen f ? f.fieldPos(fieldLabel) : null);
+        scrollUntil(() -> ctx.computeOnClient(mc -> mc.screen instanceof FormScreen f && f.fieldPos(fieldLabel) != null));
+        float[] pos = ctx.computeOnClient(mc -> mc.screen instanceof FormScreen f ? f.fieldPos(fieldLabel) : null);
         if (pos == null) {
             System.out.println("[selftest] no field '" + fieldLabel + "'");
             return false;
         }
         click(pos[0], pos[1]);
         // Empty the field like a player would: End, then Backspace for every character.
-        int len = ctx.computeOnClient(mc -> mc.gui.screen() instanceof FormScreen f ? f.fieldText(fieldLabel).length() : 0);
+        int len = ctx.computeOnClient(mc -> mc.screen instanceof FormScreen f ? f.fieldText(fieldLabel).length() : 0);
         ctx.getInput().pressKey(InputConstants.KEY_END);
         for (int i = 0; i < len; i++) ctx.getInput().pressKey(InputConstants.KEY_BACKSPACE);
         ctx.getInput().typeChars(text);
@@ -367,7 +367,7 @@ public class Selftest implements FabricClientGameTest {
         type(tr("questsicons.form.entity"), "minecraft:zombiee");
         press(tr("questsicons.edit.save"));
         check("editor: a typo in the mob is refused (the form stays open)", onScreen(FormScreen.class)
-                && ctx.computeOnClient(mc -> mc.gui.screen() instanceof FormScreen f && !f.valid()));
+                && ctx.computeOnClient(mc -> mc.screen instanceof FormScreen f && !f.valid()));
         ctx.takeScreenshot("qi_editor_validation");
         type(tr("questsicons.form.entity"), "minecraft:zombie");
         type(tr("questsicons.form.amount"), "3");
@@ -595,23 +595,23 @@ public class Selftest implements FabricClientGameTest {
     }
 
     private static QuestBookScreen screen(Minecraft mc) {
-        return (QuestBookScreen) mc.gui.screen();
+        return (QuestBookScreen) mc.screen;
     }
 
     private boolean bookOpen() {
-        return ctx.computeOnClient(mc -> mc.gui.screen() instanceof QuestBookScreen);
+        return ctx.computeOnClient(mc -> mc.screen instanceof QuestBookScreen);
     }
 
     private long selected() {
-        return ctx.computeOnClient(mc -> mc.gui.screen() instanceof QuestBookScreen s && s.selectedQuest() != null ? s.selectedQuest().id : 0L);
+        return ctx.computeOnClient(mc -> mc.screen instanceof QuestBookScreen s && s.selectedQuest() != null ? s.selectedQuest().id : 0L);
     }
 
     private float[] zone(String text) {
-        return ctx.computeOnClient(mc -> mc.gui.screen() instanceof QuestBookScreen s ? s.zonePos(text) : null);
+        return ctx.computeOnClient(mc -> mc.screen instanceof QuestBookScreen s ? s.zonePos(text) : null);
     }
 
     private void clickQuest(long id) {
-        float[] pos = ctx.computeOnClient(mc -> mc.gui.screen() instanceof QuestBookScreen s ? s.questScreenPos(id) : null);
+        float[] pos = ctx.computeOnClient(mc -> mc.screen instanceof QuestBookScreen s ? s.questScreenPos(id) : null);
         if (pos == null) throw new AssertionError("quest not on the map: " + QuestObject.idToString(id));
         click(pos[0], pos[1]);
     }
@@ -928,7 +928,7 @@ public class Selftest implements FabricClientGameTest {
                     && star.canBeHurtBy(level.damageSources().fellOutOfWorld());
         }));
         check("getting the star grants the advancement", server.computeOnServer(s -> {
-            AdvancementHolder h = s.getAdvancements().get(Identifier.fromNamespaceAndPath("questsicons", "dream_star"));
+            AdvancementHolder h = s.getAdvancements().get(ResourceLocation.fromNamespaceAndPath("questsicons", "dream_star"));
             return h != null && player(s).getAdvancements().getOrStartProgress(h).isDone();
         }));
         ctx.getInput().lookAt(PEDESTAL);
@@ -1027,7 +1027,7 @@ public class Selftest implements FabricClientGameTest {
     }
 
     private static boolean hasRecipe(MinecraftServer s, String path) {
-        return s.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath("questsicons", path))).isPresent();
+        return s.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, ResourceLocation.fromNamespaceAndPath("questsicons", path))).isPresent();
     }
 
     private static boolean crafts(MinecraftServer s, Item result, Item... grid) {

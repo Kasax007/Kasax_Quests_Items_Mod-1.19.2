@@ -1,5 +1,6 @@
 package net.kasax.questsicons.quest;
 
+import net.kasax.questsicons.compat.QiListTag;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.ByteTag;
 import net.minecraft.nbt.CompoundTag;
@@ -147,7 +148,7 @@ public final class Snbt {
                 default -> new LongArrayTag(values.stream().mapToLong(Long::longValue).toArray());
             };
         }
-        ListTag list = new ListTag();
+        ListTag list = QiListTag.mixed();
         while (true) {
             skipWs();
             if (peek() == ']') {

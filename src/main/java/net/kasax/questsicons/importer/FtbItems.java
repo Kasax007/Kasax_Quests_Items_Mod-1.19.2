@@ -1,5 +1,6 @@
 package net.kasax.questsicons.importer;
 
+import net.kasax.questsicons.compat.QiListTag;
 import net.kasax.questsicons.importer.ImportReport.Kind;
 import net.minecraft.nbt.ByteTag;
 import net.minecraft.nbt.CompoundTag;
@@ -294,7 +295,7 @@ final class FtbItems {
         } else if (uniq.size() == 1) {
             o.spec = StringTag.valueOf(uniq.getFirst());
         } else {
-            ListTag l = new ListTag();
+            ListTag l = QiListTag.mixed();
             for (String a : uniq) l.add(StringTag.valueOf(a));
             o.spec = l;
         }

@@ -1,11 +1,13 @@
 package net.kasax.questsicons.client.gui;
 
+import net.kasax.questsicons.compat.QiListTag;
 import com.mojang.blaze3d.platform.InputConstants;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.kasax.questsicons.client.ClientQuests;
 import net.kasax.questsicons.client.EditorData;
 import net.kasax.questsicons.icons.IconLibrary;
+import net.kasax.questsicons.client.ClientNet;
 import net.kasax.questsicons.net.QuestNet;
 import net.kasax.questsicons.quest.Chapter;
 import net.kasax.questsicons.quest.ChapterGroup;
@@ -22,17 +24,17 @@ import net.kasax.questsicons.quest.task.Task;
 import net.kasax.questsicons.quest.task.Tasks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
+import net.kasax.questsicons.compat.client.KeyEvent;
+import net.kasax.questsicons.compat.client.MouseButtonEvent;
+import net.kasax.questsicons.compat.client.Gfx;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.locale.Language;
 import net.minecraft.util.FormattedCharSequence;
@@ -337,13 +339,18 @@ public class QuestBookScreen extends Screen {
 
     // ------------------------------------------------------------------------------- rendering
 
+    /** 1.21.1: Screen.render draws the background again before the widgets; only the first call of a frame draws it. */
+    private boolean drawingWidgets;
+
     @Override
-    public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float a) {
+    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float a) {
+        if (drawingWidgets) return;
         g.fillGradient(0, 0, width, height, BG_TOP, BG_BOTTOM);
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float a) {
+    public void render(GuiGraphics g, int mouseX, int mouseY, float a) {
+        renderBackground(g, mouseX, mouseY, a);
         lastZones.clear();
         lastZones.addAll(zones);
         lastRows.clear();
@@ -353,7 +360,7 @@ public class QuestBookScreen extends Screen {
         zones.clear();
         modalFrom = 0;
         if (book() == null) {
-            g.centeredText(font, Component.translatable("questsicons.gui.no_book"), width / 2, height / 2, TEXT);
+            g.drawCenteredString(font, Component.translatable("questsicons.gui.no_book"), width / 2, height / 2, TEXT);
             return;
         }
         boolean overlay = selected != null || menu != null || choosing != null;
@@ -361,34 +368,36 @@ public class QuestBookScreen extends Screen {
         drawSidebar(g, overlay ? -1 : mouseX, overlay ? -1 : mouseY);
         drawTopBar(g, overlay ? -1 : mouseX, overlay ? -1 : mouseY);
         if (selected != null) {
-            g.nextStratum();
+            g.pose().translate(0, 0, 400);   // 26.x: g.nextStratum()
             g.fill(SIDEBAR, TOP, width, height, 0x90000000);
             drawPanel(g, choosing == null && menu == null ? mouseX : -1, choosing == null && menu == null ? mouseY : -1);
         }
         if (choosing != null) {
-            g.nextStratum();
+            g.pose().translate(0, 0, 400);   // 26.x: g.nextStratum()
             drawChoice(g, menu == null ? mouseX : -1, mouseY);
         }
         if (menu != null) {
-            g.nextStratum();
+            g.pose().translate(0, 0, 400);   // 26.x: g.nextStratum()
             drawMenu(g, mouseX, mouseY);
         }
         for (Zone z : zones) {
             if (z.tooltip() != null && z.contains(mouseX, mouseY)) {
-                g.setTooltipForNextFrame(font, z.tooltip(), mouseX, mouseY);
+                g.renderTooltip(font, z.tooltip(), mouseX, mouseY);
                 break;
             }
         }
-        super.extractRenderState(g, mouseX, mouseY, a);
+        drawingWidgets = true;
+        super.render(g, mouseX, mouseY, a);
+        drawingWidgets = false;
     }
 
-    private void drawMap(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+    private void drawMap(GuiGraphics g, int mouseX, int mouseY) {
         g.enableScissor(SIDEBAR, TOP, width, height);
         // Background picture or a dotted grid.
         QuestBook b = book();
         if (!b.background.isEmpty()) {
             try {
-                g.blit(RenderPipelines.GUI_TEXTURED, Identifier.parse(b.background), SIDEBAR, TOP, 0, 0, width - SIDEBAR, height - TOP,
+                Gfx.blit(g, ResourceLocation.parse(b.background), SIDEBAR, TOP, 0, 0, width - SIDEBAR, height - TOP,
                         width - SIDEBAR, height - TOP, 0x60FFFFFF);
             } catch (Exception ignored) {
             }
@@ -446,17 +455,17 @@ public class QuestBookScreen extends Screen {
             boolean picked = selection.contains(q.id);
             if (q == hovered || q == selected || q == linkSource || q == linkDrag || picked) {
                 int gs = s + Math.max(4, s / 4);
-                g.blit(RenderPipelines.GUI_TEXTURED, shapeTex(shape == QuestShape.NONE ? QuestShape.CIRCLE : shape), Math.round(cx - gs / 2f),
+                Gfx.blit(g, shapeTex(shape == QuestShape.NONE ? QuestShape.CIRCLE : shape), Math.round(cx - gs / 2f),
                         Math.round(cy - gs / 2f), 0, 0, gs, gs, 64, 64, 64, 64,
                         q == linkSource || q == linkDrag ? 0xFFFF5555 : picked ? 0xFF55E0FF : 0xFFFFE27A);
             }
-            if (shape != QuestShape.NONE) g.blit(RenderPipelines.GUI_TEXTURED, shapeTex(shape), x, y, 0, 0, s, s, 64, 64, 64, 64, tint);
+            if (shape != QuestShape.NONE) Gfx.blit(g, shapeTex(shape), x, y, 0, 0, s, s, 64, 64, 64, 64, tint);
             float scale = s * 0.62f / 16f;
-            g.pose().pushMatrix();
-            g.pose().translate(cx - 8 * scale, cy - 8 * scale);
-            g.pose().scale(scale, scale);
-            g.fakeItem(q.displayIcon(reg()), 0, 0);
-            g.pose().popMatrix();
+            g.pose().pushPose();
+            g.pose().translate(cx - 8 * scale, cy - 8 * scale, 0);
+            g.pose().scale(scale, scale, 1);
+            g.renderFakeItem(q.displayIcon(reg()), 0, 0);
+            g.pose().popPose();
             if (done && p.hasUnclaimedRewards(q)) {
                 float pulse = 0.75f + 0.25f * Mth.sin((now % 1000) / 1000f * Mth.TWO_PI);
                 badge(g, x + s - 4, y - 2, "!", GOLD, pulse);
@@ -469,7 +478,7 @@ public class QuestBookScreen extends Screen {
                 g.fill(x, y + s + 1, x + barW, y + s + 3, 0xA0000000);
                 g.fill(x, y + s + 1, x + Math.round(barW * p.questProgress(q)), y + s + 3, ACCENT);
             }
-            if (q.optional && !done && zoom >= 0.8f) g.text(font, "?", x - 2, y - 2, MUTED, true);
+            if (q.optional && !done && zoom >= 0.8f) g.drawString(font, "?", x - 2, y - 2, MUTED, true);
         }
         for (ChapterImage img : chapter.images) if (img.front) drawImage(g, img, mouseX, mouseY);
         if (linkDrag != null) {
@@ -479,20 +488,20 @@ public class QuestBookScreen extends Screen {
             int bx0 = (int) Math.min(boxX0, boxX1), bx1 = (int) Math.max(boxX0, boxX1);
             int by0 = (int) Math.min(boxY0, boxY1), by1 = (int) Math.max(boxY0, boxY1);
             g.fill(bx0, by0, bx1, by1, 0x3055E0FF);
-            g.outline(bx0, by0, Math.max(1, bx1 - bx0), Math.max(1, by1 - by0), 0xFF55E0FF);
+            g.renderOutline(bx0, by0, Math.max(1, bx1 - bx0), Math.max(1, by1 - by0), 0xFF55E0FF);
         }
 
         // Chapter heading.
         int hx = SIDEBAR + 8;
         int hy = TOP + 6;
-        g.text(font, chapter.displayTitle(), hx, hy, TEXT, true);
+        g.drawString(font, chapter.displayTitle(), hx, hy, TEXT, true);
         int ly = hy + 11;
         for (String line : chapter.subtitle) {
-            g.text(font, QuestObject.text(line), hx, ly, MUTED, true);
+            g.drawString(font, QuestObject.text(line), hx, ly, MUTED, true);
             ly += 10;
         }
         if (editMode) {
-            g.text(font, Component.translatable(linkSource != null ? "questsicons.edit.linking" : "questsicons.edit.mode_hint"),
+            g.drawString(font, Component.translatable(linkSource != null ? "questsicons.edit.linking" : "questsicons.edit.mode_hint"),
                     hx, height - 12, linkSource != null ? 0xFFFF7777 : GOLD, true);
         }
         g.disableScissor();
@@ -510,11 +519,11 @@ public class QuestBookScreen extends Screen {
                 tip.add(Component.translatable("questsicons.gui.progress", Math.round(p.questProgress(hovered) * 100))
                         .withStyle(net.minecraft.ChatFormatting.LIGHT_PURPLE));
             }
-            g.setComponentTooltipForNextFrame(font, tip, mouseX, mouseY);
+            g.renderComponentTooltip(font, tip, mouseX, mouseY);
         }
     }
 
-    private void drawImage(GuiGraphicsExtractor g, ChapterImage img, int mouseX, int mouseY) {
+    private void drawImage(GuiGraphics g, ChapterImage img, int mouseX, int mouseY) {
         if (!editMode && img.dependency != 0 && !progress().isQuestCompleted(img.dependency)) return;
         int w = Math.round((float) img.width * GRID * zoom);
         int h = Math.round((float) img.height * GRID * zoom);
@@ -522,20 +531,20 @@ public class QuestBookScreen extends Screen {
         float cx = moving ? sx(dragImgX) : sx(img.x);
         float cy = moving ? sy(dragImgY) : sy(img.y);
         if (editMode && (moving || Math.abs(mouseX - cx) < w / 2f && Math.abs(mouseY - cy) < h / 2f && questAt(mouseX, mouseY) == null)) {
-            g.outline(Math.round(cx - w / 2f) - 1, Math.round(cy - h / 2f) - 1, w + 2, h + 2, 0x9055E0FF);
+            g.renderOutline(Math.round(cx - w / 2f) - 1, Math.round(cy - h / 2f) - 1, w + 2, h + 2, 0x9055E0FF);
         }
         try {
-            Identifier tex = Identifier.parse(img.image);
+            ResourceLocation tex = ResourceLocation.parse(img.image);
             if (!textureExists(tex)) return;   // e.g. a picture of a mod the pack no longer has (imported books)
             int color = (img.alpha << 24) | (img.color & 0xFFFFFF);
             if (img.rotation != 0) {
-                g.pose().pushMatrix();
-                g.pose().translate(cx, cy);
-                g.pose().rotate((float) Math.toRadians(img.rotation));
-                g.blit(RenderPipelines.GUI_TEXTURED, tex, -w / 2, -h / 2, 0, 0, w, h, w, h, w, h, color);
-                g.pose().popMatrix();
+                g.pose().pushPose();
+                g.pose().translate(cx, cy, 0);
+                g.pose().mulPose(com.mojang.math.Axis.ZP.rotation((float) Math.toRadians(img.rotation)));
+                Gfx.blit(g, tex, -w / 2, -h / 2, 0, 0, w, h, w, h, w, h, color);
+                g.pose().popPose();
             } else {
-                g.blit(RenderPipelines.GUI_TEXTURED, tex, Math.round(cx - w / 2f), Math.round(cy - h / 2f), 0, 0, w, h, w, h, w, h, color);
+                Gfx.blit(g, tex, Math.round(cx - w / 2f), Math.round(cy - h / 2f), 0, 0, w, h, w, h, w, h, color);
             }
         } catch (Exception ignored) {
         }
@@ -545,34 +554,34 @@ public class QuestBookScreen extends Screen {
         }
     }
 
-    private static final java.util.Map<Identifier, Boolean> TEXTURES = new java.util.HashMap<>();
+    private static final java.util.Map<ResourceLocation, Boolean> TEXTURES = new java.util.HashMap<>();
 
     /** Missing pictures are left out instead of drawn as the purple and black "missing texture". */
-    private static boolean textureExists(Identifier tex) {
+    private static boolean textureExists(ResourceLocation tex) {
         return TEXTURES.computeIfAbsent(tex, t -> Minecraft.getInstance().getResourceManager().getResource(t).isPresent());
     }
 
-    private static Identifier shapeTex(QuestShape shape) {
-        return Identifier.fromNamespaceAndPath("questsicons", "textures/gui/shapes/" + shape.id() + ".png");
+    private static ResourceLocation shapeTex(QuestShape shape) {
+        return ResourceLocation.fromNamespaceAndPath("questsicons", "textures/gui/shapes/" + shape.id() + ".png");
     }
 
-    private void badge(GuiGraphicsExtractor g, int x, int y, String s, int color, float alpha) {
+    private void badge(GuiGraphics g, int x, int y, String s, int color, float alpha) {
         int a = Math.round(alpha * 255) << 24;
         g.fill(x - 1, y - 1, x + 8, y + 9, (a & 0xC0000000) | 0x000000);
-        g.text(font, s, x, y, (color & 0xFFFFFF) | a, false);
+        g.drawString(font, s, x, y, (color & 0xFFFFFF) | a, false);
     }
 
-    static void line(GuiGraphicsExtractor g, float x1, float y1, float x2, float y2, float thickness, int color) {
+    static void line(GuiGraphics g, float x1, float y1, float x2, float y2, float thickness, int color) {
         float dx = x2 - x1;
         float dy = y2 - y1;
         float len = (float) Math.sqrt(dx * dx + dy * dy);
         if (len < 1) return;
-        g.pose().pushMatrix();
-        g.pose().translate(x1, y1);
-        g.pose().rotate((float) Math.atan2(dy, dx));
+        g.pose().pushPose();
+        g.pose().translate(x1, y1, 0);
+        g.pose().mulPose(com.mojang.math.Axis.ZP.rotation((float) Math.atan2(dy, dx)));
         int t = Math.max(1, Math.round(thickness));
         g.fill(0, -t / 2, Math.round(len), t - t / 2, color);
-        g.pose().popMatrix();
+        g.pose().popPose();
     }
 
     /** The text cut to a width, keeping its colours and formatting. */
@@ -581,12 +590,12 @@ public class QuestBookScreen extends Screen {
         return Language.getInstance().getVisualOrder(font.substrByWidth(text, Math.max(0, width)));
     }
 
-    static void frame(GuiGraphicsExtractor g, int x, int y, int w, int h, int fill, int border) {
+    static void frame(GuiGraphics g, int x, int y, int w, int h, int fill, int border) {
         g.fill(x, y, x + w, y + h, fill);
-        g.outline(x, y, w, h, border);
+        g.renderOutline(x, y, w, h, border);
     }
 
-    private void drawSidebar(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+    private void drawSidebar(GuiGraphics g, int mouseX, int mouseY) {
         g.fill(0, 0, SIDEBAR, height, PANEL);
         g.fill(SIDEBAR - 1, 0, SIDEBAR, height, BORDER);
         int y = TOP + 4 - sidebarScroll;
@@ -607,14 +616,14 @@ public class QuestBookScreen extends Screen {
                 Component name = grp != null ? grp.displayTitle() : Component.literal(c.group);
                 y += 3;
                 if (grp != null && !grp.icon.isEmpty()) {
-                    g.pose().pushMatrix();
-                    g.pose().translate(5, y);
-                    g.pose().scale(0.625f, 0.625f);
-                    g.fakeItem(grp.icon.stack(reg()), 0, 0);
-                    g.pose().popMatrix();
-                    g.text(font, name, 17, y + 2, MUTED, false);
+                    g.pose().pushPose();
+                    g.pose().translate(5, y, 0);
+                    g.pose().scale(0.625f, 0.625f, 1);
+                    g.renderFakeItem(grp.icon.stack(reg()), 0, 0);
+                    g.pose().popPose();
+                    g.drawString(font, name, 17, y + 2, MUTED, false);
                 } else {
-                    g.text(font, name, 6, y + 2, MUTED, false);
+                    g.drawString(font, name, 6, y + 2, MUTED, false);
                 }
                 g.fill(6, y + 12, SIDEBAR - 8, y + 13, 0x40FFFFFF);
                 if (grp != null) rows.add(new Row(null, grp, y, 14));
@@ -633,15 +642,15 @@ public class QuestBookScreen extends Screen {
             } else if (hov) {
                 g.fill(2, y, SIDEBAR - 3, y + 20, 0x30FFFFFF);
             }
-            g.fakeItem(c.displayIcon(reg()), 7, y + 2);
+            g.renderFakeItem(c.displayIcon(reg()), 7, y + 2);
             int pct = progress().chapterPercent(c);
             String pctText = pct >= 100 ? "✔" : pct + "%";
             int pctW = font.width(pctText);
-            g.text(font, clip(font, c.displayTitle(), SIDEBAR - 34 - pctW - 6), 27, y + 6, sel ? TEXT : 0xFFD6C8EA, false);
-            g.text(font, pctText, SIDEBAR - 8 - pctW, y + 6, pct >= 100 ? GREEN : MUTED, false);
+            g.drawString(font, clip(font, c.displayTitle(), SIDEBAR - 34 - pctW - 6), 27, y + 6, sel ? TEXT : 0xFFD6C8EA, false);
+            g.drawString(font, pctText, SIDEBAR - 8 - pctW, y + 6, pct >= 100 ? GREEN : MUTED, false);
             boolean unclaimed = false;
             for (Quest q : c.quests) if (progress().hasUnclaimedRewards(q)) unclaimed = true;
-            if (unclaimed) g.text(font, "!", 3, y + 6, GOLD, true);
+            if (unclaimed) g.drawString(font, "!", 3, y + 6, GOLD, true);
             final Chapter target = c;
             final int ry = y;
             if (ry + 20 > TOP) {
@@ -659,8 +668,8 @@ public class QuestBookScreen extends Screen {
                 for (Chapter c : list) if (c.group.equals(grp.idString()) || c.group.equals(grp.title)) used = true;
                 if (used) continue;
                 y += 3;
-                g.text(font, grp.displayTitle(), 6, y + 2, MUTED, false);
-                g.text(font, Component.translatable("questsicons.edit.empty_group"), SIDEBAR - 8 - font.width(Component.translatable("questsicons.edit.empty_group")), y + 2, LOCKED, false);
+                g.drawString(font, grp.displayTitle(), 6, y + 2, MUTED, false);
+                g.drawString(font, Component.translatable("questsicons.edit.empty_group"), SIDEBAR - 8 - font.width(Component.translatable("questsicons.edit.empty_group")), y + 2, LOCKED, false);
                 g.fill(6, y + 12, SIDEBAR - 8, y + 13, 0x40FFFFFF);
                 rows.add(new Row(null, grp, y, 14));
                 y += 16;
@@ -680,11 +689,11 @@ public class QuestBookScreen extends Screen {
 
     private int maxSidebarScroll;
 
-    private void drawTopBar(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+    private void drawTopBar(GuiGraphics g, int mouseX, int mouseY) {
         g.fill(0, 0, width, TOP, PANEL_LIGHT);
         g.fill(0, TOP - 1, width, TOP, BORDER);
-        g.fakeItem(book().icon.isEmpty() ? new ItemStack(net.kasax.questsicons.item.ModItems.QUEST_BOOK) : book().icon.stack(reg()), 4, 4);
-        g.text(font, QuestObject.text(book().title), 24, 8, TEXT, true);
+        g.renderFakeItem(book().icon.isEmpty() ? new ItemStack(net.kasax.questsicons.item.ModItems.QUEST_BOOK) : book().icon.stack(reg()), 4, 4);
+        g.drawString(font, QuestObject.text(book().title), 24, 8, TEXT, true);
         int x = width - 4;
         // Close
         x -= 20;
@@ -700,7 +709,7 @@ public class QuestBookScreen extends Screen {
             });
             if (editMode) {
                 x = toolButton(g, x, Component.translatable("questsicons.edit.book_settings"), mouseX, mouseY, this::editBook);
-                x = toolButton(g, x, Component.translatable("questsicons.edit.tables"), mouseX, mouseY, () -> minecraft.gui.setScreen(new TablesScreen(this)));
+                x = toolButton(g, x, Component.translatable("questsicons.edit.tables"), mouseX, mouseY, () -> minecraft.setScreen(new TablesScreen(this)));
                 x = toolButton(g, x, Component.translatable(EditorData.snap ? "questsicons.edit.snap_on" : "questsicons.edit.snap_off"), mouseX, mouseY,
                         () -> EditorData.snap = !EditorData.snap);
                 if (EditorData.undoSize() > 0) {
@@ -714,7 +723,7 @@ public class QuestBookScreen extends Screen {
         x -= cw + 4;
         if (unclaimed > 0) {
             button(g, x, 4, cw, 16, claim, mouseX, mouseY, () -> {
-                ClientPlayNetworking.send(new QuestNet.Action(QuestNet.Action.CLAIM_ALL, 0, 0));
+                ClientNet.send(new QuestNet.Action(QuestNet.Action.CLAIM_ALL, 0, 0));
                 click();
             });
         }
@@ -729,20 +738,20 @@ public class QuestBookScreen extends Screen {
         String info = (ClientQuests.progress.teamName.isEmpty() ? "" : ClientQuests.progress.teamName + "  •  ") + done + "/" + total;
         int iw = font.width(info);
         int ix = x - iw - 10;
-        if (ix > 24 + font.width(QuestObject.text(book().title)) + 10) g.text(font, info, ix, 8, MUTED, false);
+        if (ix > 24 + font.width(QuestObject.text(book().title)) + 10) g.drawString(font, info, ix, 8, MUTED, false);
     }
 
-    private int toolButton(GuiGraphicsExtractor g, int right, Component label, int mouseX, int mouseY, Runnable action) {
+    private int toolButton(GuiGraphics g, int right, Component label, int mouseX, int mouseY, Runnable action) {
         int w = font.width(label) + 10;
         int x = right - w - 4;
         button(g, x, 4, w, 16, label, mouseX, mouseY, action);
         return x;
     }
 
-    private void button(GuiGraphicsExtractor g, int x, int y, int w, int h, Component label, int mouseX, int mouseY, Runnable action) {
+    private void button(GuiGraphics g, int x, int y, int w, int h, Component label, int mouseX, int mouseY, Runnable action) {
         boolean hov = mouseX >= x && mouseY >= y && mouseX < x + w && mouseY < y + h && mouseY >= clipTop && mouseY < clipBottom;
         frame(g, x, y, w, h, hov ? 0xFF3A2358 : 0xFF261839, hov ? ACCENT : 0xFF5B3A86);
-        g.centeredText(font, label, x + w / 2, y + (h - 8) / 2, hov ? 0xFFFFFFFF : TEXT);
+        g.drawCenteredString(font, label, x + w / 2, y + (h - 8) / 2, hov ? 0xFFFFFFFF : TEXT);
         zone(x, y, w, h, action, null, label.getString());
     }
 
@@ -768,7 +777,7 @@ public class QuestBookScreen extends Screen {
         return Math.min(width - SIDEBAR - 24, 330);
     }
 
-    private void drawPanel(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+    private void drawPanel(GuiGraphics g, int mouseX, int mouseY) {
         Quest q = selected;
         ProgressView p = progress();
         int pw = panelW();
@@ -778,20 +787,20 @@ public class QuestBookScreen extends Screen {
         frame(g, px, py, pw, ph, PANEL, BORDER);
         g.fill(px + 1, py + 1, px + pw - 1, py + 30, PANEL_LIGHT);
         // Header (fixed).
-        g.pose().pushMatrix();
-        g.pose().translate(px + 8, py + 6);
-        g.pose().scale(1.25f, 1.25f);
-        g.fakeItem(q.displayIcon(reg()), 0, 0);
-        g.pose().popMatrix();
-        g.text(font, q.displayTitle(), px + 34, py + 6, TEXT, true);
-        if (!q.subtitle.isEmpty()) g.text(font, QuestObject.text(q.subtitle), px + 34, py + 17, MUTED, false);
+        g.pose().pushPose();
+        g.pose().translate(px + 8, py + 6, 0);
+        g.pose().scale(1.25f, 1.25f, 1);
+        g.renderFakeItem(q.displayIcon(reg()), 0, 0);
+        g.pose().popPose();
+        g.drawString(font, q.displayTitle(), px + 34, py + 6, TEXT, true);
+        if (!q.subtitle.isEmpty()) g.drawString(font, QuestObject.text(q.subtitle), px + 34, py + 17, MUTED, false);
         boolean done = p.isQuestCompleted(q.id);
         boolean canStart = p.canStart(q);
         Component state = done ? Component.translatable("questsicons.gui.completed") : canStart
                 ? Component.translatable("questsicons.gui.progress", Math.round(p.questProgress(q) * 100))
                 : Component.translatable("questsicons.gui.locked");
         int sw = font.width(state);
-        g.text(font, state, px + pw - sw - 8, py + 6, done ? GREEN : canStart ? ACCENT : LOCKED, false);
+        g.drawString(font, state, px + pw - sw - 8, py + 6, done ? GREEN : canStart ? ACCENT : LOCKED, false);
 
         // Scrollable body.
         int bodyTop = py + 32;
@@ -811,26 +820,26 @@ public class QuestBookScreen extends Screen {
                 continue;
             }
             for (FormattedCharSequence seq : font.split(QuestObject.text(line), textW)) {
-                g.text(font, seq, px + 10, y, 0xFFE6DCF5, false);
+                g.drawString(font, seq, px + 10, y, 0xFFE6DCF5, false);
                 y += 10;
             }
         }
         if (!q.description.isEmpty()) y += 6;
 
         if (!canStart && !done && !q.dependencies.isEmpty()) {
-            g.text(font, Component.translatable("questsicons.gui.requires"), px + 10, y, RED, false);
+            g.drawString(font, Component.translatable("questsicons.gui.requires"), px + 10, y, RED, false);
             y += 11;
             for (long dep : q.dependencies) {
                 Quest d = book().quest(dep);
                 if (d == null) continue;
                 boolean dd = p.isQuestCompleted(dep);
-                g.text(font, Component.literal((dd ? "✔ " : "✖ ")).append(d.displayTitle()), px + 16, y, dd ? GREEN : MUTED, false);
+                g.drawString(font, Component.literal((dd ? "✔ " : "✖ ")).append(d.displayTitle()), px + 16, y, dd ? GREEN : MUTED, false);
                 final Quest target = d;
                 zone(px + 16, y, textW, 10, () -> jumpTo(target), null);
                 y += 10;
             }
             if (q.dependsOnAny) {
-                g.text(font, Component.translatable("questsicons.gui.requires_any"), px + 16, y, MUTED, false);
+                g.drawString(font, Component.translatable("questsicons.gui.requires_any"), px + 16, y, MUTED, false);
                 y += 10;
             }
             y += 6;
@@ -838,18 +847,18 @@ public class QuestBookScreen extends Screen {
 
         // Tasks.
         if (!q.tasks.isEmpty()) {
-            g.text(font, Component.translatable("questsicons.gui.tasks"), px + 10, y, ACCENT, false);
+            g.drawString(font, Component.translatable("questsicons.gui.tasks"), px + 10, y, ACCENT, false);
             g.fill(px + 10, y + 10, px + pw - 10, y + 11, 0x407E0CC9);
             y += 14;
             for (Task t : q.tasks) {
                 long prog = p.taskProgress(t.id);
                 boolean tdone = done || prog >= t.maxProgress();
                 g.fill(px + 8, y - 1, px + pw - 8, y + 19, 0x30FFFFFF);
-                g.fakeItem(t.displayIcon(reg()), px + 11, y + 1);
+                g.renderFakeItem(t.displayIcon(reg()), px + 11, y + 1);
                 if (t instanceof Tasks.ItemTask it && it.icon.isEmpty() && it.item.cycles()) {
                     List<ItemStack> items = it.item.tagItems();
                     ItemStack cycle = items.get((int) ((System.currentTimeMillis() / 1000) % items.size()));
-                    g.fakeItem(cycle, px + 11, y + 1);
+                    g.renderFakeItem(cycle, px + 11, y + 1);
                 }
                 String pt = tdone ? "✔" : t.progressText(prog);
                 int ptw = font.width(pt);
@@ -859,15 +868,15 @@ public class QuestBookScreen extends Screen {
                 if (showBtn) {
                     final Task task = t;
                     button(g, right - btnW, y + 1, btnW, 16, t.submitLabel(), mouseX, mouseY, () -> {
-                        ClientPlayNetworking.send(new QuestNet.Action(QuestNet.Action.SUBMIT, task.id, 0));
+                        ClientNet.send(new QuestNet.Action(QuestNet.Action.SUBMIT, task.id, 0));
                         click();
                     });
                     right -= btnW + 4;
                 }
-                g.text(font, pt, right - ptw, y + 5, tdone ? GREEN : MUTED, false);
+                g.drawString(font, pt, right - ptw, y + 5, tdone ? GREEN : MUTED, false);
                 Component taskTitle = t.optional ? t.title(reg()).copy().append(Component.translatable("questsicons.gui.optional_task")
                         .withStyle(net.minecraft.ChatFormatting.GRAY)) : t.title(reg());
-                g.text(font, clip(font, taskTitle, right - ptw - (px + 32) - 6), px + 32, y + 5, tdone ? 0xFFB9F5C9 : TEXT, false);
+                g.drawString(font, clip(font, taskTitle, right - ptw - (px + 32) - 6), px + 32, y + 5, tdone ? 0xFFB9F5C9 : TEXT, false);
                 if (editMode) {
                     final int ti = q.tasks.indexOf(t);
                     final Component tt = t.title(reg());
@@ -883,15 +892,15 @@ public class QuestBookScreen extends Screen {
 
         // Rewards.
         if (!q.rewards.isEmpty()) {
-            g.text(font, Component.translatable("questsicons.gui.rewards"), px + 10, y, GOLD, false);
+            g.drawString(font, Component.translatable("questsicons.gui.rewards"), px + 10, y, GOLD, false);
             g.fill(px + 10, y + 10, px + pw - 10, y + 11, 0x40FFC94D);
             y += 14;
             for (Reward r : q.rewards) {
                 boolean claimed = p.isRewardClaimed(r.id, r.isTeamReward());
                 g.fill(px + 8, y - 1, px + pw - 8, y + 19, 0x30FFFFFF);
-                g.fakeItem(r.displayIcon(reg()), px + 11, y + 1);
+                g.renderFakeItem(r.displayIcon(reg()), px + 11, y + 1);
                 ItemStack icon = r.displayIcon(reg());
-                if (icon.getCount() > 1) g.itemDecorations(font, icon, px + 11, y + 1);
+                if (icon.getCount() > 1) g.renderItemDecorations(font, icon, px + 11, y + 1);
                 int right = px + pw - 12;
                 if (done && !claimed) {
                     Component lbl = Component.translatable(r.needsChoice() ? "questsicons.gui.choose" : "questsicons.gui.claim");
@@ -901,7 +910,7 @@ public class QuestBookScreen extends Screen {
                         if (reward.needsChoice()) {
                             choosing = reward;
                         } else {
-                            ClientPlayNetworking.send(new QuestNet.Action(QuestNet.Action.CLAIM, reward.id, -1));
+                            ClientNet.send(new QuestNet.Action(QuestNet.Action.CLAIM, reward.id, -1));
                         }
                         click();
                     });
@@ -910,12 +919,12 @@ public class QuestBookScreen extends Screen {
                     String st = claimed ? "✔" : "🔒";
                     if (!claimed) st = "•";
                     int stw = font.width(st);
-                    g.text(font, st, right - stw, y + 5, claimed ? GREEN : LOCKED, false);
+                    g.drawString(font, st, right - stw, y + 5, claimed ? GREEN : LOCKED, false);
                     right -= stw + 4;
                 }
                 Component title = r.title(reg());
                 if (r.isTeamReward()) title = title.copy().append(Component.translatable("questsicons.gui.team_reward").withStyle(net.minecraft.ChatFormatting.AQUA));
-                g.text(font, clip(font, title, right - (px + 32) - 4), px + 32, y + 5, claimed ? MUTED : TEXT, false);
+                g.drawString(font, clip(font, title, right - (px + 32) - 4), px + 32, y + 5, claimed ? MUTED : TEXT, false);
                 if (editMode) {
                     final int ri = q.rewards.indexOf(r);
                     final Component rt = title;
@@ -960,7 +969,7 @@ public class QuestBookScreen extends Screen {
         button(g, px + pw - cw - 8, fy, cw, 16, close, mouseX, mouseY, () -> selected = null);
     }
 
-    private int drawInlineImage(GuiGraphicsExtractor g, String line, int x, int y, int maxW) {
+    private int drawInlineImage(GuiGraphics g, String line, int x, int y, int maxW) {
         // {image:ns:path width:120 height:60 align:center}
         String body = line.substring(7, line.endsWith("}") ? line.length() - 1 : line.length()).trim();
         String[] parts = body.split(" ");
@@ -988,15 +997,15 @@ public class QuestBookScreen extends Screen {
         }
         int ix = align.equals("left") ? x : align.equals("right") ? x + maxW - w : x + (maxW - w) / 2;
         try {
-            Identifier id = Identifier.parse(tex);
+            ResourceLocation id = ResourceLocation.parse(tex);
             if (!textureExists(id)) return y;
-            g.blit(RenderPipelines.GUI_TEXTURED, id, ix, y, 0, 0, w, h, w, h);
+            Gfx.blit(g, id, ix, y, 0, 0, w, h, w, h);
         } catch (Exception ignored) {
         }
         return y + h + 4;
     }
 
-    private void drawChoice(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+    private void drawChoice(GuiGraphics g, int mouseX, int mouseY) {
         modalFrom = zones.size();
         List<ItemStack> items = choosing.choices(reg());
         int cols = Math.min(6, Math.max(1, items.size()));
@@ -1009,18 +1018,18 @@ public class QuestBookScreen extends Screen {
         int y = (height - h) / 2;
         g.fill(0, 0, width, height, 0x80000000);
         frame(g, x, y, w, h, PANEL, GOLD);
-        g.centeredText(font, title, x + w / 2, y + 6, GOLD);
+        g.drawCenteredString(font, title, x + w / 2, y + 6, GOLD);
         for (int i = 0; i < items.size(); i++) {
             int ix = x + (w - gridW) / 2 + (i % cols) * 26;
             int iy = y + 20 + (i / cols) * 26;
             boolean hov = mouseX >= ix && mouseY >= iy && mouseX < ix + 24 && mouseY < iy + 24;
             frame(g, ix, iy, 24, 24, hov ? 0xFF3A2358 : 0xFF261839, hov ? GOLD : 0xFF5B3A86);
-            g.fakeItem(items.get(i), ix + 4, iy + 4);
-            g.itemDecorations(font, items.get(i), ix + 4, iy + 4);
+            g.renderFakeItem(items.get(i), ix + 4, iy + 4);
+            g.renderItemDecorations(font, items.get(i), ix + 4, iy + 4);
             final int idx = i;
             final Reward r = choosing;
             zones.add(new Zone(ix, iy, 24, 24, () -> {
-                ClientPlayNetworking.send(new QuestNet.Action(QuestNet.Action.CLAIM, r.id, idx));
+                ClientNet.send(new QuestNet.Action(QuestNet.Action.CLAIM, r.id, idx));
                 choosing = null;
                 click();
             }, items.get(i).getHoverName()));
@@ -1030,7 +1039,7 @@ public class QuestBookScreen extends Screen {
         button(g, x + (w - cw) / 2, y + h - 18, cw, 14, cancel, mouseX, mouseY, () -> choosing = null);
     }
 
-    private void drawMenu(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+    private void drawMenu(GuiGraphics g, int mouseX, int mouseY) {
         modalFrom = zones.size();
         ContextMenu m = menu;
         int w = 0;
@@ -1044,7 +1053,7 @@ public class QuestBookScreen extends Screen {
         for (MenuEntry e : m.entries) {
             boolean hov = mouseX >= x && mouseX < x + w && mouseY >= ey && mouseY < ey + 14;
             if (hov) g.fill(x + 1, ey, x + w - 1, ey + 14, 0x607E0CC9);
-            g.text(font, e.label(), x + 8, ey + 3, TEXT, false);
+            g.drawString(font, e.label(), x + 8, ey + 3, TEXT, false);
             final Runnable action = e.action();
             zones.add(new Zone(x, ey, w, 14, () -> {
                 menu = null;
@@ -1106,9 +1115,29 @@ public class QuestBookScreen extends Screen {
         return chapter;
     }
 
+    // 1.21.1 hands over x, y and button separately; the code below keeps the event form of the newer versions.
     @Override
+    public boolean mouseClicked(double x, double y, int button) {
+        return mouseClicked(new MouseButtonEvent(x, y, button), false);
+    }
+
+    @Override
+    public boolean mouseDragged(double x, double y, int button, double dx, double dy) {
+        return mouseDragged(new MouseButtonEvent(x, y, button), dx, dy);
+    }
+
+    @Override
+    public boolean mouseReleased(double x, double y, int button) {
+        return mouseReleased(new MouseButtonEvent(x, y, button));
+    }
+
+    @Override
+    public boolean keyPressed(int key, int scancode, int modifiers) {
+        return keyPressed(new KeyEvent(key, scancode, modifiers));
+    }
+
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (book() == null) return super.mouseClicked(event, doubleClick);
+        if (book() == null) return super.mouseClicked(event.x(), event.y(), event.button());
         double mx = event.x();
         double my = event.y();
         int button = event.button();
@@ -1159,13 +1188,13 @@ public class QuestBookScreen extends Screen {
                     linkSource = null;
                     return true;
                 }
-                if (editMode && (event.hasShiftDown() || minecraft.hasShiftDown())) {
+                if (editMode && (event.hasShiftDown() || Screen.hasShiftDown())) {
                     linkDrag = q;
                     linkX = mx;
                     linkY = my;
                     return true;
                 }
-                if (editMode && (event.hasControlDown() || minecraft.hasControlDown())) {
+                if (editMode && (event.hasControlDown() || Screen.hasControlDown())) {
                     if (!selection.remove(q.id)) selection.add(q.id);
                     return true;
                 }
@@ -1187,7 +1216,7 @@ public class QuestBookScreen extends Screen {
             linkSource = null;
             if (editMode) {
                 int img = imageAt(mx, my);
-                if (event.hasControlDown() || minecraft.hasControlDown()) {
+                if (event.hasControlDown() || Screen.hasControlDown()) {
                     boxSelecting = true;
                     boxX0 = boxX1 = mx;
                     boxY0 = boxY1 = my;
@@ -1228,14 +1257,13 @@ public class QuestBookScreen extends Screen {
             panning = true;
             return true;
         }
-        return super.mouseClicked(event, doubleClick);
+        return super.mouseClicked(event.x(), event.y(), event.button());
     }
 
     private double snapTo(double v) {
         return EditorData.snap ? Math.round(v * 2) / 2.0 : Math.round(v * 10) / 10.0;
     }
 
-    @Override
     public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
         if (dragChapter != null) {
             dragChapterY = event.y();
@@ -1272,10 +1300,9 @@ public class QuestBookScreen extends Screen {
             panY += (float) dy;
             return true;
         }
-        return super.mouseDragged(event, dx, dy);
+        return super.mouseDragged(event.x(), event.y(), event.button(), dx, dy);
     }
 
-    @Override
     public boolean mouseReleased(MouseButtonEvent event) {
         if (dragChapter != null) {
             Chapter c = dragChapter;
@@ -1336,7 +1363,7 @@ public class QuestBookScreen extends Screen {
                 } else {
                     moving.add(q);
                 }
-                ListTag ops = new ListTag();
+                ListTag ops = QiListTag.mixed();
                 for (Quest m : moving) {
                     CompoundTag op = new CompoundTag();
                     op.putString("op", "quest_move");
@@ -1360,7 +1387,7 @@ public class QuestBookScreen extends Screen {
             return true;
         }
         panning = false;
-        return super.mouseReleased(event);
+        return super.mouseReleased(event.x(), event.y(), event.button());
     }
 
     @Override
@@ -1384,7 +1411,6 @@ public class QuestBookScreen extends Screen {
         return true;
     }
 
-    @Override
     public boolean keyPressed(KeyEvent event) {
         // 26.3 reports SDL key codes (Escape = 41, not GLFW's 256): with the old number Escape closed the whole book.
         if (event.isEscape()) {
@@ -1410,7 +1436,7 @@ public class QuestBookScreen extends Screen {
             }
         }
         if (editMode && selected == null && menu == null && choosing == null) {
-            if ((event.hasControlDown() || minecraft.hasControlDown()) && event.key() == InputConstants.KEY_Z) {
+            if ((event.hasControlDown() || Screen.hasControlDown()) && event.key() == InputConstants.KEY_Z) {
                 undo();
                 return true;
             }
@@ -1427,11 +1453,11 @@ public class QuestBookScreen extends Screen {
                 return true;
             }
         }
-        if (ClientQuests.OPEN_BOOK.matches(event) && selected == null && menu == null) {
+        if (ClientQuests.OPEN_BOOK.matches(event.key(), event.scancode()) && selected == null && menu == null) {
             onClose();
             return true;
         }
-        return super.keyPressed(event);
+        return super.keyPressed(event.key(), event.scancode(), event.modifiers());
     }
 
     @Override
@@ -1504,7 +1530,7 @@ public class QuestBookScreen extends Screen {
     // ------------------------------------------------------------------------------- editing
 
     private void edit(CompoundTag op) {
-        ClientPlayNetworking.send(new QuestNet.Edit(op));
+        ClientNet.send(new QuestNet.Edit(op));
     }
 
     /** Sends an edit and remembers how to undo it: the touched chapters as they are now. */
@@ -1574,7 +1600,7 @@ public class QuestBookScreen extends Screen {
 
     /** The quest form (everything a quest file can say). */
     public void editQuestForm(Quest q) {
-        minecraft.gui.setScreen(Forms.quest(this, q, q.write(), t -> {
+        minecraft.setScreen(Forms.quest(this, q, q.write(), t -> {
             if (!t.contains("id")) t.putString("id", q.idString());
             sendQuest(q, t);
         }));
@@ -1588,19 +1614,19 @@ public class QuestBookScreen extends Screen {
         t.putDouble("x", x);
         t.putDouble("y", y);
         if (c.defaultQuestSize != 1.0) t.putDouble("size", c.defaultQuestSize);
-        t.put("tasks", new ListTag());
-        minecraft.gui.setScreen(Forms.quest(this, null, t, saved -> sendQuest("new quest", c, saved)));
+        t.put("tasks", QiListTag.mixed());
+        minecraft.setScreen(Forms.quest(this, null, t, saved -> sendQuest("new quest", c, saved)));
     }
 
     public void editChapterForm(Chapter c) {
-        minecraft.gui.setScreen(Forms.chapter(this, chapterTag(c), t -> {
+        minecraft.setScreen(Forms.chapter(this, chapterTag(c), t -> {
             t.putString("id", c.idString());
             sendChapter(c, t);
         }));
     }
 
     private void editGroupForm(ChapterGroup grp) {
-        minecraft.gui.setScreen(Forms.group(this, grp.write(), t -> {
+        minecraft.setScreen(Forms.group(this, grp.write(), t -> {
             t.putString("id", grp.idString());
             CompoundTag op = new CompoundTag();
             op.putString("op", "group_set");
@@ -1610,7 +1636,7 @@ public class QuestBookScreen extends Screen {
     }
 
     private void editBook() {
-        minecraft.gui.setScreen(Forms.book(this, book().writeData(), t -> {
+        minecraft.setScreen(Forms.book(this, book().writeData(), t -> {
             CompoundTag op = new CompoundTag();
             op.putString("op", "book_set");
             op.put("data", t);
@@ -1621,7 +1647,7 @@ public class QuestBookScreen extends Screen {
     private void editImageForm(int idx) {
         if (chapter == null || idx >= chapter.images.size()) return;
         Chapter c = chapter;
-        minecraft.gui.setScreen(Forms.image(this, 0, c.images.get(idx).write(), t -> {
+        minecraft.setScreen(Forms.image(this, 0, c.images.get(idx).write(), t -> {
             CompoundTag op = new CompoundTag();
             op.putString("op", "image_set");
             op.putString("chapter", c.idString());
@@ -1633,7 +1659,7 @@ public class QuestBookScreen extends Screen {
 
     /** Pick a library picture, then place it here (its form opens with the default size). */
     private void addImage(Chapter c, double x, double y) {
-        minecraft.gui.setScreen(PickerScreen.images(this, tex -> {
+        minecraft.setScreen(PickerScreen.images(this, tex -> {
             CompoundTag t = new CompoundTag();
             t.putString("image", tex);
             t.putDouble("x", x);
@@ -1647,7 +1673,7 @@ public class QuestBookScreen extends Screen {
             }
             t.putDouble("width", w);
             t.putDouble("height", h);
-            minecraft.gui.setScreen(Forms.image(this, 0, t, saved -> {
+            minecraft.setScreen(Forms.image(this, 0, t, saved -> {
                 CompoundTag op = new CompoundTag();
                 op.putString("op", "image_add");
                 op.putString("chapter", c.idString());
@@ -1659,7 +1685,7 @@ public class QuestBookScreen extends Screen {
 
     /** The icon picker for a quest, a chapter, a task or a reward: the library first, every other item in a tab. */
     private void pickIcon(Component what, java.util.function.Consumer<CompoundTag> applyIcon) {
-        minecraft.gui.setScreen(PickerScreen.items(this, Component.translatable("questsicons.picker.icon_for", what), true, st -> {
+        minecraft.setScreen(PickerScreen.items(this, Component.translatable("questsicons.picker.icon_for", what), true, st -> {
             CompoundTag holder = new CompoundTag();
             holder.put("icon", ItemSpec.of(st.copyWithCount(1), reg()).write());
             applyIcon.accept(holder);
@@ -1706,7 +1732,7 @@ public class QuestBookScreen extends Screen {
         if (qs.isEmpty()) return;
         EditorData.CLIPBOARD.clear();
         for (Quest q : qs) EditorData.CLIPBOARD.add(q.write());
-        if (minecraft.player != null) minecraft.player.sendOverlayMessage(Component.translatable("questsicons.edit.copied", qs.size()));
+        if (minecraft.player != null) minecraft.player.displayClientMessage(Component.translatable("questsicons.edit.copied", qs.size()), true);
     }
 
     /** Pastes the copied quests with new ids around a map position; links among them follow, others stay. */
@@ -1717,7 +1743,7 @@ public class QuestBookScreen extends Screen {
         double oy = snapTo(y) - first.getDoubleOr("y", 0);
         java.util.Map<Long, String> newIds = new java.util.HashMap<>();
         for (CompoundTag t : EditorData.CLIPBOARD) newIds.put(QuestObject.parseId(t.getStringOr("id", "")), randomId());
-        ListTag ops = new ListTag();
+        ListTag ops = QiListTag.mixed();
         selection.clear();
         for (CompoundTag src : EditorData.CLIPBOARD) {
             CompoundTag t = src.copy();
@@ -1727,7 +1753,7 @@ public class QuestBookScreen extends Screen {
             t.putDouble("y", src.getDoubleOr("y", 0) + oy);
             for (var task : t.getListOrEmpty("tasks")) if (task instanceof CompoundTag c) c.putString("id", randomId());
             for (var rew : t.getListOrEmpty("rewards")) if (rew instanceof CompoundTag c) c.putString("id", randomId());
-            ListTag deps = new ListTag();
+            ListTag deps = QiListTag.mixed();
             for (var d : t.getListOrEmpty("dependencies")) {
                 if (!(d instanceof net.minecraft.nbt.StringTag s)) continue;
                 long dep = QuestObject.parseId(s.value());
@@ -1754,7 +1780,7 @@ public class QuestBookScreen extends Screen {
             if (q != null) qs.add(q);
         }
         if (qs.isEmpty()) return;
-        ListTag ops = new ListTag();
+        ListTag ops = QiListTag.mixed();
         for (Quest q : qs) {
             CompoundTag op = new CompoundTag();
             op.putString("op", "quest_delete");
@@ -1781,7 +1807,7 @@ public class QuestBookScreen extends Screen {
             names.add(c.displayTitle());
             icons.add(c.displayIcon(reg()));
         }
-        minecraft.gui.setScreen(PickerScreen.list(this, Component.translatable("questsicons.edit.move_to_chapter"), values, names, icons, cid -> {
+        minecraft.setScreen(PickerScreen.list(this, Component.translatable("questsicons.edit.move_to_chapter"), values, names, icons, cid -> {
             Chapter target = book().chapter(QuestObject.parseId(cid));
             if (target == null) return;
             List<Quest> qs = new ArrayList<>();
@@ -1789,7 +1815,7 @@ public class QuestBookScreen extends Screen {
                 Quest q = book().quest(id);
                 if (q != null) qs.add(q);
             }
-            ListTag ops = new ListTag();
+            ListTag ops = QiListTag.mixed();
             for (Quest q : qs) {
                 CompoundTag op = new CompoundTag();
                 op.putString("op", "quest_move");
@@ -2067,7 +2093,7 @@ public class QuestBookScreen extends Screen {
     }
 
     private void editQuestSnbt(Quest q) {
-        minecraft.gui.setScreen(new SnbtEditScreen(this, Component.translatable("questsicons.edit.edit_quest", q.displayTitle()), q.write(), t -> {
+        minecraft.setScreen(new SnbtEditScreen(this, Component.translatable("questsicons.edit.edit_quest", q.displayTitle()), q.write(), t -> {
             if (!t.contains("id")) t.putString("id", q.idString());
             sendQuest(q, t);
         }));
@@ -2076,7 +2102,7 @@ public class QuestBookScreen extends Screen {
     private void editChapterSnbt(Chapter c) {
         CompoundTag tag = c.write();
         tag.remove("quests");
-        minecraft.gui.setScreen(new SnbtEditScreen(this, Component.translatable("questsicons.edit.edit_chapter", c.displayTitle()), tag, t -> {
+        minecraft.setScreen(new SnbtEditScreen(this, Component.translatable("questsicons.edit.edit_chapter", c.displayTitle()), tag, t -> {
             t.putString("id", c.idString());
             sendChapter(c, t);
         }));

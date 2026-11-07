@@ -7,10 +7,10 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.Screens;
 import net.fabricmc.loader.api.FabricLoader;
@@ -35,7 +35,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,10 +53,9 @@ public final class ClientQuests {
     public static final LongLinkedOpenHashSet pinned = new LongLinkedOpenHashSet();
     private static final Path PIN_FILE = FabricLoader.getInstance().getConfigDir().resolve("questsicons-pinned.txt");
 
-    private static final KeyMapping.Category CATEGORY =
-            KeyMapping.Category.register(Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "main"));
-    public static final KeyMapping OPEN_BOOK = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.questsicons.open_book", InputConstants.Type.KEYBOARD, InputConstants.KEY_J, CATEGORY));
+    private static final String CATEGORY = "key.category.questsicons.main";
+    public static final KeyMapping OPEN_BOOK = KeyBindingHelper.registerKeyBinding(
+            new KeyMapping("key.questsicons.open_book", InputConstants.Type.KEYSYM, InputConstants.KEY_J, CATEGORY));
 
     private ClientQuests() {
     }
@@ -64,20 +63,11 @@ public final class ClientQuests {
     public static void init() {
         loadPins();
         EditorData.init();
-        ClientPlayNetworking.registerGlobalReceiver(QuestNet.BookSync.TYPE, (payload, ctx) -> {
-            try {
-                QuestBook b = QuestBook.readAll(QuestNet.decompress(payload.data()));
-                if (ctx.client().level != null) b.registries = ctx.client().level.registryAccess();
-                book = b;
-                canEdit = payload.canEdit();
-                if (ctx.client().gui.screen() instanceof QuestBookScreen s) s.bookUpdated();
-            } catch (Exception e) {
-                QuestsIcons.LOGGER.error("Could not read the quest book from the server", e);
-            }
-        });
+        ClientNet.init();
+        ClientPlayNetworking.registerGlobalReceiver(QuestNet.BookSync.TYPE, (payload, ctx) -> onBook(payload));
         ClientPlayNetworking.registerGlobalReceiver(QuestNet.TeamSync.TYPE, (payload, ctx) -> {
             progress.read(payload.data());
-            if (ctx.client().gui.screen() instanceof QuestBookScreen s) s.progressUpdated();
+            if (ctx.client().screen instanceof QuestBookScreen s) s.progressUpdated();
         });
         ClientPlayNetworking.registerGlobalReceiver(QuestNet.Notify.TYPE, (payload, ctx) -> notify(ctx.client(), payload));
         ClientPlayConnectionEvents.DISCONNECT.register((h, c) -> {
@@ -88,28 +78,41 @@ public final class ClientQuests {
         });
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             while (OPEN_BOOK.consumeClick()) {
-                if (mc.player != null && mc.gui.screen() == null) open(mc);
+                if (mc.player != null && mc.screen == null) open(mc);
             }
         });
-        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "pinned"), new QuestHud());
+        HudRenderCallback.EVENT.register(new QuestHud());
         ScreenEvents.AFTER_INIT.register((mc, screen, w, h) -> {
             if (screen instanceof InventoryScreen || screen instanceof CreativeModeInventoryScreen) {
                 Button b = Button.builder(Component.literal("✉"), btn -> open(mc))
                         .bounds(4, 4, 20, 20)
                         .tooltip(Tooltip.create(Component.translatable("questsicons.gui.open_book")))
                         .build();
-                Screens.getWidgets(screen).add(b);
+                Screens.getButtons(screen).add(b);
             }
         });
+    }
+
+    static void onBook(QuestNet.BookSync payload) {
+        Minecraft mc = Minecraft.getInstance();
+        try {
+            QuestBook b = QuestBook.readAll(QuestNet.decompress(payload.data()));
+            if (mc.level != null) b.registries = mc.level.registryAccess();
+            book = b;
+            canEdit = payload.canEdit();
+            if (mc.screen instanceof QuestBookScreen s) s.bookUpdated();
+        } catch (Exception e) {
+            QuestsIcons.LOGGER.error("Could not read the quest book from the server", e);
+        }
     }
 
     public static void open(Minecraft mc) {
         if (book == null) {
             if (mc.player != null) mc.player.sendSystemMessage(Component.translatable("questsicons.gui.no_book"));
-            ClientPlayNetworking.send(new QuestNet.Action(QuestNet.Action.REQUEST_SYNC, 0, 0));
+            ClientNet.send(new QuestNet.Action(QuestNet.Action.REQUEST_SYNC, 0, 0));
             return;
         }
-        mc.gui.setScreen(new QuestBookScreen());
+        mc.setScreen(new QuestBookScreen());
     }
 
     private static void notify(Minecraft mc, QuestNet.Notify n) {
@@ -118,14 +121,14 @@ public final class ClientQuests {
             case QuestNet.Notify.QUEST -> {
                 Quest q = book == null ? null : book.quest(n.id());
                 if (q != null) {
-                    mc.gui.toastManager().addToast(new QuestToast(q.displayIcon(book.registries), q.displayTitle(),
+                    mc.getToasts().addToast(new QuestToast(q.displayIcon(book.registries), q.displayTitle(),
                             Component.translatable("questsicons.toast.quest_complete"), false));
                 }
             }
             case QuestNet.Notify.CHAPTER -> {
                 Chapter c = book == null ? null : book.chapter(n.id());
                 if (c != null) {
-                    mc.gui.toastManager().addToast(new QuestToast(c.displayIcon(book.registries), c.displayTitle(),
+                    mc.getToasts().addToast(new QuestToast(c.displayIcon(book.registries), c.displayTitle(),
                             Component.translatable("questsicons.toast.chapter_complete"), true));
                 }
             }

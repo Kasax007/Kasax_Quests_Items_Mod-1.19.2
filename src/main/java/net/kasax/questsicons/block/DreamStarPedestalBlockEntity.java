@@ -4,15 +4,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.util.ProblemReporter;
+
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.TagValueOutput;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+
 
 /** Holds the displayed Dream Star (synced to clients so the renderer can draw it). */
 public class DreamStarPedestalBlockEntity extends BlockEntity {
@@ -51,15 +49,15 @@ public class DreamStarPedestalBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        this.star = input.read("star", ItemStack.CODEC).orElse(ItemStack.EMPTY);
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        this.star = ItemStack.parseOptional(registries, tag.getCompoundOrEmpty("star"));
     }
 
     @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        if (!this.star.isEmpty()) output.store("star", ItemStack.CODEC, this.star);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        if (!this.star.isEmpty()) tag.put("star", this.star.save(registries));
     }
 
     @Override
@@ -69,15 +67,13 @@ public class DreamStarPedestalBlockEntity extends BlockEntity {
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        TagValueOutput out = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, registries);
-        saveAdditional(out);
-        return out.buildResult();
+        return saveCustomOnly(registries);
     }
 
-    @Override
-    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+    /** Called by the block when it is broken. */
+    void dropStar() {
         if (this.level != null && !this.star.isEmpty()) {
-            Containers.dropItemStack(this.level, pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, this.star);
+            Containers.dropItemStack(this.level, worldPosition.getX() + 0.5, worldPosition.getY() + 1.0, worldPosition.getZ() + 0.5, this.star);
             this.star = ItemStack.EMPTY;
         }
     }

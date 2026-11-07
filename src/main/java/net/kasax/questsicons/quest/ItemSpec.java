@@ -10,7 +10,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -95,7 +95,7 @@ public final class ItemSpec {
 
     public @Nullable TagKey<Item> tagKey() {
         if (!isTag()) return null;
-        Identifier id = Identifier.tryParse(((StringTag) raw).value().substring(1));   // null for a typo instead of a crash
+        ResourceLocation id = ResourceLocation.tryParse(((StringTag) raw).value().substring(1));   // null for a typo instead of a crash
         return id == null ? null : TagKey.create(Registries.ITEM, id);
     }
 
@@ -126,7 +126,7 @@ public final class ItemSpec {
                 List<ItemStack> items = tagItems();
                 result = items.isEmpty() ? new ItemStack(Items.BARRIER) : items.get(0);
             } else if (raw instanceof StringTag s) {
-                Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(s.value()));
+                Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s.value()));
                 result = new ItemStack(item);
             } else if (raw instanceof CompoundTag c) {
                 if (c.contains("components") && registries != null) {
@@ -136,7 +136,7 @@ public final class ItemSpec {
                             .result().orElse(ItemStack.EMPTY);
                 }
                 if (result.isEmpty()) {
-                    Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(c.getStringOr("id", "minecraft:air")));
+                    Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(c.getStringOr("id", "minecraft:air")));
                     result = new ItemStack(item, Math.max(1, c.getIntOr("count", 1)));
                 }
             }

@@ -7,7 +7,9 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -30,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
  * to take it back. While the star is on it, the pedestal glows (light 15) and sparkles. No hopper can take the star.
  */
 public class DreamStarPedestalBlock extends BaseEntityBlock {
+    public static final MapCodec<DreamStarPedestalBlock> CODEC = simpleCodec(DreamStarPedestalBlock::new);
     public static final BooleanProperty HAS_STAR = BooleanProperty.create("has_star");
     private static final VoxelShape SHAPE = Shapes.or(
             Block.box(2, 0, 2, 14, 3, 14),
@@ -39,6 +42,11 @@ public class DreamStarPedestalBlock extends BaseEntityBlock {
     public DreamStarPedestalBlock(Properties properties) {
         super(properties);
         registerDefaultState(this.stateDefinition.any().setValue(HAS_STAR, false));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 
     @Override
@@ -62,17 +70,17 @@ public class DreamStarPedestalBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
-                                          BlockHitResult hit) {
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
+                                              BlockHitResult hit) {
         if (!stack.is(ModItems.DREAM_STAR) || !(level.getBlockEntity(pos) instanceof DreamStarPedestalBlockEntity be) || !be.getStar().isEmpty()) {
-            return InteractionResult.TRY_WITH_EMPTY_HAND;
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         if (!level.isClientSide()) {
             be.setStar(player.hasInfiniteMaterials() ? stack.copyWithCount(1) : stack.split(1));
             level.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_RESONATE, SoundSource.BLOCKS, 1.0f, 1.2f);
             level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 0.6f, 1.6f);
         }
-        return InteractionResult.SUCCESS;
+        return ItemInteractionResult.sidedSuccess(level.isClientSide());
     }
 
     @Override
@@ -85,7 +93,14 @@ public class DreamStarPedestalBlock extends BaseEntityBlock {
             player.setItemInHand(InteractionHand.MAIN_HAND, be.takeStar());
             level.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 1.0f, 0.8f);
         }
-        return InteractionResult.SUCCESS;
+        return InteractionResult.sidedSuccess(level.isClientSide());
+    }
+
+    /** Breaking the pedestal drops the star. */
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof DreamStarPedestalBlockEntity be) be.dropStar();
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

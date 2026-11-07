@@ -24,11 +24,13 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.permissions.Permissions;
+
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,6 +53,8 @@ public final class QuestServer {
     /** Tasks whose detection threw (e.g. a typo in an id): switched off until the book is reloaded. */
     private final List<Task> brokenTasks = new ArrayList<>();
     private final Set<UUID> dirtyTeams = new HashSet<>();
+    /** Parts of big edits per player (see QuestNet). */
+    private final java.util.Map<UUID, QuestNet.Assembler> parts = new java.util.HashMap<>();
     private long tick;
 
     private QuestServer(MinecraftServer server) {
@@ -82,6 +86,16 @@ public final class QuestServer {
         });
         ServerPlayNetworking.registerGlobalReceiver(QuestNet.Edit.TYPE, (payload, ctx) -> {
             if (instance != null) QuestEditor.apply(instance, ctx.player(), payload.op());
+        });
+        // The parts of an edit that was too big for one packet (see QuestNet).
+        ServerPlayNetworking.registerGlobalReceiver(QuestNet.Part.TYPE, (payload, ctx) -> {
+            if (instance == null) return;
+            ServerPlayer p = ctx.player();
+            CustomPacketPayload whole = instance.parts.computeIfAbsent(p.getUUID(), u -> new QuestNet.Assembler()).accept(payload);
+            if (whole instanceof QuestNet.Edit e) QuestEditor.apply(instance, p, e.op());
+        });
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, s) -> {
+            if (instance != null) instance.parts.remove(handler.player.getUUID());
         });
     }
 
@@ -133,13 +147,13 @@ public final class QuestServer {
     }
 
     public static boolean canEdit(ServerPlayer p) {
-        return p.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
+        return p.hasPermissions(2);
     }
 
     public void sendBook(ServerPlayer p) {
         boolean can = canEdit(p);
         editors.put(p.getUUID(), can);
-        ServerPlayNetworking.send(p, new QuestNet.BookSync(bookBytes, can));
+        QuestNet.sendToPlayer(p, new QuestNet.BookSync(bookBytes, can));
     }
 
     // ------------------------------------------------------------------------------- teams
@@ -149,13 +163,13 @@ public final class QuestServer {
     }
 
     public TeamData team(ServerPlayer p) {
-        return data().teamOf(p.getUUID(), p.getGameProfile().name());
+        return data().teamOf(p.getUUID(), p.getGameProfile().getName());
     }
 
     public void syncTeam(TeamData team) {
         for (UUID m : team.members) {
             ServerPlayer p = server.getPlayerList().getPlayer(m);
-            if (p != null) ServerPlayNetworking.send(p, new QuestNet.TeamSync(team.writeForClient(m)));
+            if (p != null) QuestNet.sendToPlayer(p, new QuestNet.TeamSync(team.writeForClient(m)));
         }
     }
 
@@ -168,12 +182,12 @@ public final class QuestServer {
         TeamData team = team(p);
         sendBook(p);
         completeTaskless(team, p);
-        ServerPlayNetworking.send(p, new QuestNet.TeamSync(team.writeForClient(p.getUUID())));
+        QuestNet.sendToPlayer(p, new QuestNet.TeamSync(team.writeForClient(p.getUUID())));
         if (book.giveBookOnFirstJoin && !team.gotBook.contains(p.getUUID())) {
             team.gotBook.add(p.getUUID());
             data().setDirty();
             ItemStack bookItem = new ItemStack(ModItems.QUEST_BOOK);
-            if (!p.getInventory().add(bookItem)) p.drop(bookItem, false, net.minecraft.util.Prediction.SERVER_ONLY);
+            if (!p.getInventory().add(bookItem)) p.drop(bookItem, false);
         }
     }
 
@@ -267,8 +281,8 @@ public final class QuestServer {
         for (UUID m : team.members) {
             ServerPlayer p = server.getPlayerList().getPlayer(m);
             if (p == null) continue;
-            if (!q.disableToast) ServerPlayNetworking.send(p, new QuestNet.Notify(QuestNet.Notify.QUEST, q.id));
-            if (chapterDone) ServerPlayNetworking.send(p, new QuestNet.Notify(QuestNet.Notify.CHAPTER, chapter.id));
+            if (!q.disableToast) QuestNet.sendToPlayer(p, new QuestNet.Notify(QuestNet.Notify.QUEST, q.id));
+            if (chapterDone) QuestNet.sendToPlayer(p, new QuestNet.Notify(QuestNet.Notify.CHAPTER, chapter.id));
             for (Reward r : q.rewards) {
                 if (r.autoClaim && !r.needsChoice()) claim(p, team, r, -1, false);
             }
@@ -331,7 +345,7 @@ public final class QuestServer {
             }
             case QuestNet.Action.REQUEST_SYNC -> {
                 sendBook(p);
-                ServerPlayNetworking.send(p, new QuestNet.TeamSync(team.writeForClient(p.getUUID())));
+                QuestNet.sendToPlayer(p, new QuestNet.TeamSync(team.writeForClient(p.getUUID())));
             }
             default -> {
             }
@@ -353,7 +367,7 @@ public final class QuestServer {
             p.sendSystemMessage(Component.literal("Reward failed: " + e.getMessage()).withStyle(ChatFormatting.RED));
         }
         if (sound) p.level().playSound(null, p.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.5f, 1.0f);
-        ServerPlayNetworking.send(p, new QuestNet.Notify(QuestNet.Notify.CLAIMED, r.id));
+        QuestNet.sendToPlayer(p, new QuestNet.Notify(QuestNet.Notify.CLAIMED, r.id));
         return true;
     }
 
@@ -384,6 +398,6 @@ public final class QuestServer {
     }
 
     public void openBook(ServerPlayer p) {
-        ServerPlayNetworking.send(p, new QuestNet.Notify(QuestNet.Notify.OPEN, 0));
+        QuestNet.sendToPlayer(p, new QuestNet.Notify(QuestNet.Notify.OPEN, 0));
     }
 }

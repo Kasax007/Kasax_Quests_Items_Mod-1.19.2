@@ -1,5 +1,6 @@
 package net.kasax.questsicons.server;
 
+import net.kasax.questsicons.compat.QiListTag;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.kasax.questsicons.icons.IconLibrary;
@@ -60,7 +61,7 @@ class QuestEditorTest {
         q.putString("title", title);
         q.putDouble("x", x);
         q.putDouble("y", 0);
-        ListTag tasks = new ListTag();
+        ListTag tasks = QiListTag.mixed();
         CompoundTag task = new CompoundTag();
         task.putString("id", id + "1");
         task.putString("type", "kill");
@@ -69,7 +70,7 @@ class QuestEditorTest {
         tasks.add(task);
         q.put("tasks", tasks);
         if (deps.length > 0) {
-            ListTag l = new ListTag();
+            ListTag l = QiListTag.mixed();
             for (String d : deps) l.add(StringTag.valueOf(d));
             q.put("dependencies", l);
         }
@@ -103,7 +104,7 @@ class QuestEditorTest {
         assertEquals("First (edited)", b.chapter(0x100).quests.getFirst().title);
         // A batch moves several quests at once.
         CompoundTag batch = op("batch");
-        ListTag ops = new ListTag();
+        ListTag ops = QiListTag.mixed();
         for (String id : List.of("A1", "A2")) {
             CompoundTag m = op("quest_move");
             m.putString("id", id);
@@ -142,7 +143,7 @@ class QuestEditorTest {
         CompoundTag table = op("table_set");
         table.putString("key", "common_crate");
         CompoundTag t = new CompoundTag();
-        ListTag entries = new ListTag();
+        ListTag entries = QiListTag.mixed();
         CompoundTag e = new CompoundTag();
         e.putString("item", "minecraft:emerald");
         e.putInt("count", 3);
@@ -250,7 +251,7 @@ class QuestEditorTest {
             for (IconLibrary.Icon i : c.icons()) {
                 icons++;
                 assertNotNull(getClass().getResource("/assets/questsicons/models/item/" + i.id() + ".json"), i.id());
-                assertNotNull(getClass().getResource("/assets/questsicons/items/" + i.id() + ".json"), i.id());
+                // 1.21.1 has no items/ definitions (they came with 1.21.4): the model is enough.
                 assertTrue(lang.has("item.questsicons." + i.id()), i.id());
                 String tex = c.id().equals("classic") ? "/assets/questsicons/textures/item/" + i.id() + ".png"
                         : "/assets/questsicons/textures/item/icons/" + c.id() + "/" + i.id() + ".png";
