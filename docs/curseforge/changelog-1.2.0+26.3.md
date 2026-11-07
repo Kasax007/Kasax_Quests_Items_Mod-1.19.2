@@ -1,8 +1,8 @@
 ## Quest Icons 1.2.0 (Minecraft 26.3)
 
 ### New: bring your FTB Quests chapters to 26.3
-FTB Quests stops at Minecraft 26.1.2. One command turns an FTB Quests book into a Quest Icons book, so a pack can move
-on to 26.2 or 26.3 and keep its quests.
+There is no FTB Quests for Minecraft 26.2 or 26.3 (its newest version is for 26.1.2). One command turns an FTB Quests
+book into a Quest Icons book, so a pack can move on to 26.2 or 26.3 and keep its quests.
 - Reads every FTB Quests layout: 1.20 and older (texts in the chapter files), 1.21 (texts in `lang/en_us.snbt` or
   `lang/en_us/`) and 26.1 (JSON5 files).
 - Imports chapter groups, chapters (title, subtitle, icon, order, default shape, hidden chapters, pictures on the map),
