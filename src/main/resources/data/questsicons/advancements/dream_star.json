@@ -6,7 +6,9 @@
       "conditions": {
         "items": [
           {
-            "items": "questsicons:dream_star"
+            "items": [
+              "questsicons:dream_star"
+            ]
           }
         ]
       }
@@ -14,7 +16,7 @@
   },
   "display": {
     "icon": {
-      "id": "questsicons:dream_star"
+      "item": "questsicons:dream_star"
     },
     "title": {
       "translate": "advancements.questsicons.dream_star.title"

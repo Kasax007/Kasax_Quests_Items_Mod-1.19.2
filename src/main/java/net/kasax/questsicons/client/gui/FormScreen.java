@@ -164,8 +164,8 @@ public class FormScreen extends QiScreen {
     }
 
     @Override
-    public boolean mouseScrolled(double mx, double my, double sx, double sy) {
-        if (super.mouseScrolled(mx, my, sx, sy)) return true;
+    public boolean mouseScrolled(double mx, double my, double sy) {
+        if (super.mouseScrolled(mx, my, sy)) return true;
         scroll = Math.max(0, scroll - (int) (sy * 20));
         return true;
     }

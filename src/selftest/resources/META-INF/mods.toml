@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[4,)"
+loaderVersion = "[47,)"
 license = "MIT"
 
 [[mods]]
@@ -7,12 +7,9 @@ modId = "questsicons_selftest"
 version = "1.0.0"
 displayName = "Quest Icons self-test"
 
-[[mixins]]
-config = "questsicons-selftest.mixins.json"
-
 [[dependencies.questsicons_selftest]]
 modId = "questsicons"
-type = "required"
+mandatory = true
 versionRange = "*"
 ordering = "AFTER"
 side = "CLIENT"

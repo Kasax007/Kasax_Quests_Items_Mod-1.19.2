@@ -4,7 +4,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
@@ -83,7 +82,8 @@ public abstract class QuestObject {
         String t = raw.trim();
         if ((t.startsWith("{\"") || t.startsWith("[\"") || t.startsWith("[{")) && t.length() > 3) {
             try {
-                return ComponentSerialization.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString(t)).getOrThrow().copy();
+                MutableComponent c = Component.Serializer.fromJson(t);
+                if (c != null) return c;
             } catch (Exception ignored) {
             }
         }

@@ -1,6 +1,6 @@
 package net.kasax.questsicons.server;
 
-import net.neoforged.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.FMLPaths;
 import net.kasax.questsicons.QuestsIcons;
 import net.kasax.questsicons.item.ModItems;
 import net.kasax.questsicons.net.QuestNet;
@@ -25,7 +25,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -92,7 +91,7 @@ public final class QuestServer {
         if (instance != null && source.getEntity() instanceof ServerPlayer p) instance.onKill(p, entity);
     }
 
-    public static void received(ServerPlayer p, CustomPacketPayload payload) {
+    public static void received(ServerPlayer p, QuestNet.Payload payload) {
         if (instance == null) return;
         // The parts of an edit that was too big for one packet (see QuestNet).
         if (payload instanceof QuestNet.Part part) {

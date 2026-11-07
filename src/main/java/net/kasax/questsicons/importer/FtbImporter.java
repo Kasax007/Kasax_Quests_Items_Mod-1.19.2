@@ -139,7 +139,7 @@ public final class FtbImporter {
         this.opt = opt;
         String fallback = src.data.getStringOr("fallback_locale", "en_us");
         String locale = opt.locale;
-        if (!src.lang.containsKey(locale) && !src.lang.isEmpty() && !src.lang.containsKey(fallback)) locale = src.locales().getFirst();
+        if (!src.lang.containsKey(locale) && !src.lang.isEmpty() && !src.lang.containsKey(fallback)) locale = src.locales().get(0);
         this.texts = new FtbFolder.Texts(src, locale, fallback);
         this.items = new FtbItems(opt, report, src.isJson5());
         report.header.add("Texts: " + src.textLayout + (src.lang.isEmpty() ? "" : ", language " + locale + " (fallback " + fallback

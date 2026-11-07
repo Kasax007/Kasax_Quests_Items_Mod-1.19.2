@@ -14,7 +14,8 @@ import org.jetbrains.annotations.Nullable;
 
 /** "Quest completed" / "Chapter completed" popup in the style of advancement toasts. */
 public class QuestToast implements Toast {
-    private static final ResourceLocation BACKGROUND = ResourceLocation.withDefaultNamespace("toast/advancement");
+    /** 1.20.1: the toast frames are one texture; the advancement frame is its top-left 160x32. */
+    private static final ResourceLocation BACKGROUND = new ResourceLocation("textures/gui/toasts.png");
     private final ItemStack icon;
     private final Component title;
     private final Component header;
@@ -40,7 +41,7 @@ public class QuestToast implements Toast {
             if (sound != null) toasts.getMinecraft().getSoundManager().play(SimpleSoundInstance.forUI(sound, 1.0f, 1.0f));
         }
         Font font = toasts.getMinecraft().font;
-        g.blitSprite(BACKGROUND, 0, 0, width(), height());
+        g.blit(BACKGROUND, 0, 0, 0, 0, width(), height());
         g.drawString(font, header, 30, 7, big ? 0xFFFF88FF : 0xFFFFFF55, false);
         g.drawString(font, QuestBookScreen.clip(font, title, 125), 30, 18, 0xFFFFFFFF, false);
         g.renderFakeItem(icon, 8, 8);

@@ -4,7 +4,7 @@ import net.kasax.questsicons.compat.QiListTag;
 import net.kasax.questsicons.QuestsIcons;
 import net.kasax.questsicons.quest.ItemSpec;
 import net.kasax.questsicons.quest.RewardTable;
-import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -396,8 +396,7 @@ public final class Rewards {
         @Override
         public void claim(ServerPlayer player, int choice) {
             try {
-                ResourceKey<LootTable> key = ResourceKey.create(Registries.LOOT_TABLE, ResourceLocation.parse(lootTable));
-                LootTable table = player.getServer().reloadableRegistries().getLootTable(key);
+                LootTable table = player.getServer().getLootData().getLootTable(new ResourceLocation(lootTable));
                 for (int i = 0; i < Math.max(1, rolls); i++) {
                     LootParams params = new LootParams.Builder(player.serverLevel())
                             .withParameter(LootContextParams.ORIGIN, player.position())
@@ -444,9 +443,9 @@ public final class Rewards {
         @Override
         public void claim(ServerPlayer player, int choice) {
             ResourceLocation id = ResourceLocation.tryParse(advancement);
-            AdvancementHolder h = id == null ? null : player.getServer().getAdvancements().get(id);
+            Advancement h = id == null ? null : player.getServer().getAdvancements().getAdvancement(id);
             if (h == null) return;
-            for (String c : h.value().criteria().keySet()) player.getAdvancements().award(h, c);
+            for (String c : h.getCriteria().keySet()) player.getAdvancements().award(h, c);
         }
     }
 }

@@ -14,6 +14,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
+import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -33,14 +35,14 @@ public final class ModBlocks {
     public static final BlockEntityType<DreamStarPedestalBlockEntity> DREAM_STAR_PEDESTAL_BE;
 
     static {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(QuestsIcons.MOD_ID, "dream_star_pedestal");
+        ResourceLocation id = new ResourceLocation(QuestsIcons.MOD_ID, "dream_star_pedestal");
         DREAM_STAR_PEDESTAL = Registry.register(BuiltInRegistries.BLOCK, id, new DreamStarPedestalBlock(BlockBehaviour.Properties.of()
                 .mapColor(MapColor.COLOR_PURPLE).strength(3.0f, 1200.0f).requiresCorrectToolForDrops().sound(SoundType.AMETHYST)
                 .lightLevel(s -> s.getValue(DreamStarPedestalBlock.HAS_STAR) ? 15 : 0).pushReaction(PushReaction.BLOCK).noOcclusion()));
         DREAM_STAR_PEDESTAL_ITEM = Registry.register(BuiltInRegistries.ITEM, id, new BlockItem(DREAM_STAR_PEDESTAL,
                 new Item.Properties().rarity(Rarity.RARE)) {
             @Override
-            public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> builder, TooltipFlag flag) {
+            public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> builder, TooltipFlag flag) {
                 builder.add(Component.translatable("block.questsicons.dream_star_pedestal.tooltip").withStyle(ChatFormatting.GRAY));
             }
         });

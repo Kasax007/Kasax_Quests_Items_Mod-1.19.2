@@ -93,7 +93,7 @@ public class TablesScreen extends QiScreen {
     private int maxScroll;
 
     @Override
-    public boolean mouseScrolled(double mx, double my, double sx, double sy) {
+    public boolean mouseScrolled(double mx, double my, double sy) {
         scroll = Math.max(0, Math.min(maxScroll, scroll - (int) (sy * 20)));
         return true;
     }

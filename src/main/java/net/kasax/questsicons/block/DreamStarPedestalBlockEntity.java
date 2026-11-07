@@ -49,15 +49,15 @@ public class DreamStarPedestalBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        this.star = ItemStack.parseOptional(registries, tag.getCompoundOrEmpty("star"));
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        this.star = ItemStack.of(tag.getCompoundOrEmpty("star"));
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        if (!this.star.isEmpty()) tag.put("star", this.star.save(registries));
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        if (!this.star.isEmpty()) tag.put("star", this.star.save(new CompoundTag()));
     }
 
     @Override
@@ -66,8 +66,8 @@ public class DreamStarPedestalBlockEntity extends BlockEntity {
     }
 
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return saveCustomOnly(registries);
+    public CompoundTag getUpdateTag() {
+        return saveWithoutMetadata();
     }
 
     /** Called by the block when it is broken. */

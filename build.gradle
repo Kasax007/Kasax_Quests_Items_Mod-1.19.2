@@ -1,7 +1,7 @@
 plugins {
 	id 'java-library'
 	id 'maven-publish'
-	id 'net.neoforged.moddev' version "${moddev_version}"
+	id 'net.neoforged.moddev.legacyforge' version "${moddev_version}"
 }
 
 version = project.mod_version
@@ -20,25 +20,35 @@ repositories {
 }
 
 java {
-	toolchain.languageVersion = JavaLanguageVersion.of(21)
+	toolchain.languageVersion = JavaLanguageVersion.of(21)   // compiles for Java 17 (release 17, below)
 	withSourcesJar()
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+	it.options.release = 17
 	it.options.encoding = "UTF-8"
 	it.options.compilerArgs += ["-Xmaxerrs", "2000"]
 }
 
 sourceSets {
-	selftest {
+	// The converter tests (src/test) need Minecraft with the compat mixins applied; ModDevGradle has no unit tests
+	// for Forge 1.20.1, so the self-test runs them inside the game (JUnit Platform launcher, see TestRunner).
+	test {
 		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
 		runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
 	}
+	selftest {
+		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output + sourceSets.test.output
+		runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output + sourceSets.test.output
+	}
+}
+configurations {
+	selftestImplementation.extendsFrom testImplementation
+	selftestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
-neoForge {
-	version = project.neo_version
+legacyForge {
+	version = project.forge_version
 	// The 1.21.5+ NBT accessors the quest code uses (compat package): visible to the compiler, the mixins add them at run time.
 	interfaceInjectionData.from(file("src/main/resources/META-INF/interfaces.json"))
 
@@ -59,9 +69,9 @@ neoForge {
 			server()
 		}
 		// Visual self-test (dev only, never shipped): ./gradlew runSelftest
-		// Clicks through the quest book and the editor in a fresh world, imports an FTB Quests book (also on a dedicated
-		// server started in the same JVM) and saves screenshots (src/selftest; a small harness with the names of Fabric's
-		// client game-test API). Run it under Xvfb.
+		// Runs the converter tests (src/test) inside the game, then clicks through the quest book and the editor in a fresh
+		// world, imports an FTB Quests book and saves screenshots (src/selftest; a small harness with the names of Fabric's
+		// client game-test API). Run it under Xvfb. The dedicated server is covered by the production test.
 		selftest {
 			client()
 			sourceSet = sourceSets.selftest
@@ -79,18 +89,22 @@ neoForge {
 		}
 	}
 
-	// Converter tests run inside NeoForge (FML's JUnit support), so the compat mixins are applied to Minecraft.
-	unitTest {
-		enable()
-		testedMod = mods.questsicons
-	}
+}
+
+// Forge 1.20.1 runs on SRG names: mixins need a refmap, the release jar is reobfuscated (reobfJar).
+mixin {
+	add sourceSets.main, "questsicons.refmap.json"
+	config "questsicons.mixins.json"
 }
 
 dependencies {
+	annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
 	testImplementation "org.junit.jupiter:junit-jupiter:5.13.4"
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+	selftestImplementation "org.junit.platform:junit-platform-launcher:1.13.4"
 	if (project.hasProperty("withJei")) {
-		selftestRuntimeOnly "maven.modrinth:jei:${project.property('withJei')}"
+		// Forge 1.20.1 mods ship with SRG names: modRuntimeOnly remaps them for the dev game.
+		modRuntimeOnly "maven.modrinth:jei:${project.property('withJei')}"
 	}
 }
 
@@ -98,7 +112,9 @@ dependencies {
 // Real modpack quest folders are not part of the repo (their authors keep the rights): fetch six public ones with
 // "python3 -I tools/ftb_samples.py fetch <dir>" and run ./gradlew test -PftbSamples=<dir> (one sub-folder per pack;
 // <name>.stats.json holds the counts of an independent reader that the tests compare with).
+// ./gradlew test does nothing on Forge 1.20.1: run ./gradlew runSelftest (it runs these tests first).
 test {
+	enabled = false
 	useJUnitPlatform()
 	maxHeapSize = "2G"
 	systemProperty "qi.ftbSamples", project.findProperty("ftbSamples") ?: ""
@@ -111,14 +127,14 @@ test {
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
-	var replaceProperties = [mod_version: project.mod_version, minecraft_version: project.minecraft_version, neo_version: project.neo_version]
+	var replaceProperties = [mod_version: project.mod_version, minecraft_version: project.minecraft_version, forge_version: project.forge_version]
 	inputs.properties replaceProperties
 	expand replaceProperties
 	from "src/main/templates"
 	into "build/generated/sources/modMetadata"
 }
 sourceSets.main.resources.srcDir generateModMetadata
-neoForge.ideSyncTask generateModMetadata
+legacyForge.ideSyncTask generateModMetadata
 
 jar {
 	from("LICENSE") {

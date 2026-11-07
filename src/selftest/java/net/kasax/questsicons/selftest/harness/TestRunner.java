@@ -4,29 +4,41 @@ import net.kasax.questsicons.selftest.Selftest;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.server.dedicated.DedicatedServer;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import org.junit.platform.launcher.Launcher;
+import org.junit.platform.launcher.LauncherDiscoveryRequest;
+import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
+import org.junit.platform.launcher.core.LauncherFactory;
+import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
+import org.junit.platform.launcher.listeners.TestExecutionSummary;
 
+import java.io.PrintWriter;
 import java.util.List;
 
+import static org.junit.platform.engine.discovery.DiscoverySelectors.selectPackage;
+
 /**
- * Starts the self-tests on their own thread once the title screen shows, when the
- * game runs with -Dqi.selftest=true. Exits the game afterwards: status 0 if every test passed, 1 otherwise.
+ * Starts the self-tests on their own thread once the title screen shows, when the game runs with -Dqi.selftest=true.
+ * Forge 1.20.1 has no unit-test support in the build, so the converter tests (src/test) run here first, inside the game
+ * where the compat mixins are applied. Exits the game afterwards: status 0 if every test passed, 1 otherwise.
  */
-@Mod(value = "questsicons_selftest", dist = Dist.CLIENT)
+@Mod("questsicons_selftest")
 public class TestRunner {
     static volatile DedicatedServer dedicated;
     private static boolean started;
 
     public TestRunner() {
-        if (!Boolean.getBoolean("qi.selftest")) return;
-        NeoForge.EVENT_BUS.addListener((ServerStartedEvent e) -> {
+        if (!Boolean.getBoolean("qi.selftest") || FMLEnvironment.dist != Dist.CLIENT) return;
+        MinecraftForge.EVENT_BUS.addListener((ServerStartedEvent e) -> {
             if (e.getServer() instanceof DedicatedServer d) dedicated = d;
         });
-        NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> {
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.ClientTickEvent e) -> {
+            if (e.phase != TickEvent.Phase.END) return;
             Minecraft mc = Minecraft.getInstance();
             ClientGameTestContext.onTick();
             if (!started && mc.screen instanceof TitleScreen) {
@@ -38,8 +50,22 @@ public class TestRunner {
         });
     }
 
+    /** The JUnit tests of src/test (FtbImporterTest, QuestEditorTest). */
+    private static boolean unitTests() {
+        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request().selectors(selectPackage("net.kasax.questsicons.importer"),
+                selectPackage("net.kasax.questsicons.server")).build();
+        Launcher launcher = LauncherFactory.create();
+        SummaryGeneratingListener listener = new SummaryGeneratingListener();
+        launcher.execute(request, listener);
+        TestExecutionSummary summary = listener.getSummary();
+        summary.printFailuresTo(new PrintWriter(System.out), 30);
+        System.out.println("[selftest] unit tests: " + summary.getTestsSucceededCount() + " passed, " + summary.getTestsFailedCount()
+                + " failed, " + summary.getTestsSkippedCount() + " skipped");
+        return summary.getTestsFailedCount() == 0 && summary.getTestsSucceededCount() > 0;
+    }
+
     private static void runAll() {
-        boolean ok = true;
+        boolean ok = unitTests();
         ClientGameTestContext ctx = new ClientGameTestContext();
         for (FabricClientGameTest test : List.<FabricClientGameTest>of(new Selftest())) {
             try {

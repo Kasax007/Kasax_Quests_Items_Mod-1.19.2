@@ -98,10 +98,10 @@ class QuestEditorTest {
         assertEquals(2, b.chapter(0x100).quests.size());
         Quest second = b.quest(QuestObject.parseId("A2"));
         assertTrue(second.dependencies.contains(QuestObject.parseId("A1")));
-        assertTrue(second.tasks.getFirst() instanceof Tasks.KillTask k && k.value == 3);
+        assertTrue(second.tasks.get(0) instanceof Tasks.KillTask k && k.value == 3);
         // Editing keeps the place in the chapter.
         apply(b, set(ch, quest("A1", "First (edited)", 0)));
-        assertEquals("First (edited)", b.chapter(0x100).quests.getFirst().title);
+        assertEquals("First (edited)", b.chapter(0x100).quests.get(0).title);
         // A batch moves several quests at once.
         CompoundTag batch = op("batch");
         ListTag ops = QiListTag.mixed();
@@ -160,7 +160,7 @@ class QuestEditorTest {
         assertNull(b.quest(QuestObject.parseId("B1")));
         assertNotNull(b.chapter(0x200));
         assertEquals(1, b.groups.size());
-        assertEquals(3, b.rewardTables.get("common_crate").entries.getFirst().count);
+        assertEquals(3, b.rewardTables.get("common_crate").entries.get(0).count);
         assertEquals("Changed", b.title);
         // ... and one undo puts everything back.
         apply(b, undo);
@@ -189,12 +189,12 @@ class QuestEditorTest {
         mv.putInt("index", 0);
         mv.putString("group", QuestObject.idToString(QuestObject.parseId("G1")));
         apply(b, mv);
-        assertEquals(0x300, b.chapters.getFirst().id);
-        assertEquals(QuestObject.idToString(QuestObject.parseId("G1")), b.chapters.getFirst().group);
+        assertEquals(0x300, b.chapters.get(0).id);
+        assertEquals(QuestObject.idToString(QuestObject.parseId("G1")), b.chapters.get(0).group);
         CompoundTag gd = op("group_delete");
         gd.putString("id", "G1");
         apply(b, gd);
-        assertEquals("", b.chapters.getFirst().group);
+        assertEquals("", b.chapters.get(0).group);
         // Pictures: add, change, delete.
         CompoundTag ia = op("image_add");
         ia.putString("chapter", QuestObject.idToString(0x100));
@@ -210,7 +210,7 @@ class QuestEditorTest {
         img2.putDouble("x", 3);
         is.put("image", img2);
         apply(b, is);
-        assertEquals(3, b.chapter(0x100).images.getFirst().x);
+        assertEquals(3, b.chapter(0x100).images.get(0).x);
         CompoundTag idl = op("image_delete");
         idl.putString("chapter", QuestObject.idToString(0x100));
         idl.putInt("index", 0);
@@ -269,6 +269,6 @@ class QuestEditorTest {
             assertNotNull(getClass().getResource("/assets/questsicons/textures/gui/map/" + m.id() + ".png"), m.id());
             assertTrue(lang.has("questsicons.map_image." + m.id()), m.id());
         }
-        assertNotNull(getClass().getResource("/data/questsicons/tags/item/icons/letters.json"));
+        assertNotNull(getClass().getResource("/data/questsicons/tags/items/icons/letters.json"));
     }
 }

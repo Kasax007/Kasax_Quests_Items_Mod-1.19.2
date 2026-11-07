@@ -194,8 +194,8 @@ class FtbImporterTest {
         assertEquals("questsicons:quest_book", b.icon.idString());
         assertEquals("rsquare", b.defaultShape);
         assertEquals(1, b.groups.size());
-        assertEquals("Basics Group", b.groups.getFirst().title);
-        assertEquals(id("1000000000000001"), b.groups.getFirst().id);
+        assertEquals("Basics Group", b.groups.get(0).title);
+        assertEquals(id("1000000000000001"), b.groups.get(0).id);
         assertEquals(List.of("secret", "basics"), b.chapters.stream().map(c -> c.filename).toList());
         Chapter secret = b.chapters.get(0);
         Chapter basics = b.chapters.get(1);
@@ -212,7 +212,7 @@ class FtbImporterTest {
 
         // The picture shows once the first quest is done.
         assertEquals(1, basics.images.size());
-        ChapterImage img = basics.images.getFirst();
+        ChapterImage img = basics.images.get(0);
         assertEquals("minecraft:textures/item/diamond.png", img.image);
         assertEquals(2.0, img.x);
         assertEquals(-2.0, img.y);
@@ -398,7 +398,7 @@ class FtbImporterTest {
         FtbImporter.Options o = new FtbImporter.Options();
         o.game = new FtbImporter.GameData() {
             public boolean item(String id) {
-                return net.minecraft.core.registries.BuiltInRegistries.ITEM.containsKey(net.minecraft.resources.ResourceLocation.parse(id));
+                return net.minecraft.core.registries.BuiltInRegistries.ITEM.containsKey(new net.minecraft.resources.ResourceLocation(id));
             }
 
             public boolean itemTag(String id) {
@@ -406,7 +406,7 @@ class FtbImporterTest {
             }
 
             public boolean entity(String id) {
-                return net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.containsKey(net.minecraft.resources.ResourceLocation.parse(id));
+                return net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.containsKey(new net.minecraft.resources.ResourceLocation(id));
             }
 
             public boolean entityTag(String id) {

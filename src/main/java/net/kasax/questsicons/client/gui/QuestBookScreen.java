@@ -342,14 +342,14 @@ public class QuestBookScreen extends Screen {
     private boolean drawingWidgets;
 
     @Override
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float a) {
+    public void renderBackground(GuiGraphics g) {
         if (drawingWidgets) return;
         g.fillGradient(0, 0, width, height, BG_TOP, BG_BOTTOM);
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float a) {
-        renderBackground(g, mouseX, mouseY, a);
+        renderBackground(g);
         lastZones.clear();
         lastZones.addAll(zones);
         lastRows.clear();
@@ -396,7 +396,7 @@ public class QuestBookScreen extends Screen {
         QuestBook b = book();
         if (!b.background.isEmpty()) {
             try {
-                Gfx.blit(g, ResourceLocation.parse(b.background), SIDEBAR, TOP, 0, 0, width - SIDEBAR, height - TOP,
+                Gfx.blit(g, new ResourceLocation(b.background), SIDEBAR, TOP, 0, 0, width - SIDEBAR, height - TOP,
                         width - SIDEBAR, height - TOP, 0x60FFFFFF);
             } catch (Exception ignored) {
             }
@@ -533,7 +533,7 @@ public class QuestBookScreen extends Screen {
             g.renderOutline(Math.round(cx - w / 2f) - 1, Math.round(cy - h / 2f) - 1, w + 2, h + 2, 0x9055E0FF);
         }
         try {
-            ResourceLocation tex = ResourceLocation.parse(img.image);
+            ResourceLocation tex = new ResourceLocation(img.image);
             if (!textureExists(tex)) return;   // e.g. a picture of a mod the pack no longer has (imported books)
             int color = (img.alpha << 24) | (img.color & 0xFFFFFF);
             if (img.rotation != 0) {
@@ -561,7 +561,7 @@ public class QuestBookScreen extends Screen {
     }
 
     private static ResourceLocation shapeTex(QuestShape shape) {
-        return ResourceLocation.fromNamespaceAndPath("questsicons", "textures/gui/shapes/" + shape.id() + ".png");
+        return new ResourceLocation("questsicons", "textures/gui/shapes/" + shape.id() + ".png");
     }
 
     private void badge(GuiGraphics g, int x, int y, String s, int color, float alpha) {
@@ -996,7 +996,7 @@ public class QuestBookScreen extends Screen {
         }
         int ix = align.equals("left") ? x : align.equals("right") ? x + maxW - w : x + (maxW - w) / 2;
         try {
-            ResourceLocation id = ResourceLocation.parse(tex);
+            ResourceLocation id = new ResourceLocation(tex);
             if (!textureExists(id)) return y;
             Gfx.blit(g, id, ix, y, 0, 0, w, h, w, h);
         } catch (Exception ignored) {
@@ -1390,7 +1390,7 @@ public class QuestBookScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
+    public boolean mouseScrolled(double mx, double my, double scrollY) {
         if (selected != null) {
             int max = Math.max(0, panelContentHeight - (height - TOP - 20 - 58));
             panelScroll = Mth.clamp(panelScroll - (int) (scrollY * 18), 0, max);
@@ -1737,7 +1737,7 @@ public class QuestBookScreen extends Screen {
     /** Pastes the copied quests with new ids around a map position; links among them follow, others stay. */
     private void paste(double x, double y) {
         if (chapter == null || EditorData.CLIPBOARD.isEmpty()) return;
-        CompoundTag first = EditorData.CLIPBOARD.getFirst();
+        CompoundTag first = EditorData.CLIPBOARD.get(0);
         double ox = snapTo(x) - first.getDoubleOr("x", 0);
         double oy = snapTo(y) - first.getDoubleOr("y", 0);
         java.util.Map<Long, String> newIds = new java.util.HashMap<>();

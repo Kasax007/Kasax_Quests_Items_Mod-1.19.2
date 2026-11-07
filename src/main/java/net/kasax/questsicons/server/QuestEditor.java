@@ -11,7 +11,7 @@ import net.kasax.questsicons.quest.QuestBook;
 import net.kasax.questsicons.quest.QuestObject;
 import net.kasax.questsicons.quest.RewardTable;
 import net.minecraft.ChatFormatting;
-import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -333,11 +333,11 @@ public final class QuestEditor {
         CompoundTag t = new CompoundTag();
         ListTag adv = QiListTag.mixed();
         CompoundTag criteria = new CompoundTag();
-        for (AdvancementHolder h : server.getAdvancements().getAllAdvancements()) {
-            String id = h.id().toString();
+        for (Advancement h : server.getAdvancements().getAllAdvancements()) {
+            String id = h.getId().toString();
             adv.add(StringTag.valueOf(id));
             ListTag cl = QiListTag.mixed();
-            for (String c : h.value().criteria().keySet()) cl.add(StringTag.valueOf(c));
+            for (String c : h.getCriteria().keySet()) cl.add(StringTag.valueOf(c));
             criteria.put(id, cl);
         }
         t.put("advancements", adv);
@@ -348,7 +348,7 @@ public final class QuestEditor {
         List<String> dims = new ArrayList<>();
         for (ServerLevel l : server.getAllLevels()) dims.add(l.dimension().location().toString());
         t.put("dimensions", ids(dims));
-        t.put("loot_tables", ids(server.reloadableRegistries().getKeys(Registries.LOOT_TABLE).stream().map(Object::toString).sorted().toList()));
+        t.put("loot_tables", ids(server.getLootData().getKeys(net.minecraft.world.level.storage.loot.LootDataType.TABLE).stream().map(Object::toString).sorted().toList()));
         return t;
     }
 

@@ -1,6 +1,6 @@
 package net.kasax.questsicons.selftest.harness;
 
-import net.minecraft.client.gui.screens.GenericMessageScreen;
+import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -23,7 +23,7 @@ public class TestSingleplayerContext implements AutoCloseable {
     public void close() {
         context.runOnClient(mc -> {
             if (mc.level != null) mc.level.disconnect();
-            mc.disconnect(new GenericMessageScreen(Component.translatable("menu.savingLevel")));
+            mc.clearLevel(new GenericDirtMessageScreen(Component.translatable("menu.savingLevel")));
         });
         context.waitFor(mc -> mc.level == null && mc.getSingleplayerServer() == null, 1200);
         context.waitTicks(2);

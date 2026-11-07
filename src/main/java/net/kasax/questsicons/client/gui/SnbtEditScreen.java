@@ -50,7 +50,7 @@ public class SnbtEditScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float a) {
+    public void renderBackground(GuiGraphics g) {
         g.fillGradient(0, 0, width, height, QuestBookScreen.BG_TOP, QuestBookScreen.BG_BOTTOM);
     }
 

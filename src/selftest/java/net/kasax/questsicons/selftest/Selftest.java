@@ -8,7 +8,7 @@ import net.kasax.questsicons.selftest.harness.TestDedicatedServerContext;
 import net.kasax.questsicons.selftest.harness.TestServerContext;
 import net.kasax.questsicons.selftest.harness.TestSingleplayerContext;
 import net.kasax.questsicons.selftest.harness.TestWorldBuilder;
-import net.neoforged.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.FMLPaths;
 import net.kasax.questsicons.importer.ImportReport;
 import net.kasax.questsicons.net.QuestNet;
 import net.kasax.questsicons.quest.Chapter;
@@ -29,7 +29,7 @@ import net.kasax.questsicons.quest.Quest;
 import net.kasax.questsicons.quest.QuestObject;
 import net.kasax.questsicons.quest.reward.Rewards;
 import net.kasax.questsicons.server.QuestServer;
-import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
@@ -45,7 +45,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.phys.AABB;
@@ -83,7 +82,7 @@ public class Selftest implements FabricClientGameTest {
         });
         try (TestSingleplayerContext sp = ctx.worldBuilder().adjustSettings(s -> {
             s.setGameMode(WorldCreationUiState.SelectedGameMode.CREATIVE);
-            s.setAllowCommands(true);
+            s.setAllowCheats(true);
         }).create()) {
             ctx.waitTicks(60);
             ctx.waitFor(mc -> ClientQuests.book != null, 600);
@@ -188,10 +187,10 @@ public class Selftest implements FabricClientGameTest {
         check("click New quest here", clickLabel(newQuest));
         check("the new quest's form opens; Save", press(tr("questsicons.edit.save")));
         ctx.waitTicks(10);
-        check("the new quest is in the book", server.computeOnServer(s -> QuestServer.get().book.chapters.getFirst().quests.size()) == 3);
+        check("the new quest is in the book", server.computeOnServer(s -> QuestServer.get().book.chapters.get(0).quests.size()) == 3);
         server.runOnServer(s -> {   // keep the self-test's quest files as they were
             QuestServer qs = QuestServer.get();
-            qs.book.chapters.getFirst().quests.removeIf(q -> q.id != welcome && q.id != wood);
+            qs.book.chapters.get(0).quests.removeIf(q -> q.id != welcome && q.id != wood);
             qs.book.quest(wood).rewards.removeIf(r -> r.id == QuestObject.hashId("wood/choice"));
             qs.bookChanged(true);
         });
@@ -360,7 +359,7 @@ public class Selftest implements FabricClientGameTest {
         ctx.waitTicks(10);
         Quest q1 = serverQuest(server, "Get Iron");
         check("editor: quest 1 has 4 iron ingots and diamond + 100 XP", q1 != null && q1.tasks.size() == 1
-                && q1.tasks.getFirst() instanceof Tasks.ItemTask it && it.count == 4 && it.item.toString().contains("iron_ingot")
+                && q1.tasks.get(0) instanceof Tasks.ItemTask it && it.count == 4 && it.item.toString().contains("iron_ingot")
                 && q1.rewards.size() == 2 && q1.rewards.get(0) instanceof Rewards.ItemReward ir && ir.item.toString().contains("diamond")
                 && q1.rewards.get(1) instanceof Rewards.XpReward xr && xr.xp == 100);
 
@@ -385,8 +384,8 @@ public class Selftest implements FabricClientGameTest {
         ctx.waitTicks(10);
         Quest q2 = serverQuest(server, "Zombie Hunter");
         check("editor: quest 2 has a kill task (3 zombies) and a command reward", q2 != null && q2.tasks.size() == 1
-                && q2.tasks.getFirst() instanceof Tasks.KillTask kt && kt.value == 3 && kt.entity.equals("minecraft:zombie")
-                && q2.rewards.size() == 1 && q2.rewards.getFirst() instanceof Rewards.CommandReward);
+                && q2.tasks.get(0) instanceof Tasks.KillTask kt && kt.value == 3 && kt.entity.equals("minecraft:zombie")
+                && q2.rewards.size() == 1 && q2.rewards.get(0) instanceof Rewards.CommandReward);
 
         // Quest 3: checkmark task.
         rightClickMap(6, 0);
@@ -398,7 +397,7 @@ public class Selftest implements FabricClientGameTest {
         check("editor: save quest 3", press(tr("questsicons.edit.save")));
         ctx.waitTicks(10);
         Quest q3 = serverQuest(server, "Report Back");
-        check("editor: quest 3 has a checkmark task", q3 != null && q3.tasks.size() == 1 && q3.tasks.getFirst() instanceof Tasks.CheckmarkTask);
+        check("editor: quest 3 has a checkmark task", q3 != null && q3.tasks.size() == 1 && q3.tasks.get(0) instanceof Tasks.CheckmarkTask);
         if (q1 == null || q2 == null || q3 == null) return;
 
         // The icon picker: library first, by category.
@@ -491,7 +490,7 @@ public class Selftest implements FabricClientGameTest {
         ctx.waitTicks(10);
         check("editor: the table is in the book", server.computeOnServer(s -> {
             var t = QuestServer.get().book.rewardTables.get("common_crate");
-            return t != null && t.entries.size() == 1 && t.entries.getFirst().count == 3;
+            return t != null && t.entries.size() == 1 && t.entries.get(0).count == 3;
         }));
         ctx.takeScreenshot("qi_editor_tables");
         press(tr("gui.done"));
@@ -515,7 +514,7 @@ public class Selftest implements FabricClientGameTest {
             QuestServer qs = QuestServer.get();
             qs.book.chapters.removeIf(c -> c.id == chapterId);
             qs.book.rewardTables.remove("common_crate");
-            if (qs.book.groups.size() > groups) qs.book.groups.removeLast();
+            if (qs.book.groups.size() > groups) qs.book.groups.remove(qs.book.groups.size() - 1);
             qs.bookChanged(true);
         });
         ctx.runOnClient(mc -> screen(mc).setEditMode(false));
@@ -895,7 +894,7 @@ public class Selftest implements FabricClientGameTest {
      * "@questsicons" with real keys, shows the quest icons (a CurseForge comment said JEI could not see them on Forge).
      */
     private void jei() {
-        if (!net.neoforged.fml.ModList.get().isLoaded("jei")) return;
+        if (!net.minecraftforge.fml.ModList.get().isLoaded("jei")) return;
         ctx.setScreen(() -> new InventoryScreen(Minecraft.getInstance().player));
         ctx.waitTicks(40);
         ctx.takeScreenshot("qi_jei_inventory");
@@ -914,7 +913,7 @@ public class Selftest implements FabricClientGameTest {
     // ------------------------------------------------------------------------------- dream star
 
     private static ServerPlayer player(MinecraftServer s) {
-        return s.getPlayerList().getPlayers().getFirst();
+        return s.getPlayerList().getPlayers().get(0);
     }
 
     private static DreamStarPedestalBlockEntity pedestal(MinecraftServer s) {
@@ -956,10 +955,10 @@ public class Selftest implements FabricClientGameTest {
             return star.is(ModItems.DREAM_STAR) && star.getMaxStackSize() == 1 && star.hasFoil()
                     // 1.21.1: the stack is fire resistant; explosions, cactus and lightning are kept off by the item
                     // entity (invulnerable, see the TNT check below), the void still takes it.
-                    && !star.canBeHurtBy(level.damageSources().lava()) && star.canBeHurtBy(level.damageSources().fellOutOfWorld());
+                    && !star.getItem().canBeHurtBy(level.damageSources().lava()) && star.getItem().canBeHurtBy(level.damageSources().fellOutOfWorld());
         }));
         check("getting the star grants the advancement", server.computeOnServer(s -> {
-            AdvancementHolder h = s.getAdvancements().get(ResourceLocation.fromNamespaceAndPath("questsicons", "dream_star"));
+            Advancement h = s.getAdvancements().getAdvancement(new ResourceLocation("questsicons", "dream_star"));
             return h != null && player(s).getAdvancements().getOrStartProgress(h).isDone();
         }));
         ctx.getInput().lookAt(PEDESTAL);
@@ -1056,7 +1055,7 @@ public class Selftest implements FabricClientGameTest {
         check("the vanilla fallback crafts the star", server.computeOnServer(s -> crafts(s, ModItems.DREAM_STAR,
                 Items.TOTEM_OF_UNDYING, Items.DRAGON_HEAD, Items.TOTEM_OF_UNDYING,
                 Items.NETHERITE_BLOCK, Items.NETHER_STAR, Items.NETHERITE_BLOCK,
-                Items.ENCHANTED_GOLDEN_APPLE, Items.HEAVY_CORE, Items.ENCHANTED_GOLDEN_APPLE)));
+                Items.ENCHANTED_GOLDEN_APPLE, Items.HEART_OF_THE_SEA, Items.ENCHANTED_GOLDEN_APPLE)));
         check("the pedestal recipe crafts the pedestal", server.computeOnServer(s -> crafts(s, ModBlocks.DREAM_STAR_PEDESTAL_ITEM,
                 Items.GOLD_INGOT, Items.AMETHYST_SHARD, Items.GOLD_INGOT,
                 Items.AIR, Items.QUARTZ_PILLAR, Items.AIR,
@@ -1065,14 +1064,27 @@ public class Selftest implements FabricClientGameTest {
     }
 
     private static boolean hasRecipe(MinecraftServer s, String path) {
-        return s.getRecipeManager().byKey(ResourceLocation.fromNamespaceAndPath("questsicons", path)).isPresent();
+        return s.getRecipeManager().byKey(new ResourceLocation("questsicons", path)).isPresent();
     }
 
     private static boolean crafts(MinecraftServer s, Item result, Item... grid) {
         List<ItemStack> items = new ArrayList<>();
         for (Item i : grid) items.add(i == Items.AIR ? ItemStack.EMPTY : new ItemStack(i));
-        CraftingInput input = CraftingInput.of(3, 3, items);
+        // 1.20.1: recipes match a crafting container (CraftingInput came with 1.21).
+        net.minecraft.world.inventory.AbstractContainerMenu menu = new net.minecraft.world.inventory.AbstractContainerMenu(null, -1) {
+            @Override
+            public ItemStack quickMoveStack(net.minecraft.world.entity.player.Player p, int slot) {
+                return ItemStack.EMPTY;
+            }
+
+            @Override
+            public boolean stillValid(net.minecraft.world.entity.player.Player p) {
+                return true;
+            }
+        };
+        net.minecraft.world.inventory.TransientCraftingContainer input = new net.minecraft.world.inventory.TransientCraftingContainer(menu, 3, 3);
+        for (int i = 0; i < items.size(); i++) input.setItem(i, items.get(i));
         return s.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, s.overworld())
-                .map(h -> h.value().assemble(input, s.registryAccess()).is(result)).orElse(false);
+                .map(r -> r.assemble(input, s.registryAccess()).is(result)).orElse(false);
     }
 }

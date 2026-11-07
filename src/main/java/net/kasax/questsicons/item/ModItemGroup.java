@@ -17,7 +17,7 @@ import net.minecraft.world.item.ItemStack;
  */
 public final class ModItemGroup {
     public static final CreativeModeTab QUEST_ITEMS = Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB,
-            ResourceLocation.fromNamespaceAndPath(QuestsIcons.MOD_ID, "questitems"),
+            new ResourceLocation(QuestsIcons.MOD_ID, "questitems"),
             CreativeModeTab.builder()
                     .title(Component.translatable("itemgroup.questitems"))
                     .icon(() -> new ItemStack(ModItems.QUEST_CROWN))
@@ -38,7 +38,7 @@ public final class ModItemGroup {
     static {
         for (IconLibrary.Tab tab : IconLibrary.TABS) {
             if (tab.id().equals("questitems")) continue;
-            Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, ResourceLocation.fromNamespaceAndPath(QuestsIcons.MOD_ID, "icons_" + tab.id()),
+            Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, new ResourceLocation(QuestsIcons.MOD_ID, "icons_" + tab.id()),
                     CreativeModeTab.builder()
                             .title(Component.translatable("itemgroup.questsicons." + tab.id()))
                             .icon(() -> new ItemStack(ModItems.ICON_BY_ID.get(tab.icon())))

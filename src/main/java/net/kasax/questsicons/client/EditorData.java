@@ -122,7 +122,7 @@ public final class EditorData {
         boolean tag = v.startsWith("#");
         String id = tag ? v.substring(1) : v;
         if (ResourceLocation.tryParse(id) == null) return "questsicons.form.error.bad_id";
-        String full = (tag ? "#" : "") + ResourceLocation.parse(id);
+        String full = (tag ? "#" : "") + new ResourceLocation(id);
         if (kind.equals("advancement") || kind.equals("loot_table") || kind.equals("structure")
                 || kind.equals("dimension")) {
             if (!hasServerLists() && !kind.equals("dimension")) return null;

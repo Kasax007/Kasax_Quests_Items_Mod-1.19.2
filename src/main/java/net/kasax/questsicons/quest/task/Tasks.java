@@ -1,7 +1,7 @@
 package net.kasax.questsicons.quest.task;
 
 import net.kasax.questsicons.quest.ItemSpec;
-import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.advancements.CriterionProgress;
 import net.minecraft.core.BlockPos;
@@ -77,7 +77,7 @@ public final class Tasks {
 
     static Component name(String id) {
         try {
-            ResourceLocation rl = ResourceLocation.parse(id.startsWith("#") ? id.substring(1) : id);
+            ResourceLocation rl = new ResourceLocation(id.startsWith("#") ? id.substring(1) : id);
             String path = rl.getPath();
             String pretty = path.substring(path.lastIndexOf('/') + 1).replace('_', ' ');
             pretty = Character.toUpperCase(pretty.charAt(0)) + pretty.substring(1);
@@ -142,7 +142,7 @@ public final class Tasks {
             if (item.isList()) {
                 List<ItemSpec> alts = item.alternatives();
                 if (alts.isEmpty()) return Component.literal("?");
-                Component first = itemName(alts.getFirst(), r);
+                Component first = itemName(alts.get(0), r);
                 return alts.size() == 1 ? first : Component.translatable("questsicons.task.any_of", first, alts.size() - 1);
             }
             if (item.isMod()) return Component.translatable("questsicons.task.any_from_mod", item.idString().substring(1));
@@ -333,7 +333,7 @@ public final class Tasks {
         @Override
         public void detect(ServerPlayer player, TaskContext ctx) {
             ResourceLocation id = id(advancement);
-            AdvancementHolder h = id == null ? null : player.getServer().getAdvancements().get(id);
+            Advancement h = id == null ? null : player.getServer().getAdvancements().getAdvancement(id);
             if (h == null) return;
             AdvancementProgress p = player.getAdvancements().getOrStartProgress(h);
             if (criterion.isEmpty() ? p.isDone() : isCriterionDone(p)) ctx.set(1);
@@ -482,8 +482,8 @@ public final class Tasks {
                 TagKey<Structure> key = TagKey.create(Registries.STRUCTURE, id);
                 found = level.structureManager().getStructureWithPieceAt(pos, key).isValid();
             } else {
-                ResourceKey<Structure> key = ResourceKey.create(Registries.STRUCTURE, id);
-                found = level.structureManager().getStructureWithPieceAt(pos, h -> h.is(key)).isValid();
+                Structure s = level.registryAccess().registryOrThrow(Registries.STRUCTURE).get(id);
+                found = s != null && level.structureManager().getStructureWithPieceAt(pos, s).isValid();
             }
             if (found) ctx.set(1);
         }

@@ -2,7 +2,7 @@ package net.kasax.questsicons.quest;
 
 import net.kasax.questsicons.QuestsIcons;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.TypedDataComponent;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -50,15 +50,19 @@ public final class ItemSpec {
 
     public static ItemSpec of(ItemStack stack, HolderLookup.Provider registries) {
         if (stack.isEmpty()) return EMPTY;
-        if (stack.getComponentsPatch().isEmpty()) {
+        // 1.20.1: item data is the stack's NBT tag, stored as {id, count, tag} (1.20.5+ stores "components").
+        if (!stack.hasTag()) {
             if (stack.getCount() == 1) return of(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
             CompoundTag c = new CompoundTag();
             c.putString("id", BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
             c.putInt("count", stack.getCount());
             return new ItemSpec(c);
         }
-        Tag t = ItemStack.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), stack).getOrThrow();
-        return new ItemSpec(t);
+        CompoundTag c = new CompoundTag();
+        c.putString("id", BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
+        c.putInt("count", stack.getCount());
+        c.put("tag", stack.getTag().copy());
+        return new ItemSpec(c);
     }
 
     public Tag write() {
@@ -102,7 +106,7 @@ public final class ItemSpec {
     public String idString() {
         if (raw instanceof StringTag s) return s.value();
         if (raw instanceof CompoundTag c) return c.getStringOr("id", "minecraft:air");
-        if (raw instanceof ListTag && !alternatives().isEmpty()) return alternatives().getFirst().idString();
+        if (raw instanceof ListTag && !alternatives().isEmpty()) return alternatives().get(0).idString();
         return "minecraft:air";
     }
 
@@ -126,19 +130,13 @@ public final class ItemSpec {
                 List<ItemStack> items = tagItems();
                 result = items.isEmpty() ? new ItemStack(Items.BARRIER) : items.get(0);
             } else if (raw instanceof StringTag s) {
-                Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s.value()));
+                Item item = BuiltInRegistries.ITEM.get(new ResourceLocation(s.value()));
                 result = new ItemStack(item);
             } else if (raw instanceof CompoundTag c) {
-                if (c.contains("components") && registries != null) {
-                    CompoundTag fixed = c.copy();
-                    if (!fixed.contains("count")) fixed.putInt("count", 1);
-                    result = ItemStack.CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE), fixed)
-                            .result().orElse(ItemStack.EMPTY);
-                }
-                if (result.isEmpty()) {
-                    Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(c.getStringOr("id", "minecraft:air")));
-                    result = new ItemStack(item, Math.max(1, c.getIntOr("count", 1)));
-                }
+                Item item = BuiltInRegistries.ITEM.get(new ResourceLocation(c.getStringOr("id", "minecraft:air")));
+                result = new ItemStack(item, Math.max(1, c.getIntOr("count", 1)));
+                // Item data of 1.20.1 ("tag"); 1.20.5+ "components" (from a newer quest file) cannot be read here.
+                if (!result.isEmpty() && c.get("tag") instanceof CompoundTag nbt) result.setTag(nbt.copy());
             }
         } catch (Exception e) {
             result = new ItemStack(Items.BARRIER);
@@ -149,7 +147,7 @@ public final class ItemSpec {
     }
 
     private boolean hasComponents() {
-        if (raw instanceof CompoundTag c) return c.contains("components");
+        if (raw instanceof CompoundTag c) return c.contains("tag");
         if (raw instanceof ListTag) for (ItemSpec a : alternatives()) if (a.hasComponents()) return true;
         return false;
     }
@@ -235,15 +233,9 @@ public final class ItemSpec {
         ItemStack target = stack(registries);
         if (!candidate.is(target.getItem())) return false;
         if (!matchComponents) return true;
-        if (!fuzzy) return Objects.equals(candidate.getComponentsPatch(), target.getComponentsPatch());
-        var split = target.getComponentsPatch().split();
-        for (TypedDataComponent<?> c : split.added()) {
-            if (!Objects.equals(candidate.get(c.type()), c.value())) return false;
-        }
-        for (var removed : split.removed()) {
-            if (candidate.has(removed)) return false;
-        }
-        return true;
+        if (!fuzzy) return Objects.equals(candidate.getTag(), target.getTag());
+        // Fuzzy: the candidate has at least the target's data (1.20.1: NBT, lists may hold more entries).
+        return NbtUtils.compareNbt(target.getTag(), candidate.getTag(), true);
     }
 
     @Override

@@ -20,7 +20,7 @@ public class TestDedicatedServerContext extends TestServerContext implements Aut
     public TestDedicatedServerConnection connect() {
         String address = "localhost:" + dedicated.getPort();
         context.runOnClient(mc -> ConnectScreen.startConnecting(new TitleScreen(), mc, ServerAddress.parseString(address),
-                new ServerData("localhost", address, ServerData.Type.OTHER), false, null));
+                new ServerData("localhost", address, false), false));
         context.waitFor(mc -> mc.level != null && mc.player != null && mc.screen == null, 2400);
         context.waitTicks(20);
         return new TestDedicatedServerConnection(context);

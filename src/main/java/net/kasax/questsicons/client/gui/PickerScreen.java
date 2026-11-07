@@ -274,7 +274,7 @@ public class PickerScreen extends QiScreen {
                     float s = Math.min((float) max / m.width(), (float) max / m.height());
                     int w = Math.max(1, Math.round(m.width() * s));
                     int h = Math.max(1, Math.round(m.height() * s));
-                    Gfx.blit(g, ResourceLocation.parse(m.texture()), x + (cell - 2 - w) / 2, y + (cell - 2 - h) / 2,
+                    Gfx.blit(g, new ResourceLocation(m.texture()), x + (cell - 2 - w) / 2, y + (cell - 2 - h) / 2,
                             0, 0, w, h, w, h, w, h);
                 } else {
                     g.renderFakeItem(e.stack(), x + (cell - 18) / 2, y + (cell - 18) / 2);
@@ -301,7 +301,7 @@ public class PickerScreen extends QiScreen {
     }
 
     @Override
-    public boolean mouseScrolled(double mx, double my, double sx, double sy) {
+    public boolean mouseScrolled(double mx, double my, double sy) {
         if (tabs.size() > 1 && mx < TAB_W + 8) {
             tabScroll = Mth.clamp(tabScroll - (int) (sy * 12), 0, Math.max(0, tabs.size() * 12 - (height - 72)));
         } else {

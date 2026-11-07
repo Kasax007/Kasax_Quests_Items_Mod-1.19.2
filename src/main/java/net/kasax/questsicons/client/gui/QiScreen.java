@@ -53,14 +53,14 @@ public abstract class QiScreen extends Screen {
     private boolean drawingWidgets;
 
     @Override
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float a) {
+    public void renderBackground(GuiGraphics g) {
         if (drawingWidgets) return;
         g.fillGradient(0, 0, width, height, QuestBookScreen.BG_TOP, QuestBookScreen.BG_BOTTOM);
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float a) {
-        renderBackground(g, mouseX, mouseY, a);
+        renderBackground(g);
         lastZones.clear();
         lastZones.addAll(zones);
         zones.clear();

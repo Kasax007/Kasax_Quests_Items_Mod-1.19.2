@@ -293,7 +293,7 @@ final class FtbItems {
         if (uniq.isEmpty()) {
             o.spec = null;
         } else if (uniq.size() == 1) {
-            o.spec = StringTag.valueOf(uniq.getFirst());
+            o.spec = StringTag.valueOf(uniq.get(0));
         } else {
             ListTag l = QiListTag.mixed();
             for (String a : uniq) l.add(StringTag.valueOf(a));
@@ -393,7 +393,7 @@ final class FtbItems {
     }
 
     private static Node and(List<Node> nodes) {
-        return nodes.size() == 1 ? nodes.getFirst() : new Node("and", "", nodes);
+        return nodes.size() == 1 ? nodes.get(0) : new Node("and", "", nodes);
     }
 
     static List<Node> parseFilters(String str) {
@@ -486,7 +486,7 @@ final class FtbItems {
                 }
                 if (sel.isEmpty()) return;
                 if (sel.size() > 1) o.approx.add("filter \"and\" of several item lists: only the first is checked");
-                selectors(sel.getFirst(), alts, o, where);
+                selectors(sel.get(0), alts, o, where);
             }
             default -> o.approx.add("filter " + n.type + "(" + shorten(n.arg) + ") has no counterpart");
         }

@@ -14,7 +14,7 @@ public class TestDedicatedServerConnection implements AutoCloseable {
     public void close() {
         context.runOnClient(mc -> {
             if (mc.level != null) mc.level.disconnect();
-            mc.disconnect(new TitleScreen());
+            mc.clearLevel(new TitleScreen());
         });
         context.waitFor(mc -> mc.level == null, 1200);
         context.waitTicks(2);

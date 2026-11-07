@@ -3,20 +3,18 @@ package net.kasax.questsicons.net;
 import io.netty.buffer.Unpooled;
 import net.kasax.questsicons.QuestsIcons;
 import net.kasax.questsicons.client.ClientNet;
-import net.kasax.questsicons.server.QuestServer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.kasax.questsicons.compat.MixedLists;
+import net.kasax.questsicons.server.QuestServer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.network.simple.SimpleChannel;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
@@ -26,14 +24,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
-/** All quest packets. The book travels gzip-compressed; progress as plain NBT. */
+/**
+ * All quest packets. The book travels gzip-compressed; progress as plain NBT.
+ *
+ * <p>Minecraft 1.20.1 has no CustomPacketPayload/StreamCodec yet: every payload is a record that writes itself to a
+ * FriendlyByteBuf and is read back by its static {@code read}; Forge's SimpleChannel carries them.
+ */
 public final class QuestNet {
     private QuestNet() {
     }
 
-    private static ResourceLocation rl(String path) {
-        return ResourceLocation.fromNamespaceAndPath(QuestsIcons.MOD_ID, path);
+    /** A quest packet. */
+    public interface Payload {
+        void write(FriendlyByteBuf buf);
     }
 
     public static byte[] compress(CompoundTag tag) {
@@ -48,93 +53,101 @@ public final class QuestNet {
 
     public static CompoundTag decompress(byte[] data) {
         try {
-            return MixedLists.unwrap(NbtIo.readCompressed(new ByteArrayInputStream(data), NbtAccounter.unlimitedHeap()));
+            return MixedLists.unwrap(NbtIo.readCompressed(new ByteArrayInputStream(data)));
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    /** Server -> client: the complete quest book. */
-    public record BookSync(byte[] data, boolean canEdit) implements CustomPacketPayload {
-        public static final Type<BookSync> TYPE = new Type<>(rl("book"));
-        public static final StreamCodec<FriendlyByteBuf, BookSync> CODEC = StreamCodec.composite(
-                ByteBufCodecs.byteArray(16 * 1024 * 1024), BookSync::data, ByteBufCodecs.BOOL, BookSync::canEdit, BookSync::new);
+    private static CompoundTag readTag(FriendlyByteBuf buf) {
+        CompoundTag t = buf.readAnySizeNbt();
+        return MixedLists.unwrap(t == null ? new CompoundTag() : t);
+    }
 
-        @Override
-        public Type<? extends CustomPacketPayload> type() {
-            return TYPE;
+    /** Server -> client: the complete quest book. */
+    public record BookSync(byte[] data, boolean canEdit) implements Payload {
+        public void write(FriendlyByteBuf buf) {
+            buf.writeByteArray(data);
+            buf.writeBoolean(canEdit);
+        }
+
+        public static BookSync read(FriendlyByteBuf buf) {
+            return new BookSync(buf.readByteArray(16 * 1024 * 1024), buf.readBoolean());
         }
     }
 
     /** Server -> client: the player's team progress. */
-    public record TeamSync(CompoundTag data) implements CustomPacketPayload {
-        public static final Type<TeamSync> TYPE = new Type<>(rl("team"));
-        public static final StreamCodec<FriendlyByteBuf, TeamSync> CODEC = ByteBufCodecs.TRUSTED_COMPOUND_TAG.map(t -> new TeamSync(MixedLists.unwrap(t)), TeamSync::data).cast();
+    public record TeamSync(CompoundTag data) implements Payload {
+        public void write(FriendlyByteBuf buf) {
+            buf.writeNbt(data);
+        }
 
-        @Override
-        public Type<? extends CustomPacketPayload> type() {
-            return TYPE;
+        public static TeamSync read(FriendlyByteBuf buf) {
+            return new TeamSync(readTag(buf));
         }
     }
 
     /** Server -> client: something happened (kind 0 = quest done, 1 = chapter done, 2 = open book, 3 = reward claimed). */
-    public record Notify(int kind, long id) implements CustomPacketPayload {
+    public record Notify(int kind, long id) implements Payload {
         public static final int QUEST = 0;
         public static final int CHAPTER = 1;
         public static final int OPEN = 2;
         public static final int CLAIMED = 3;
-        public static final Type<Notify> TYPE = new Type<>(rl("notify"));
-        public static final StreamCodec<FriendlyByteBuf, Notify> CODEC = StreamCodec.composite(
-                ByteBufCodecs.VAR_INT, Notify::kind, ByteBufCodecs.VAR_LONG, Notify::id, Notify::new);
 
-        @Override
-        public Type<? extends CustomPacketPayload> type() {
-            return TYPE;
+        public void write(FriendlyByteBuf buf) {
+            buf.writeVarInt(kind);
+            buf.writeVarLong(id);
+        }
+
+        public static Notify read(FriendlyByteBuf buf) {
+            return new Notify(buf.readVarInt(), buf.readVarLong());
         }
     }
 
     /** Client -> server: submit a task, claim a reward (extra = choice index), claim all. */
-    public record Action(int action, long id, int extra) implements CustomPacketPayload {
+    public record Action(int action, long id, int extra) implements Payload {
         public static final int SUBMIT = 0;
         public static final int CLAIM = 1;
         public static final int CLAIM_ALL = 2;
         public static final int REQUEST_SYNC = 3;
-        public static final Type<Action> TYPE = new Type<>(rl("action"));
-        public static final StreamCodec<FriendlyByteBuf, Action> CODEC = StreamCodec.composite(
-                ByteBufCodecs.VAR_INT, Action::action, ByteBufCodecs.VAR_LONG, Action::id, ByteBufCodecs.VAR_INT, Action::extra, Action::new);
 
-        @Override
-        public Type<? extends CustomPacketPayload> type() {
-            return TYPE;
+        public void write(FriendlyByteBuf buf) {
+            buf.writeVarInt(action);
+            buf.writeVarLong(id);
+            buf.writeVarInt(extra);
+        }
+
+        public static Action read(FriendlyByteBuf buf) {
+            return new Action(buf.readVarInt(), buf.readVarLong(), buf.readVarInt());
         }
     }
 
     /** Client -> server: an editor operation (needs operator rights). */
-    public record Edit(CompoundTag op) implements CustomPacketPayload {
-        public static final Type<Edit> TYPE = new Type<>(rl("edit"));
-        public static final StreamCodec<FriendlyByteBuf, Edit> CODEC = ByteBufCodecs.TRUSTED_COMPOUND_TAG.map(t -> new Edit(MixedLists.unwrap(t)), Edit::op).cast();
+    public record Edit(CompoundTag op) implements Payload {
+        public void write(FriendlyByteBuf buf) {
+            buf.writeNbt(op);
+        }
 
-        @Override
-        public Type<? extends CustomPacketPayload> type() {
-            return TYPE;
+        public static Edit read(FriendlyByteBuf buf) {
+            return new Edit(readTag(buf));
         }
     }
 
     /** Server -> client: ids for the editor's pickers that only the server knows (advancements, structures, ...). */
-    public record EditorLists(CompoundTag data) implements CustomPacketPayload {
-        public static final Type<EditorLists> TYPE = new Type<>(rl("editor_lists"));
-        public static final StreamCodec<FriendlyByteBuf, EditorLists> CODEC = ByteBufCodecs.TRUSTED_COMPOUND_TAG.map(t -> new EditorLists(MixedLists.unwrap(t)), EditorLists::data).cast();
+    public record EditorLists(CompoundTag data) implements Payload {
+        public void write(FriendlyByteBuf buf) {
+            buf.writeNbt(data);
+        }
 
-        @Override
-        public Type<? extends CustomPacketPayload> type() {
-            return TYPE;
+        public static EditorLists read(FriendlyByteBuf buf) {
+            return new EditorLists(readTag(buf));
         }
     }
 
     // ------------------------------------------------------------------------------------------- large payloads
-    // Minecraft 1.21.1 caps one custom payload (client -> server 32 KiB, server -> client 1 MiB) and this Fabric API
-    // cannot split one. A big book (an imported FTB Quests book with thousands of quests), the editor's lists and edits
-    // that carry whole chapters (paste, undo) therefore travel as numbered parts when they are too big.
+    // Minecraft caps one custom payload (client -> server 32 KiB, server -> client 1 MiB). A big book (an imported FTB
+    // Quests book with thousands of quests), the editor's lists and edits that carry whole chapters (paste, undo)
+    // therefore travel as numbered parts when they are too big.
 
     // -Dquestsicons.maxPayload=<bytes> lowers both limits (the self-test uses it to send even a small book in parts).
     public static final int MAX_TO_CLIENT = Math.min(1_000_000, Integer.getInteger("questsicons.maxPayload", 1_000_000));
@@ -142,51 +155,54 @@ public final class QuestNet {
     /** The most a reassembled payload may hold (the book may be 16 MiB, edits and lists 8 MiB). */
     private static final int MAX_ASSEMBLED = 17 * 1024 * 1024;
 
-    /** One part of a payload that was too big for a single packet. */
-    public record Part(ResourceLocation target, int index, int count, byte[] data) implements CustomPacketPayload {
-        public static final Type<Part> TYPE = new Type<>(rl("part"));
-        public static final StreamCodec<FriendlyByteBuf, Part> CODEC = StreamCodec.composite(
-                ResourceLocation.STREAM_CODEC, Part::target, ByteBufCodecs.VAR_INT, Part::index, ByteBufCodecs.VAR_INT, Part::count,
-                ByteBufCodecs.byteArray(MAX_TO_CLIENT), Part::data, Part::new);
+    /** One part of a payload that was too big for a single packet ({@code target}: the payload's name). */
+    public record Part(String target, int index, int count, byte[] data) implements Payload {
+        public void write(FriendlyByteBuf buf) {
+            buf.writeUtf(target);
+            buf.writeVarInt(index);
+            buf.writeVarInt(count);
+            buf.writeByteArray(data);
+        }
 
-        @Override
-        public Type<? extends CustomPacketPayload> type() {
-            return TYPE;
+        public static Part read(FriendlyByteBuf buf) {
+            return new Part(buf.readUtf(), buf.readVarInt(), buf.readVarInt(), buf.readByteArray(MAX_TO_CLIENT));
         }
     }
 
-    /** The payloads that may be split, by type id. */
-    private static final Map<ResourceLocation, StreamCodec<FriendlyByteBuf, ? extends CustomPacketPayload>> SPLITTABLE = Map.of(
-            BookSync.TYPE.id(), BookSync.CODEC, Edit.TYPE.id(), Edit.CODEC, EditorLists.TYPE.id(), EditorLists.CODEC);
+    /** The payloads that may be split, by name. */
+    private static final Map<String, Function<FriendlyByteBuf, ? extends Payload>> SPLITTABLE = Map.of(
+            "book", BookSync::read, "edit", Edit::read, "editor_lists", EditorLists::read);
+
+    private static @Nullable String splitName(Payload p) {
+        return p instanceof BookSync ? "book" : p instanceof Edit ? "edit" : p instanceof EditorLists ? "editor_lists" : null;
+    }
 
     /** The payload itself if it fits into one packet of {@code max} bytes, else its parts. */
-    @SuppressWarnings("unchecked")
-    public static List<CustomPacketPayload> split(CustomPacketPayload payload, int max) {
-        StreamCodec<FriendlyByteBuf, CustomPacketPayload> codec =
-                (StreamCodec<FriendlyByteBuf, CustomPacketPayload>) SPLITTABLE.get(payload.type().id());
-        if (codec == null) return List.of(payload);
+    public static List<Payload> split(Payload payload, int max) {
+        String name = splitName(payload);
+        if (name == null) return List.of(payload);
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-        codec.encode(buf, payload);
+        payload.write(buf);
         byte[] bytes = new byte[buf.readableBytes()];
         buf.readBytes(bytes);
         if (bytes.length <= max) return List.of(payload);
         int count = (bytes.length + max - 1) / max;
-        List<CustomPacketPayload> parts = new ArrayList<>(count);
+        List<Payload> parts = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            parts.add(new Part(payload.type().id(), i, count, Arrays.copyOfRange(bytes, i * max, Math.min(bytes.length, (i + 1) * max))));
+            parts.add(new Part(name, i, count, Arrays.copyOfRange(bytes, i * max, Math.min(bytes.length, (i + 1) * max))));
         }
         return parts;
     }
 
     /** Collects the parts of one sender; gives the whole payload back when its last part arrives. */
     public static final class Assembler {
-        private ResourceLocation target;
+        private String target;
         private int next;
         private ByteArrayOutputStream bytes;
 
-        public @Nullable CustomPacketPayload accept(Part p) {
-            StreamCodec<FriendlyByteBuf, ? extends CustomPacketPayload> codec = SPLITTABLE.get(p.target());
-            if (codec == null || p.count() < 1 || p.index() >= p.count()) return null;
+        public @Nullable Payload accept(Part p) {
+            Function<FriendlyByteBuf, ? extends Payload> reader = SPLITTABLE.get(p.target());
+            if (reader == null || p.count() < 1 || p.index() >= p.count()) return null;
             if (p.index() == 0) {
                 target = p.target();
                 next = 0;
@@ -201,29 +217,44 @@ public final class QuestNet {
             if (next < p.count()) return null;
             FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.wrappedBuffer(bytes.toByteArray()));
             bytes = null;
-            return codec.decode(buf);
+            return reader.apply(buf);
         }
     }
 
-    // ------------------------------------------------------------------------------------------- loader glue (NeoForge)
+    // ------------------------------------------------------------------------------------------- loader glue (Forge)
 
-    /** Mod bus: registers every payload with its handler (client handlers only run on the client). */
-    public static void register(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar r = event.registrar("1");
-        r.playToClient(BookSync.TYPE, BookSync.CODEC, (p, ctx) -> ClientNet.received(p));
-        r.playToClient(TeamSync.TYPE, TeamSync.CODEC, (p, ctx) -> ClientNet.received(p));
-        r.playToClient(Notify.TYPE, Notify.CODEC, (p, ctx) -> ClientNet.received(p));
-        r.playToClient(EditorLists.TYPE, EditorLists.CODEC, (p, ctx) -> ClientNet.received(p));
-        r.playToServer(Action.TYPE, Action.CODEC, (p, ctx) -> QuestServer.received((ServerPlayer) ctx.player(), p));
-        r.playToServer(Edit.TYPE, Edit.CODEC, (p, ctx) -> QuestServer.received((ServerPlayer) ctx.player(), p));
-        r.playBidirectional(Part.TYPE, Part.CODEC, (p, ctx) -> {
-            if (ctx.player() instanceof ServerPlayer sp) QuestServer.received(sp, p);
-            else ClientNet.received(p);
-        });
+    private static final String VERSION = "1";
+    public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
+            new ResourceLocation(QuestsIcons.MOD_ID, "main"), () -> VERSION, VERSION::equals, VERSION::equals);
+
+    /** Registers every payload with its handler (client handlers only run on the client). */
+    public static void register() {
+        int id = 0;
+        toClient(id++, BookSync.class, BookSync::read);
+        toClient(id++, TeamSync.class, TeamSync::read);
+        toClient(id++, Notify.class, Notify::read);
+        toClient(id++, EditorLists.class, EditorLists::read);
+        toClient(id++, Part.class, Part::read);
+        toServer(id++, Action.class, Action::read);
+        toServer(id++, Edit.class, Edit::read);
+        toServer(id++, Part.class, Part::read);
+    }
+
+    private static <T extends Payload> void toClient(int id, Class<T> type, Function<FriendlyByteBuf, T> read) {
+        CHANNEL.messageBuilder(type, id, NetworkDirection.PLAY_TO_CLIENT).encoder(Payload::write).decoder(read)
+                .consumerMainThread((p, ctx) -> ClientNet.received(p)).add();
+    }
+
+    private static <T extends Payload> void toServer(int id, Class<T> type, Function<FriendlyByteBuf, T> read) {
+        CHANNEL.messageBuilder(type, id, NetworkDirection.PLAY_TO_SERVER).encoder(Payload::write).decoder(read)
+                .consumerMainThread((p, ctx) -> {
+                    ServerPlayer sender = ctx.get().getSender();
+                    if (sender != null) QuestServer.received(sender, p);
+                }).add();
     }
 
     /** Sends a payload to a player, in parts if it is too big for one packet. */
-    public static void sendToPlayer(ServerPlayer player, CustomPacketPayload payload) {
-        for (CustomPacketPayload p : split(payload, MAX_TO_CLIENT)) PacketDistributor.sendToPlayer(player, p);
+    public static void sendToPlayer(ServerPlayer player, Payload payload) {
+        for (Payload p : split(payload, MAX_TO_CLIENT)) CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), p);
     }
 }

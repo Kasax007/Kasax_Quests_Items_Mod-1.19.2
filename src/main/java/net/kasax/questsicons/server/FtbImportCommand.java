@@ -95,7 +95,7 @@ public final class FtbImportCommand {
         MinecraftServer server = src.getServer();
         QuestServer qs = QuestServer.get();
         if (qs == null) return 0;
-        Path gameDir = server.getServerDirectory().toAbsolutePath().normalize();
+        Path gameDir = server.getServerDirectory().toPath().toAbsolutePath().normalize();
         String given = folder == null || folder.isBlank() ? DEFAULT_FOLDER : folder.trim();
         if (given.length() > 1 && (given.startsWith("\"") && given.endsWith("\"") || given.startsWith("'") && given.endsWith("'"))) {
             given = given.substring(1, given.length() - 1);
@@ -156,7 +156,7 @@ public final class FtbImportCommand {
         ImportReport report = result.report();
         QuestBook imported = result.book();
         Path backup = null;
-        report.header.addFirst("Source: " + dir + " (" + (result.source().isJson5() ? "FTB Quests 26.1, JSON5 files" : "FTB Quests, SNBT files") + ")");
+        report.header.add(0, "Source: " + dir + " (" + (result.source().isJson5() ? "FTB Quests 26.1, JSON5 files" : "FTB Quests, SNBT files") + ")");
         report.header.add(1, "Date: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         if (mode == Mode.PREVIEW) {
             report.header.add(2, "Mode: preview - nothing was changed. Run \"/quests import ftbquests run\" to write the book.");
@@ -336,7 +336,7 @@ public final class FtbImportCommand {
             @Override
             public boolean advancement(String id) {
                 ResourceLocation rl = ResourceLocation.tryParse(id);
-                return rl != null && server.getAdvancements().get(rl) != null;
+                return rl != null && server.getAdvancements().getAdvancement(rl) != null;
             }
 
             @Override
@@ -383,8 +383,7 @@ public final class FtbImportCommand {
             @Override
             public boolean lootTable(String id) {
                 ResourceLocation rl = ResourceLocation.tryParse(id);
-                return rl != null && server.reloadableRegistries().lookup().lookupOrThrow(Registries.LOOT_TABLE)
-                        .get(ResourceKey.create(Registries.LOOT_TABLE, rl)).isPresent();
+                return rl != null && server.getLootData().getKeys(net.minecraft.world.level.storage.loot.LootDataType.TABLE).contains(rl);
             }
 
             private final java.util.Map<String, Boolean> namespaces = new java.util.HashMap<>();
@@ -392,7 +391,7 @@ public final class FtbImportCommand {
             @Override
             public boolean namespace(String namespace) {
                 return namespaces.computeIfAbsent(namespace, ns -> ns.equals("minecraft") || ns.equals("c")
-                        || net.neoforged.fml.ModList.get().isLoaded(ns)
+                        || net.minecraftforge.fml.ModList.get().isLoaded(ns)
                         || BuiltInRegistries.ITEM.keySet().stream().anyMatch(k -> k.getNamespace().equals(ns)));
             }
 

@@ -23,15 +23,13 @@ public final class QuestSavedData extends SavedData {
     public final Map<UUID, TeamData> teams = new LinkedHashMap<>();
     public final Map<UUID, UUID> playerTeam = new HashMap<>();
 
-    public static final SavedData.Factory<QuestSavedData> TYPE = new SavedData.Factory<>(
-            QuestSavedData::new, (tag, registries) -> fromTag(tag), DataFixTypes.LEVEL);
-
     public static QuestSavedData get(MinecraftServer server) {
-        return server.overworld().getDataStorage().computeIfAbsent(TYPE, QuestsIcons.MOD_ID + "_quest_progress");
+        return server.overworld().getDataStorage().computeIfAbsent(QuestSavedData::fromTag, QuestSavedData::new,
+                QuestsIcons.MOD_ID + "_quest_progress");
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+    public CompoundTag save(CompoundTag tag) {
         tag.merge(toTag());
         return tag;
     }

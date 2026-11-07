@@ -1,93 +1,93 @@
 {
-  "neoforge:conditions": [
+  "conditions": [
     {
-      "type": "neoforge:and",
+      "type": "forge:and",
       "values": [
         {
-          "type": "neoforge:mod_loaded",
+          "type": "forge:mod_loaded",
           "modid": "techreborn"
         },
         {
-          "type": "neoforge:mod_loaded",
+          "type": "forge:mod_loaded",
           "modid": "mythicupgrades"
         },
         {
-          "type": "neoforge:mod_loaded",
+          "type": "forge:mod_loaded",
           "modid": "wizards"
         },
         {
-          "type": "neoforge:mod_loaded",
+          "type": "forge:mod_loaded",
           "modid": "paladins"
         },
         {
-          "type": "neoforge:mod_loaded",
+          "type": "forge:mod_loaded",
           "modid": "raft"
         }
       ]
     },
     {
-      "type": "neoforge:or",
+      "type": "forge:or",
       "values": [
         {
-          "type": "neoforge:mod_loaded",
+          "type": "forge:mod_loaded",
           "modid": "tamacraft"
         },
         {
-          "type": "neoforge:mod_loaded",
+          "type": "forge:mod_loaded",
           "modid": "tamagotchi"
         }
       ]
     },
     {
-      "type": "neoforge:and",
+      "type": "forge:and",
       "values": [
         {
-          "type": "neoforge:item_exists",
+          "type": "forge:item_exists",
           "item": "techreborn:lapotronic_orb"
         },
         {
-          "type": "neoforge:item_exists",
+          "type": "forge:item_exists",
           "item": "mythicupgrades:ametrine_ingot"
         },
         {
-          "type": "neoforge:item_exists",
+          "type": "forge:item_exists",
           "item": "wizards:staff_netherite_arcane"
         },
         {
-          "type": "neoforge:item_exists",
+          "type": "forge:item_exists",
           "item": "wizards:staff_netherite_fire"
         },
         {
-          "type": "neoforge:item_exists",
+          "type": "forge:item_exists",
           "item": "wizards:staff_netherite_frost"
         },
         {
-          "type": "neoforge:item_exists",
+          "type": "forge:item_exists",
           "item": "paladins:netherite_holy_staff"
         },
         {
-          "type": "neoforge:item_exists",
+          "type": "forge:item_exists",
           "item": "raft:heart_of_the_tide"
         }
       ]
     },
     {
-      "type": "neoforge:or",
+      "type": "forge:or",
       "values": [
         {
-          "type": "neoforge:and",
+          "type": "forge:and",
           "values": [
             {
-              "type": "neoforge:item_exists",
+              "type": "forge:item_exists",
               "item": "tamacraft:tamacraft_heart"
             }
           ]
         },
         {
-          "type": "neoforge:and",
+          "type": "forge:and",
           "values": [
             {
-              "type": "neoforge:item_exists",
+              "type": "forge:item_exists",
               "item": "tamagotchi:tamagotchi_heart"
             }
           ]
@@ -145,6 +145,6 @@
     "PDH"
   ],
   "result": {
-    "id": "questsicons:dream_star"
+    "item": "questsicons:dream_star"
   }
 }

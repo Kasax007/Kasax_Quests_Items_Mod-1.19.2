@@ -6,6 +6,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.Level;
 
 import java.util.List;
 
@@ -20,7 +22,12 @@ public class DreamStarItem extends Item {
 
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> builder, TooltipFlag flag) {
+    public boolean isFoil(ItemStack stack) {
+        return true;
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> builder, TooltipFlag flag) {
         builder.add(Component.translatable("item.questsicons.dream_star.tooltip").withStyle(ChatFormatting.GOLD, ChatFormatting.ITALIC));
         builder.add(Component.translatable("item.questsicons.dream_star.tooltip_pedestal").withStyle(ChatFormatting.GRAY));
     }

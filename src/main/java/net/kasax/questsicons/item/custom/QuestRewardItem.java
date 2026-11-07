@@ -18,6 +18,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -42,14 +43,14 @@ public class QuestRewardItem extends Item {
         level.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.NEUTRAL, 1.0f,
                 1f / (level.getRandom().nextFloat() * 0.4f + 0.8f));
         user.sendSystemMessage(Component.translatable("item.questsicons.quest_reward.received").withStyle(ChatFormatting.LIGHT_PURPLE));
-        if (!user.getAbilities().instabuild) stack.hurtAndBreak(1, user, LivingEntity.getSlotForHand(hand));
+        if (!user.getAbilities().instabuild) stack.hurtAndBreak(1, user, p -> p.broadcastBreakEvent(hand));
         return InteractionResultHolder.success(stack);
     }
 
     /** Operator-only and creative-only blocks, items of disabled experiments and Quest Icons' own items are no prizes. */
     private static final Set<Item> NOT_A_PRIZE = Set.of(Items.AIR, Items.BARRIER, Items.LIGHT, Items.STRUCTURE_VOID, Items.DEBUG_STICK,
-            Items.KNOWLEDGE_BOOK, Items.BEDROCK, Items.END_PORTAL_FRAME, Items.REINFORCED_DEEPSLATE, Items.SPAWNER, Items.TRIAL_SPAWNER,
-            Items.VAULT, Items.BUDDING_AMETHYST, Items.PETRIFIED_OAK_SLAB);
+            Items.KNOWLEDGE_BOOK, Items.BEDROCK, Items.END_PORTAL_FRAME, Items.REINFORCED_DEEPSLATE, Items.SPAWNER,
+            Items.BUDDING_AMETHYST, Items.PETRIFIED_OAK_SLAB);
 
     static boolean isPrize(Holder.Reference<Item> h, FeatureFlagSet enabled) {
         Item i = h.value();
@@ -61,7 +62,7 @@ public class QuestRewardItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> builder, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> builder, TooltipFlag flag) {
         builder.add(Component.translatable("item.questsicons.quest_reward.tooltip").withStyle(ChatFormatting.YELLOW));
     }
 }

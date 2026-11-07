@@ -7,7 +7,6 @@ import net.kasax.questsicons.item.custom.LootCrateItem;
 import net.kasax.questsicons.item.custom.QuestBookItem;
 import net.kasax.questsicons.item.custom.QuestRewardItem;
 import net.minecraft.core.Registry;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -32,7 +31,7 @@ public final class ModItems {
     }
 
     private static Item register(String name, Function<Item.Properties, Item> factory, Item.Properties props) {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(QuestsIcons.MOD_ID, name);
+        ResourceLocation id = new ResourceLocation(QuestsIcons.MOD_ID, name);
         Item item = factory.apply(props);
         return Registry.register(BuiltInRegistries.ITEM, id, item);
     }
@@ -67,11 +66,11 @@ public final class ModItems {
 
     /** Damage a dropped Dream Star ignores: fire, lava, explosions, cactus and lightning (data tag). */
     public static final TagKey<DamageType> DREAM_STAR_IMMUNE =
-            TagKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(QuestsIcons.MOD_ID, "dream_star_immune"));
+            TagKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(QuestsIcons.MOD_ID, "dream_star_immune"));
 
     /** The Dreamcraft endgame trophy. */
     public static final Item DREAM_STAR = register("dream_star", DreamStarItem::new, new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)
-            .component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true).fireResistant());   // more protection: QuestsIcons (ENTITY_LOAD)
+            .fireResistant());   // shines: DreamStarItem.isFoil; more protection: QuestsIcons (EntityJoinLevelEvent)
 
     public static final Item QUEST_REWARD = register("quest_reward", QuestRewardItem::new, new Item.Properties().stacksTo(1).durability(5));
 
