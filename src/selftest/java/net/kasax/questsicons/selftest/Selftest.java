@@ -7,6 +7,7 @@ import net.kasax.questsicons.selftest.harness.TestDedicatedServerConnection;
 import net.kasax.questsicons.selftest.harness.TestDedicatedServerContext;
 import net.kasax.questsicons.selftest.harness.TestServerContext;
 import net.kasax.questsicons.selftest.harness.TestSingleplayerContext;
+import net.kasax.questsicons.selftest.harness.TestWorldBuilder;
 import net.neoforged.fml.loading.FMLPaths;
 import net.kasax.questsicons.importer.ImportReport;
 import net.kasax.questsicons.net.QuestNet;
@@ -93,10 +94,15 @@ public class Selftest implements FabricClientGameTest {
             questBook(sp.getServer());
             editor(sp.getServer());
             dreamStar(sp.getServer());
+            jei();
             ftbImport(sp.getServer());
         }
-        ftbImportOnDedicatedServer();
-        editorOnDedicatedServer();
+        if (TestWorldBuilder.DEDICATED_SERVER_IN_JVM) {
+            ftbImportOnDedicatedServer();
+            editorOnDedicatedServer();
+        } else {
+            System.out.println("[selftest] dedicated server parts skipped on NeoForge (see TestWorldBuilder): the production test covers them");
+        }
         if (!failed.isEmpty()) throw new AssertionError("self-test checks failed: " + failed);
         System.out.println("[selftest] all checks passed");
     }
@@ -880,6 +886,29 @@ public class Selftest implements FabricClientGameTest {
         try (Stream<Path> s = Files.walk(dir)) {
             for (Path p : s.sorted(Comparator.reverseOrder()).toList()) Files.delete(p);
         }
+    }
+
+    // ------------------------------------------------------------------------------- JEI
+
+    /**
+     * With JEI in the game (./gradlew runSelftest -PwithJei=<version>): the inventory's JEI list, searched for
+     * "@questsicons" with real keys, shows the quest icons (a CurseForge comment said JEI could not see them on Forge).
+     */
+    private void jei() {
+        if (!net.neoforged.fml.ModList.get().isLoaded("jei")) return;
+        ctx.setScreen(() -> new InventoryScreen(Minecraft.getInstance().player));
+        ctx.waitTicks(40);
+        ctx.takeScreenshot("qi_jei_inventory");
+        // JEI's "focus search" key is Ctrl+F.
+        ctx.getInput().holdKey(InputConstants.KEY_LCONTROL);
+        ctx.getInput().pressKey(InputConstants.KEY_F);
+        ctx.getInput().releaseKey(InputConstants.KEY_LCONTROL);
+        ctx.waitTicks(3);
+        ctx.getInput().typeChars("@questsicons");
+        ctx.waitTicks(20);
+        ctx.takeScreenshot("qi_jei_search");
+        ctx.setScreen(() -> null);
+        ctx.waitTicks(5);
     }
 
     // ------------------------------------------------------------------------------- dream star
