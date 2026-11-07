@@ -3,6 +3,7 @@ package net.kasax.questsicons.item;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.kasax.questsicons.QuestsIcons;
 import net.kasax.questsicons.block.ModBlocks;
+import net.kasax.questsicons.icons.IconLibrary;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -11,6 +12,10 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+/**
+ * Creative tabs: "Quest Icons" (book, crates, Dream Star and the classic icons) and one tab per group of icon
+ * categories from the icon library (letters and numbers, symbols, ranks, themes).
+ */
 public final class ModItemGroup {
     public static final CreativeModeTab QUEST_ITEMS = Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB,
             Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "questitems"),
@@ -26,8 +31,28 @@ public final class ModItemGroup {
                         out.accept(ModItems.EPIC_CRATE);
                         out.accept(ModItems.LEGENDARY_CRATE);
                         out.accept(ModItems.QUEST_REWARD);
-                        for (Item i : ModItems.ICONS) out.accept(i);
+                        for (IconLibrary.Category c : IconLibrary.categoriesOfTab("questitems")) {
+                            for (IconLibrary.Icon i : c.icons()) out.accept(ModItems.ICON_BY_ID.get(i.id()));
+                        }
                     }).build());
+
+    static {
+        for (IconLibrary.Tab tab : IconLibrary.TABS) {
+            if (tab.id().equals("questitems")) continue;
+            Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "icons_" + tab.id()),
+                    FabricCreativeModeTab.builder()
+                            .title(Component.translatable("itemgroup.questsicons." + tab.id()))
+                            .icon(() -> new ItemStack(ModItems.ICON_BY_ID.get(tab.icon())))
+                            .displayItems((params, out) -> {
+                                for (IconLibrary.Category c : IconLibrary.categoriesOfTab(tab.id())) {
+                                    for (IconLibrary.Icon i : c.icons()) {
+                                        Item item = ModItems.ICON_BY_ID.get(i.id());
+                                        if (item != null) out.accept(item);
+                                    }
+                                }
+                            }).build());
+        }
+    }
 
     private ModItemGroup() {
     }

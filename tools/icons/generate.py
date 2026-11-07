@@ -37,6 +37,12 @@ def write_json(path, data):
         f.write(text)
 
 
+def _generated_key(key, assets):
+    """Was this item name written by the generator (its item has no model any more)?"""
+    iid = key.split('.', 2)[2]
+    return '.' not in iid and not os.path.exists(os.path.join(assets, 'models', 'item', iid + '.json'))
+
+
 def texture_path(icon):
     if icon['existing']:
         return 'item/' + icon['id']
@@ -72,8 +78,33 @@ def main():
         if not a.legacy:
             write_json(os.path.join(assets, 'items', icon['id'] + '.json'),
                        {'model': {'type': 'minecraft:model', 'model': '%s:item/%s' % (NS, icon['id'])}})
+    # Files of icons that are no longer in the manifest (only generated ones: their texture is under item/icons/).
+    ids = {i['id'] for i in icons}
+    tex_root = os.path.join(assets, 'textures', 'item', 'icons')
+    for root, _dirs, files in os.walk(tex_root):
+        for fn in files:
+            if fn.endswith('.png') and fn[:-4] not in ids:
+                os.remove(os.path.join(root, fn))
+    model_dir = os.path.join(assets, 'models', 'item')
+    for fn in os.listdir(model_dir):
+        iid = fn[:-5]
+        if iid in ids or not fn.endswith('.json'):
+            continue
+        with open(os.path.join(model_dir, fn), encoding='utf-8') as f:
+            if '"%s:item/icons/' % NS not in f.read():
+                continue
+        os.remove(os.path.join(model_dir, fn))
+        item_def = os.path.join(assets, 'items', fn)
+        if os.path.exists(item_def):
+            os.remove(item_def)
     # Map images.
     images = mapimages.build()
+    image_ids = {im['id'] for im in images}
+    map_dir = os.path.join(assets, 'textures', 'gui', 'map')
+    if os.path.isdir(map_dir):
+        for fn in os.listdir(map_dir):
+            if fn.endswith('.png') and fn[:-4] not in image_ids:
+                os.remove(os.path.join(map_dir, fn))
     for im in images:
         p = os.path.join(assets, 'textures', 'gui', 'map', im['id'] + '.png')
         os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -97,6 +128,8 @@ def main():
         gen['questsicons.map_image.category.' + cid] = cname
     out = {}
     for k, v in lang.items():
+        if k.startswith('item.%s.' % NS) and k not in gen and _generated_key(k, assets):
+            continue   # an icon that was removed from the manifest
         out[k] = gen.pop(k, v)
     out.update(gen)
     write_json(lang_path, out)

@@ -8,13 +8,13 @@ from shapes import (glyph_badge, fill, stamp, center_stamp, mask_circle, mask_rs
 # =====================================================================================================================
 # Tiers: shields with roman numerals, from wood to netherite
 # =====================================================================================================================
-TIER_MATS = [('wood', 'cream'), ('stone', 'cream'), ('copper', 'cream'), ('iron', 'dark'), ('gold', 'dark'),
-             ('emerald', 'cream'), ('diamond', 'dark'), ('amethyst', 'cream'), ('ruby', 'cream'), ('netherite', 'gold')]
+TIER_MATS = [('wood', 'cream'), ('stone', 'cream'), ('copper', 'cream'), ('iron', 'navy'), ('gold', 'darkred'),
+             ('emerald', 'cream'), ('diamond', 'navy'), ('amethyst', 'cream'), ('ruby', 'cream'), ('netherite', 'gold')]
 for n in range(1, 11):
     mat, ink = TIER_MATS[n - 1]
     add('tier_%d' % n, 'Tier %s Icon' % ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'][n], 'tiers',
-        glyph_badge(font.roman(n, 11), mat, ink=ink, shape='shield', ink_mode='3' if ink != 'dark' else '1', dy=-1,
-                    shadow=ink != 'dark'),
+        glyph_badge(font.roman(n, 11), mat, ink=ink, shape='shield', ink_mode='3' if ink in ('cream', 'gold') else '1', dy=-1,
+                    shadow=ink in ('cream', 'gold')),
         keywords='roman level stage rank %d %s' % (n, mat))
 for mat, nm in [('wood', 'Wood'), ('stone', 'Stone'), ('copper', 'Copper'), ('iron', 'Iron'), ('gold', 'Gold'),
                 ('diamond', 'Diamond'), ('netherite', 'Netherite')]:

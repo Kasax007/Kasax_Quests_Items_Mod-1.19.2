@@ -595,14 +595,6 @@
           "keywords": "repeat refresh loop again"
         },
         {
-          "id": "arrow_return",
-          "keywords": "back undo return"
-        },
-        {
-          "id": "arrow_curve_up",
-          "keywords": "redo turn"
-        },
-        {
           "id": "arrow_split",
           "keywords": "branch choose fork path"
         },
@@ -1419,14 +1411,6 @@
           "keywords": "boss horns demon final fight"
         },
         {
-          "id": "combat_dragon",
-          "keywords": "ender dragon boss end"
-        },
-        {
-          "id": "combat_wither",
-          "keywords": "wither boss three heads nether"
-        },
-        {
           "id": "combat_target",
           "keywords": "aim goal bullseye archery objective"
         },
@@ -1437,10 +1421,6 @@
         {
           "id": "combat_explosion",
           "keywords": "boom blast tnt creeper"
-        },
-        {
-          "id": "combat_fist",
-          "keywords": "punch fight strength melee"
         },
         {
           "id": "combat_blood",
@@ -1539,10 +1519,6 @@
         {
           "id": "explore_cave",
           "keywords": "cave underground mine dungeon"
-        },
-        {
-          "id": "explore_horse",
-          "keywords": "ride mount animal travel"
         },
         {
           "id": "explore_lighthouse",
@@ -1893,10 +1869,6 @@
         {
           "id": "econ_coin_copper",
           "keywords": "money coin currency"
-        },
-        {
-          "id": "econ_coin_stack",
-          "keywords": "money rich coins currency"
         },
         {
           "id": "econ_money_bag",
