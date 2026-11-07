@@ -1,0 +1,22 @@
+{
+	chapter.2000000000000001.chapter_subtitle: ["First steps"]
+	chapter.2000000000000001.title: "&6Basics"
+	chapter.2000000000000002.title: "Secret"
+	chapter_group.1000000000000001.title: "Basics Group"
+	file.0000000000000001.title: "Fixture Book"
+	image.7100000000000001.title: "Shiny"
+	quest.3000000000000001.quest_desc: [
+		"Collect logs."
+		""
+		"&aGood luck!\\nSecond line"
+	]
+	quest.3000000000000001.quest_subtitle: "Punch trees"
+	quest.3000000000000001.title: "Getting Wood"
+	quest.3000000000000002.title: "Tools"
+	quest.3000000000000003.title: "Explorer"
+	quest.3000000000000004.title: "Machines"
+	quest.3000000000000005.title: "Hidden"
+	reward_table.4000000000000001.title: "Loot Table"
+	reward_table.4000000000000002.title: "Junk"
+	task.6000000000000003.title: "Say hi"
+}

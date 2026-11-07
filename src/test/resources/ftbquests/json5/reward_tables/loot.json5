@@ -1,0 +1,36 @@
+{
+  id: "4000000000000001",
+  order_index: 0,
+  loot_size: 2,
+  rewards: [
+    {
+      id: "4100000000000001",
+      item: {
+        id: "minecraft:diamond",
+        count: 1,
+      },
+    },
+    {
+      id: "4100000000000002",
+      item: {
+        id: "minecraft:emerald",
+        count: 1,
+      },
+      count: 3,
+      weight: 2.5,
+    },
+    {
+      id: "4100000000000003",
+      xp: 10,
+      type: "xp",
+    },
+    {
+      id: "4100000000000004",
+      item: {
+        id: "minecraft:gold_ingot",
+        count: 1,
+      },
+      weight: 0.0,
+    },
+  ],
+}

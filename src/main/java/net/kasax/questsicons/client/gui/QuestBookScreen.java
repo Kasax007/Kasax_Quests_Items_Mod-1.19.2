@@ -18,6 +18,7 @@ import net.kasax.questsicons.quest.reward.Reward;
 import net.kasax.questsicons.quest.reward.Rewards;
 import net.kasax.questsicons.quest.task.Task;
 import net.kasax.questsicons.quest.task.Tasks;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
@@ -30,6 +31,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.locale.Language;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
@@ -151,6 +153,7 @@ public class QuestBookScreen extends Screen {
     @Override
     protected void init() {
         openedAt = System.currentTimeMillis();
+        TEXTURES.clear();   // resource packs may have changed
         SIDEBAR = Mth.clamp(width / 5, 150, 200);
         if (book() == null) return;
         if (chapter == null) {
@@ -194,6 +197,7 @@ public class QuestBookScreen extends Screen {
 
     private boolean isChapterVisible(Chapter c) {
         if (editMode) return true;
+        if (c.alwaysInvisible) return false;
         if (!c.hideUntilStartable) return !c.quests.isEmpty();
         for (Quest q : c.quests) if (progress().canStart(q) || progress().isQuestCompleted(q.id)) return true;
         return false;
@@ -361,7 +365,7 @@ public class QuestBookScreen extends Screen {
             for (long depId : q.dependencies) {
                 Quest d = book().quest(depId);
                 if (d == null || d.chapter != chapter) continue;
-                if (!editMode && !p.isVisible(d)) continue;
+                if (!editMode && (!p.isVisible(d) || d.hideDependentLines)) continue;
                 int color = p.isQuestCompleted(q.id) ? GREEN : p.isQuestCompleted(d.id) ? ACCENT : 0xFF4A4458;
                 if (q == selected || d == selected) color = GOLD;
                 float x1 = d == dragging ? sx(dragQx) : sx(d.x);
@@ -390,10 +394,10 @@ public class QuestBookScreen extends Screen {
             QuestShape shape = q.shape();
             if (q == hovered || q == selected || q == linkSource) {
                 int gs = s + Math.max(4, s / 4);
-                g.blit(RenderPipelines.GUI_TEXTURED, shapeTex(shape), Math.round(cx - gs / 2f), Math.round(cy - gs / 2f), 0, 0, gs, gs, 64, 64, 64, 64,
-                        q == linkSource ? 0xFFFF5555 : 0xFFFFE27A);
+                g.blit(RenderPipelines.GUI_TEXTURED, shapeTex(shape == QuestShape.NONE ? QuestShape.CIRCLE : shape), Math.round(cx - gs / 2f),
+                        Math.round(cy - gs / 2f), 0, 0, gs, gs, 64, 64, 64, 64, q == linkSource ? 0xFFFF5555 : 0xFFFFE27A);
             }
-            g.blit(RenderPipelines.GUI_TEXTURED, shapeTex(shape), x, y, 0, 0, s, s, 64, 64, 64, 64, tint);
+            if (shape != QuestShape.NONE) g.blit(RenderPipelines.GUI_TEXTURED, shapeTex(shape), x, y, 0, 0, s, s, 64, 64, 64, 64, tint);
             float scale = s * 0.62f / 16f;
             g.pose().pushMatrix();
             g.pose().translate(cx - 8 * scale, cy - 8 * scale);
@@ -449,12 +453,14 @@ public class QuestBookScreen extends Screen {
     }
 
     private void drawImage(GuiGraphicsExtractor g, ChapterImage img, int mouseX, int mouseY) {
+        if (!editMode && img.dependency != 0 && !progress().isQuestCompleted(img.dependency)) return;
         int w = Math.round((float) img.width * GRID * zoom);
         int h = Math.round((float) img.height * GRID * zoom);
         float cx = sx(img.x);
         float cy = sy(img.y);
         try {
             Identifier tex = Identifier.parse(img.image);
+            if (!textureExists(tex)) return;   // e.g. a picture of a mod the pack no longer has (imported books)
             int color = (img.alpha << 24) | (img.color & 0xFFFFFF);
             if (img.rotation != 0) {
                 g.pose().pushMatrix();
@@ -471,6 +477,13 @@ public class QuestBookScreen extends Screen {
             zones.add(new Zone(Math.round(cx - w / 2f), Math.round(cy - h / 2f), w, h, () -> {
             }, QuestObject.text(img.hover)));
         }
+    }
+
+    private static final java.util.Map<Identifier, Boolean> TEXTURES = new java.util.HashMap<>();
+
+    /** Missing pictures are left out instead of drawn as the purple and black "missing texture". */
+    private static boolean textureExists(Identifier tex) {
+        return TEXTURES.computeIfAbsent(tex, t -> Minecraft.getInstance().getResourceManager().getResource(t).isPresent());
     }
 
     private static Identifier shapeTex(QuestShape shape) {
@@ -494,6 +507,12 @@ public class QuestBookScreen extends Screen {
         int t = Math.max(1, Math.round(thickness));
         g.fill(0, -t / 2, Math.round(len), t - t / 2, color);
         g.pose().popMatrix();
+    }
+
+    /** The text cut to a width, keeping its colours and formatting. */
+    static FormattedCharSequence clip(Font font, Component text, int width) {
+        if (font.width(text) <= width) return text.getVisualOrderText();
+        return Language.getInstance().getVisualOrder(font.substrByWidth(text, Math.max(0, width)));
     }
 
     static void frame(GuiGraphicsExtractor g, int x, int y, int w, int h, int fill, int border) {
@@ -537,8 +556,7 @@ public class QuestBookScreen extends Screen {
             int pct = progress().chapterPercent(c);
             String pctText = pct >= 100 ? "✔" : pct + "%";
             int pctW = font.width(pctText);
-            String title = font.plainSubstrByWidth(c.displayTitle().getString(), SIDEBAR - 34 - pctW - 6);
-            g.text(font, Component.literal(title).setStyle(c.displayTitle().getStyle()), 27, y + 6, sel ? TEXT : 0xFFD6C8EA, false);
+            g.text(font, clip(font, c.displayTitle(), SIDEBAR - 34 - pctW - 6), 27, y + 6, sel ? TEXT : 0xFFD6C8EA, false);
             g.text(font, pctText, SIDEBAR - 8 - pctW, y + 6, pct >= 100 ? GREEN : MUTED, false);
             boolean unclaimed = false;
             for (Quest q : c.quests) if (progress().hasUnclaimedRewards(q)) unclaimed = true;
@@ -549,7 +567,7 @@ public class QuestBookScreen extends Screen {
                 zones.add(new Zone(0, Math.max(TOP, ry), SIDEBAR - 1, 20, () -> {
                     selectChapter(target);
                     click();
-                }, null));
+                }, null, "chapter:" + target.idString()));   // the label lets tests click a chapter
             }
             y += 22;
         }
@@ -720,7 +738,7 @@ public class QuestBookScreen extends Screen {
                 boolean tdone = done || prog >= t.maxProgress();
                 g.fill(px + 8, y - 1, px + pw - 8, y + 19, 0x30FFFFFF);
                 g.fakeItem(t.displayIcon(reg()), px + 11, y + 1);
-                if (t instanceof Tasks.ItemTask it && it.item.isTag() && !it.item.tagItems().isEmpty()) {
+                if (t instanceof Tasks.ItemTask it && it.icon.isEmpty() && it.item.cycles()) {
                     List<ItemStack> items = it.item.tagItems();
                     ItemStack cycle = items.get((int) ((System.currentTimeMillis() / 1000) % items.size()));
                     g.fakeItem(cycle, px + 11, y + 1);
@@ -739,8 +757,9 @@ public class QuestBookScreen extends Screen {
                     right -= btnW + 4;
                 }
                 g.text(font, pt, right - ptw, y + 5, tdone ? GREEN : MUTED, false);
-                String title = font.plainSubstrByWidth(t.title(reg()).getString(), right - ptw - (px + 32) - 6);
-                g.text(font, title, px + 32, y + 5, tdone ? 0xFFB9F5C9 : TEXT, false);
+                Component taskTitle = t.optional ? t.title(reg()).copy().append(Component.translatable("questsicons.gui.optional_task")
+                        .withStyle(net.minecraft.ChatFormatting.GRAY)) : t.title(reg());
+                g.text(font, clip(font, taskTitle, right - ptw - (px + 32) - 6), px + 32, y + 5, tdone ? 0xFFB9F5C9 : TEXT, false);
                 if (mouseY >= y && mouseY < y + 18 && mouseX >= px + 8 && mouseX < px + 30) {
                     zone(px + 8, y, 22, 18, () -> {
                     }, t.title(reg()));
@@ -784,7 +803,7 @@ public class QuestBookScreen extends Screen {
                 }
                 Component title = r.title(reg());
                 if (r.isTeamReward()) title = title.copy().append(Component.translatable("questsicons.gui.team_reward").withStyle(net.minecraft.ChatFormatting.AQUA));
-                g.text(font, font.plainSubstrByWidth(title.getString(), right - (px + 32) - 4), px + 32, y + 5, claimed ? MUTED : TEXT, false);
+                g.text(font, clip(font, title, right - (px + 32) - 4), px + 32, y + 5, claimed ? MUTED : TEXT, false);
                 if (mouseY >= y && mouseY < y + 18 && mouseX >= px + 8 && mouseX < px + 30) {
                     List<ItemStack> choices = r.choices(reg());
                     zone(px + 8, y, 22, 18, () -> {
@@ -853,7 +872,9 @@ public class QuestBookScreen extends Screen {
         }
         int ix = align.equals("left") ? x : align.equals("right") ? x + maxW - w : x + (maxW - w) / 2;
         try {
-            g.blit(RenderPipelines.GUI_TEXTURED, Identifier.parse(tex), ix, y, 0, 0, w, h, w, h);
+            Identifier id = Identifier.parse(tex);
+            if (!textureExists(id)) return y;
+            g.blit(RenderPipelines.GUI_TEXTURED, id, ix, y, 0, 0, w, h, w, h);
         } catch (Exception ignored) {
         }
         return y + h + 4;
@@ -962,6 +983,11 @@ public class QuestBookScreen extends Screen {
     /** For tests: the quest whose detail panel is open. */
     public @Nullable Quest selectedQuest() {
         return selected;
+    }
+
+    /** For tests: the chapter shown on the map. */
+    public @Nullable Chapter selectedChapter() {
+        return chapter;
     }
 
     @Override

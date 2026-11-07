@@ -54,6 +54,8 @@ public final class Rewards {
     public static final class ItemReward extends Reward {
         public ItemSpec item = ItemSpec.EMPTY;
         public int count = 1;
+        /** Up to this many extra items, chosen at random on each claim (FTB's "random bonus"). */
+        public int randomBonus;
 
         @Override
         public String type() {
@@ -65,6 +67,7 @@ public final class Rewards {
             super.read(tag);
             item = ItemSpec.read(tag.get("item"));
             count = tag.getIntOr("count", item.count());
+            randomBonus = Math.max(0, tag.getIntOr("random_bonus", 0));
         }
 
         @Override
@@ -72,11 +75,13 @@ public final class Rewards {
             super.write(tag);
             tag.put("item", item.write());
             if (count != item.count()) tag.putInt("count", count);
+            if (randomBonus > 0) tag.putInt("random_bonus", randomBonus);
         }
 
         @Override
         protected Component defaultTitle(HolderLookup.Provider r) {
             Component n = item.stack(r).getHoverName();
+            if (randomBonus > 0) return Component.literal(count + "-" + (count + randomBonus) + "× ").append(n);
             return count > 1 ? Component.literal(count + "× ").append(n) : n.copy();
         }
 
@@ -89,7 +94,7 @@ public final class Rewards {
         public void claim(ServerPlayer player, int choice) {
             ItemStack s = item.rewardStack(player.level().registryAccess());
             if (s.isEmpty()) return;
-            give(player, s.copyWithCount(count));
+            give(player, s.copyWithCount(count + (randomBonus > 0 ? player.getRandom().nextInt(randomBonus + 1) : 0)));
         }
     }
 
@@ -168,6 +173,8 @@ public final class Rewards {
     public static final class CommandReward extends Reward {
         public String command = "/say Hi, {p}!";
         public boolean elevatePerms = true;
+        /** The permission level of an elevated command: 2 (game master, the default), 3 or 4. */
+        public int permissionLevel = 2;
         public boolean silent = true;
 
         @Override
@@ -180,6 +187,7 @@ public final class Rewards {
             super.read(tag);
             command = tag.getStringOr("command", command);
             elevatePerms = tag.getBooleanOr("elevate_perms", true);
+            permissionLevel = Math.max(2, Math.min(4, tag.getIntOr("permission_level", 2)));
             silent = tag.getBooleanOr("silent", true);
         }
 
@@ -188,6 +196,7 @@ public final class Rewards {
             super.write(tag);
             tag.putString("command", command);
             if (!elevatePerms) tag.putBoolean("elevate_perms", false);
+            if (elevatePerms && permissionLevel != 2) tag.putInt("permission_level", permissionLevel);
             if (!silent) tag.putBoolean("silent", false);
         }
 
@@ -208,10 +217,26 @@ public final class Rewards {
                     .replace("{x}", String.valueOf(player.getBlockX()))
                     .replace("{y}", String.valueOf(player.getBlockY()))
                     .replace("{z}", String.valueOf(player.getBlockZ()))
-                    .replace("{quest}", quest == null ? "" : quest.idString());
+                    .replace("{quest}", quest == null ? "" : quest.idString())
+                    .replace("{chapter}", quest == null || quest.chapter == null ? "" : quest.chapter.idString());
+            if (cmd.contains("{team") || cmd.contains("_count}")) {
+                // The team placeholders FTB Quests offers (imported books use them).
+                net.kasax.questsicons.server.QuestServer qs = net.kasax.questsicons.server.QuestServer.get();
+                net.kasax.questsicons.progress.TeamData team = qs == null ? null : qs.team(player);
+                if (team != null) {
+                    int online = 0;
+                    for (java.util.UUID m : team.members) if (server.getPlayerList().getPlayer(m) != null) online++;
+                    cmd = cmd.replace("{team}", team.name)
+                            .replace("{team_id}", team.name.replace(' ', '_'))
+                            .replace("{long_team_id}", team.id.toString())
+                            .replace("{member_count}", String.valueOf(team.members.size()))
+                            .replace("{online_member_count}", String.valueOf(online));
+                }
+            }
             if (cmd.startsWith("/")) cmd = cmd.substring(1);
             var source = player.createCommandSourceStack();
-            if (elevatePerms) source = source.withPermission(LevelBasedPermissionSet.GAMEMASTER);
+            if (elevatePerms) source = source.withPermission(permissionLevel >= 4 ? LevelBasedPermissionSet.OWNER
+                    : permissionLevel == 3 ? LevelBasedPermissionSet.ADMIN : LevelBasedPermissionSet.GAMEMASTER);
             if (silent) source = source.withSuppressedOutput();
             server.getCommands().performPrefixedCommand(source, cmd);
         }
@@ -271,7 +296,7 @@ public final class Rewards {
         @Override
         public void claim(ServerPlayer player, int choice) {
             RewardTable.Entry e = RewardTable.pick(entries(), player.getRandom());
-            if (e != null) give(player, e.item.rewardStack(player.level().registryAccess()).copyWithCount(e.count));
+            if (e != null) give(player, e.item.rewardStack(player.level().registryAccess()).copyWithCount(e.rollCount(player.getRandom())));
         }
     }
 

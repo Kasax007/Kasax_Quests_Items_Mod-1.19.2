@@ -21,6 +21,8 @@ public final class Chapter extends QuestObject {
     public String defaultQuestShape = "";
     /** Hidden in the sidebar until one of its quests can be started. */
     public boolean hideUntilStartable;
+    /** Never shown to players, only in edit mode (FTB Quests' "always invisible" chapters). */
+    public boolean alwaysInvisible;
     public final List<Quest> quests = new ArrayList<>();
     public final List<ChapterImage> images = new ArrayList<>();
 
@@ -38,6 +40,7 @@ public final class Chapter extends QuestObject {
         orderIndex = tag.getIntOr("order_index", 0);
         defaultQuestShape = tag.getStringOr("default_quest_shape", "");
         hideUntilStartable = tag.getBooleanOr("hide_until_startable", false);
+        alwaysInvisible = tag.getBooleanOr("always_invisible", false);
         quests.clear();
         for (Tag t : tag.getListOrEmpty("quests")) {
             if (!(t instanceof CompoundTag c)) continue;
@@ -65,6 +68,7 @@ public final class Chapter extends QuestObject {
         tag.putInt("order_index", orderIndex);
         if (!defaultQuestShape.isEmpty()) tag.putString("default_quest_shape", defaultQuestShape);
         if (hideUntilStartable) tag.putBoolean("hide_until_startable", true);
+        if (alwaysInvisible) tag.putBoolean("always_invisible", true);
         ListTag ql = new ListTag();
         for (Quest q : quests) ql.add(q.write());
         tag.put("quests", ql);

@@ -1,0 +1,12 @@
+{
+	id: "4000000000000001"
+	loot_size: 2
+	order_index: 0
+	rewards: [
+		{ item: "minecraft:diamond" }
+		{ count: 3, item: "minecraft:emerald", weight: 2.5f }
+		{ type: "xp", xp: 10 }
+		{ item: "minecraft:gold_ingot", weight: 0.0f }
+	]
+	title: "Loot Table"
+}

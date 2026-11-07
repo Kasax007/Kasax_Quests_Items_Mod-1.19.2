@@ -1,0 +1,14 @@
+{
+  /* quest and task texts of the chapter */
+  "quest.3000000000000001.title": "Getting Wood",
+  "quest.3000000000000001.quest_subtitle": "Punch trees",
+  "quest.3000000000000001.quest_desc": [
+    "Collect logs.",
+    "",
+    "&aGood luck!\\nSecond line",
+  ],
+  "quest.3000000000000002.title": "Tools",
+  "quest.3000000000000003.title": "Explorer",
+  "quest.3000000000000004.title": "Machines",
+  "task.6000000000000003.title": 'Say hi',
+}

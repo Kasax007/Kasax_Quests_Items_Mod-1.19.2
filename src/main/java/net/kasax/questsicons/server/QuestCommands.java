@@ -79,6 +79,7 @@ public final class QuestCommands {
                                 .executes(c -> reset(c, List.of(c.getSource().getPlayerOrException())))
                                 .then(Commands.argument("targets", EntityArgument.players())
                                         .executes(c -> reset(c, EntityArgument.getPlayers(c, "targets"))))))
+                .then(FtbImportCommand.node())
                 .then(Commands.literal("team")
                         .then(Commands.literal("info").executes(QuestCommands::teamInfo))
                         .then(Commands.literal("create").then(Commands.argument("name", StringArgumentType.greedyString()).executes(QuestCommands::teamCreate)))

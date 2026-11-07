@@ -1,0 +1,167 @@
+{
+  id: "2000000000000001",
+  group: "1000000000000001",
+  order_index: 0,
+  icon: {
+    id: "minecraft:oak_log",
+    count: 1,
+  },
+  filename: "basics",
+  default_quest_shape: "",
+  default_hide_dependency_lines: false,
+  quests: [
+    {
+      x: 0.0,
+      y: 0.0,
+      shape: "diamond",
+      size: 1.5,
+      id: "3000000000000001",
+      tasks: [
+        {
+          id: "6000000000000001",
+          type: "item",
+          item: {
+            id: "ftbfiltersystem:smart_filter",
+            count: 1,
+            components: {
+              "ftbfiltersystem:filter": "item_tag(minecraft:logs)",
+            },
+          },
+          count: 8,
+        },
+      ],
+      rewards: [
+        {
+          id: "5000000000000001",
+          type: "xp",
+          xp: 50,
+        },
+        {
+          id: "5000000000000002",
+          type: "item",
+          item: {
+            id: "minecraft:apple",
+            count: 1,
+          },
+          count: 4,
+          random_bonus: 2,
+        },
+      ],
+    },
+    {
+      x: 2.0,
+      y: 0.0,
+      dependencies: [
+        "3000000000000001",
+      ],
+      dependency_requirement: "one_completed",
+      id: "3000000000000002",
+      tasks: [
+        {
+          id: "6000000000000002",
+          type: "item",
+          item: {
+            id: "minecraft:diamond_sword",
+            count: 1,
+            components: {
+              "minecraft:enchantments": {
+                "minecraft:sharpness": 5,
+              },
+            },
+          },
+          consume_items: true,
+          match_components: "strict",
+        },
+        {
+          id: "6000000000000003",
+          type: "checkmark",
+          optional_task: true,
+        },
+      ],
+      rewards: [
+        {
+          id: "5000000000000003",
+          type: "command",
+          command: "/say {p} did it",
+          permission_level: 3,
+        },
+        {
+          id: "5000000000000004",
+          type: "choice",
+          exclude_from_claim_all: true,
+          table_id: 4611686018427387905,
+        },
+        {
+          id: "5000000000000005",
+          type: "random",
+          exclude_from_claim_all: true,
+          table_id: 4611686018427387905,
+        },
+      ],
+    },
+    {
+      x: 4.0,
+      y: 0.0,
+      dependencies: [
+        "3000000000000002",
+      ],
+      hide_until_deps_complete: true,
+      optional: true,
+      invisible: true,
+      id: "3000000000000003",
+      tasks: [
+        { id: "6000000000000004", type: "kill", entity: "minecraft:zombie", value: 5 },
+        { id: "6000000000000005", type: "advancement", advancement: "minecraft:story/mine_stone", criterion: "" },
+        { id: "6000000000000006", type: "dimension", dimension: "minecraft:the_nether" },
+        { id: "6000000000000007", type: "biome", biome: "#minecraft:is_forest" },
+        { id: "6000000000000008", type: "structure", structure: "minecraft:village_plains" },
+        { id: "6000000000000009", type: "xp", value: 5, points: false },
+        { id: "600000000000000A", type: "stat", stat: "minecraft:jump", value: 10 },
+        { id: "600000000000000B", type: "observation", timer: 40, observation_type: "block_tag", to_observe: "minecraft:logs" },
+        {
+          id: "600000000000000C",
+          type: "location",
+          dimension: "minecraft:overworld",
+          ignore_dimension: false,
+          position: [10, 64, -5],
+          size: [4, 2, 4],
+        },
+      ],
+      rewards: [
+        { id: "5000000000000006", type: "xp_levels", xp_levels: 3 },
+        { id: "5000000000000007", type: "loot", exclude_from_claim_all: true, table_id: 4611686018427387906 },
+        { id: "5000000000000008", type: "all_table", exclude_from_claim_all: true, table_id: 4611686018427387905 },
+        { id: "5000000000000009", type: "advancement", advancement: "minecraft:story/root", criterion: "" },
+        { id: "500000000000000A", type: "toast", description: "Well done!" },
+        { id: "500000000000000B", type: "gamestage", stage: "secret" },
+        { id: "500000000000000C", type: "custom" },
+      ],
+    },
+    {
+      x: 6.0,
+      y: 0.0,
+      id: "3000000000000004",
+      tasks: [
+        { id: "600000000000000D", type: "fluid", fluid: { id: "minecraft:water", amount: 1000 }, amount: 1000 },
+        { id: "600000000000000E", type: "forge_energy", value: 10000 },
+        { id: "600000000000000F", type: "ftbevolutioncompanion:launch" },
+      ],
+      rewards: [
+        { id: "500000000000000D", type: "ftbmoney:money", amount: 5 },
+      ],
+    },
+  ],
+  quest_links: [],
+  images: [
+    {
+      id: "7100000000000001",
+      x: 2.0,
+      y: -2.0,
+      width: 1.0,
+      height: 1.0,
+      rotation: 0.0,
+      image: "minecraft:item/diamond",
+      dependency: "3000000000000001",
+    },
+  ],
+}

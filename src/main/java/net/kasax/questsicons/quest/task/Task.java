@@ -11,6 +11,8 @@ import net.minecraft.world.item.ItemStack;
 /** One requirement of a quest. Progress is a long per team; the task is done at {@link #maxProgress()}. */
 public abstract class Task extends QuestObject {
     public Quest quest;
+    /** Not needed to finish the quest (if all tasks are optional, one of them is enough), like FTB's optional tasks. */
+    public boolean optional;
 
     public abstract String type();
 
@@ -20,11 +22,13 @@ public abstract class Task extends QuestObject {
 
     public void read(CompoundTag tag) {
         readBase(tag);
+        optional = tag.getBooleanOr("optional_task", false);
     }
 
     public void write(CompoundTag tag) {
         writeBase(tag);
         tag.putString("type", type());
+        if (optional) tag.putBoolean("optional_task", true);
     }
 
     public final CompoundTag write() {

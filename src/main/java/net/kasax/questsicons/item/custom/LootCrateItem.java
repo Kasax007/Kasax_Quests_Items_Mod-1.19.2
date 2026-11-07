@@ -44,7 +44,7 @@ public class LootCrateItem extends Item {
             sp.sendSystemMessage(Component.translatable("item.questsicons.crate.empty", table).withStyle(ChatFormatting.RED));
             return InteractionResult.FAIL;
         }
-        ItemStack loot = e.item.rewardStack(level.registryAccess()).copyWithCount(Math.max(1, e.count));
+        ItemStack loot = e.item.rewardStack(level.registryAccess()).copyWithCount(e.rollCount(sp.getRandom()));
         if (loot.isEmpty()) {
             // An item that does not exist (a typo or a mod that was removed): keep the crate instead of handing out a barrier.
             sp.sendSystemMessage(Component.translatable("item.questsicons.crate.broken", table, e.item.idString()).withStyle(ChatFormatting.RED));

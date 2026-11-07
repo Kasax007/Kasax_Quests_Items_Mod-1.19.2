@@ -56,12 +56,15 @@ public final class RewardTable {
         public ItemSpec item = ItemSpec.EMPTY;
         public int count = 1;
         public int weight = 10;
+        /** Up to this many extra items, rolled each time (FTB's "random bonus"). */
+        public int randomBonus;
 
         public static Entry read(CompoundTag c) {
             Entry e = new Entry();
             e.item = ItemSpec.read(c.get("item"));
             e.count = c.getIntOr("count", e.item.count());
             e.weight = c.getIntOr("weight", 10);
+            e.randomBonus = Math.max(0, c.getIntOr("random_bonus", 0));
             return e;
         }
 
@@ -70,7 +73,13 @@ public final class RewardTable {
             c.put("item", item.write());
             if (count != 1) c.putInt("count", count);
             c.putInt("weight", weight);
+            if (randomBonus > 0) c.putInt("random_bonus", randomBonus);
             return c;
+        }
+
+        /** The count for one roll: the base count plus the random bonus. */
+        public int rollCount(RandomSource random) {
+            return Math.max(1, count) + (randomBonus > 0 ? random.nextInt(randomBonus + 1) : 0);
         }
     }
 }

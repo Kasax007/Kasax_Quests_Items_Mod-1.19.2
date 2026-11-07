@@ -1,0 +1,7 @@
+{
+	empty_weight: 5.0f
+	id: "4000000000000002"
+	loot_size: 1
+	order_index: 1
+	rewards: [{ id: "4100000000000005", item: { count: 1, id: "minecraft:stick" }, weight: 5.0f }]
+}

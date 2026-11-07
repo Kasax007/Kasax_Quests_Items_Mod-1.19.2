@@ -18,6 +18,28 @@ dependencies {
 	// No mappings line: Minecraft 26.x ships unobfuscated.
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	testImplementation "org.junit.jupiter:junit-jupiter:5.13.4"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+// Converter tests (FTB Quests import): ./gradlew test
+// Real modpack quest folders are not part of the repo (their authors keep the rights): fetch six public ones with
+// "python3 -I tools/ftb_samples.py fetch <dir>" and run ./gradlew test -PftbSamples=<dir> (one sub-folder per pack;
+// <name>.stats.json holds the counts of an independent reader that the tests compare with).
+test {
+	useJUnitPlatform()
+	maxHeapSize = "2G"
+	// Minecraft writes logs/ into the working directory: keep it out of the repository.
+	workingDir = layout.buildDirectory.dir("test-run").get().asFile
+	doFirst { workingDir.mkdirs() }
+	systemProperty "qi.ftbSamples", project.findProperty("ftbSamples") ?: ""
+	systemProperty "qi.testOut", layout.buildDirectory.dir("test-import").get().asFile.absolutePath
+	testLogging {
+		events "passed", "skipped", "failed"
+		exceptionFormat "full"
+		showStandardStreams = true
+	}
 }
 
 processResources {
@@ -56,7 +78,7 @@ publishing {
 }
 
 // Visual self-test (dev only, never shipped): ./gradlew runSelftest
-// A client game test that creates a world, opens the quest book and saves screenshots.
+// A client game test that creates a world, clicks through the quest book, imports an FTB Quests book and saves screenshots.
 sourceSets {
 	selftest {
 		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
@@ -77,6 +99,10 @@ loom {
 			runDir "build/run/selftest"
 			property "fabric.client.gametest"
 			vmArg "-Xmx2G"
+			// The FTB Quests book the self-test imports: -PselftestFtb=/path/to/quests (default: the JSON5 test book).
+			vmArg "-Dqi.selftestFtb=" + (project.findProperty("selftestFtb") ?: file("src/test/resources/ftbquests/json5").absolutePath)
+			// The book imported on the in-process dedicated server (-PselftestFtbLarge=..., default: the same book).
+			if (project.findProperty("selftestFtbLarge")) vmArg "-Dqi.selftestFtbLarge=" + project.findProperty("selftestFtbLarge")
 		}
 	}
 }

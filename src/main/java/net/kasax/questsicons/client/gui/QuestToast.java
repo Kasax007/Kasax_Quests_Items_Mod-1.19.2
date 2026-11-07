@@ -47,8 +47,7 @@ public class QuestToast implements Toast {
     public void extractRenderState(GuiGraphicsExtractor g, Font font, long fullyVisibleForMs) {
         g.blitSprite(RenderPipelines.GUI_TEXTURED, BACKGROUND, 0, 0, width(), height());
         g.text(font, header, 30, 7, big ? 0xFFFF88FF : 0xFFFFFF55, false);
-        String t = font.plainSubstrByWidth(title.getString(), 125);
-        g.text(font, Component.literal(t).setStyle(title.getStyle()), 30, 18, 0xFFFFFFFF, false);
+        g.text(font, QuestBookScreen.clip(font, title, 125), 30, 18, 0xFFFFFFFF, false);
         g.fakeItem(icon, 8, 8);
     }
 }

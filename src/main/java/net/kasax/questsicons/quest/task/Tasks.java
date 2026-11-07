@@ -34,6 +34,7 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.phys.AABB;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.Nullable;
@@ -93,6 +94,8 @@ public final class Tasks {
         public long count = 1;
         public boolean consume;
         public boolean matchComponents;
+        /** With {@link #matchComponents}: the item needs at least the listed components, it may have more. */
+        public boolean fuzzyMatch;
 
         @Override
         public String type() {
@@ -110,7 +113,9 @@ public final class Tasks {
             item = ItemSpec.read(tag.get("item"));
             count = tag.getLongOr("count", item.count());
             consume = tag.getBooleanOr("consume_items", false);
-            matchComponents = tag.getBooleanOr("match_components", false);
+            String mode = tag.getStringOr("match_components", "");
+            fuzzyMatch = mode.equals("fuzzy");
+            matchComponents = fuzzyMatch || mode.equals("strict") || tag.getBooleanOr("match_components", false);
         }
 
         @Override
@@ -119,13 +124,29 @@ public final class Tasks {
             tag.put("item", item.write());
             if (count != 1) tag.putLong("count", count);
             if (consume) tag.putBoolean("consume_items", true);
-            if (matchComponents) tag.putBoolean("match_components", true);
+            if (matchComponents && fuzzyMatch) {
+                tag.putString("match_components", "fuzzy");
+            } else if (matchComponents) {
+                tag.putBoolean("match_components", true);
+            }
         }
 
         @Override
         protected Component defaultTitle(HolderLookup.Provider r) {
-            Component n = item.isTag() ? name(item.idString()) : item.stack(r).getHoverName();
+            Component n = itemName(item, r);
             return count > 1 ? Component.literal(count + "× ").append(n) : n.copy();
+        }
+
+        /** "Iron Ingot", "Logs (any)", "Any item from create" or "Iron Ingot or 3 others". */
+        static Component itemName(ItemSpec item, HolderLookup.Provider r) {
+            if (item.isList()) {
+                List<ItemSpec> alts = item.alternatives();
+                if (alts.isEmpty()) return Component.literal("?");
+                Component first = itemName(alts.getFirst(), r);
+                return alts.size() == 1 ? first : Component.translatable("questsicons.task.any_of", first, alts.size() - 1);
+            }
+            if (item.isMod()) return Component.translatable("questsicons.task.any_from_mod", item.idString().substring(1));
+            return item.isTag() ? name(item.idString()) : item.stack(r).getHoverName();
         }
 
         @Override
@@ -149,7 +170,7 @@ public final class Tasks {
             Inventory inv = player.getInventory();
             for (int i = 0; i < inv.getContainerSize(); i++) {
                 ItemStack s = inv.getItem(i);
-                if (item.matches(s, matchComponents, ctx.registries())) have += s.getCount();
+                if (item.matches(s, matchComponents, fuzzyMatch, ctx.registries())) have += s.getCount();
             }
             if (have > ctx.get()) ctx.set(Math.min(have, maxProgress()));
         }
@@ -164,7 +185,7 @@ public final class Tasks {
             Inventory inv = player.getInventory();
             for (int i = 0; i < inv.getContainerSize() && need > 0; i++) {
                 ItemStack s = inv.getItem(i);
-                if (item.matches(s, matchComponents, ctx.registries())) {
+                if (item.matches(s, matchComponents, fuzzyMatch, ctx.registries())) {
                     int take = (int) Math.min(need, s.getCount());
                     s.shrink(take);
                     need -= take;

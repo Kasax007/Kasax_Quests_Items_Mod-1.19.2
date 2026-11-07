@@ -1,0 +1,5 @@
+{
+	chapter_groups: [
+		{ id: "1000000000000001", title: "Basics Group" }
+	]
+}

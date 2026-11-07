@@ -1,0 +1,16 @@
+{
+  id: "4000000000000002",
+  order_index: 1,
+  empty_weight: 5.0,
+  loot_size: 1,
+  rewards: [
+    {
+      id: "4100000000000005",
+      item: {
+        id: "minecraft:stick",
+        count: 1,
+      },
+      weight: 5.0,
+    },
+  ],
+}

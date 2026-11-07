@@ -1,0 +1,248 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "basics"
+	group: "1000000000000001"
+	icon: "minecraft:oak_log"
+	id: "2000000000000001"
+	images: [
+		{
+			dependency: "3000000000000001"
+			height: 1.0d
+			hover: ["Shiny"]
+			image: "minecraft:item/diamond"
+			rotation: 0.0d
+			width: 1.0d
+			x: 2.0d
+			y: -2.0d
+		}
+	]
+	order_index: 0
+	quest_links: [ ]
+	quests: [
+		{
+			description: [
+				"Collect logs."
+				""
+				"&aGood luck!\\nSecond line"
+			]
+			id: "3000000000000001"
+			rewards: [
+				{
+					id: "5000000000000001"
+					type: "xp"
+					xp: 50
+				}
+				{
+					count: 4
+					id: "5000000000000002"
+					item: "minecraft:apple"
+					random_bonus: 2
+					type: "item"
+				}
+			]
+			shape: "diamond"
+			size: 1.5d
+			subtitle: "Punch trees"
+			tasks: [{
+				count: 8L
+				id: "6000000000000001"
+				item: {
+					Count: 1
+					id: "itemfilters:tag"
+					tag: {
+						value: "minecraft:logs"
+					}
+				}
+				type: "item"
+			}]
+			title: "Getting Wood"
+			x: 0.0d
+			y: 0.0d
+		}
+		{
+			dependencies: ["3000000000000001"]
+			dependency_requirement: "one_completed"
+			id: "3000000000000002"
+			rewards: [
+				{
+					command: "/say {p} did it"
+					elevate_perms: true
+					id: "5000000000000003"
+					type: "command"
+				}
+				{
+					id: "5000000000000004"
+					table_id: 4611686018427387905L
+					type: "choice"
+				}
+				{
+					id: "5000000000000005"
+					table_id: 4611686018427387905L
+					type: "random"
+				}
+			]
+			tasks: [
+				{
+					consume_items: true
+					id: "6000000000000002"
+					item: {
+						Count: 1b
+						id: "minecraft:diamond_sword"
+						tag: {
+							Damage: 0
+							Enchantments: [{
+								id: "minecraft:sharpness"
+								lvl: 5s
+							}]
+						}
+					}
+					match_nbt: true
+					type: "item"
+				}
+				{
+					id: "6000000000000003"
+					optional_task: true
+					title: "Say hi"
+					type: "checkmark"
+				}
+			]
+			title: "Tools"
+			x: 2.0d
+			y: 0.0d
+		}
+		{
+			dependencies: ["3000000000000002"]
+			hide_until_deps_complete: true
+			id: "3000000000000003"
+			invisible: true
+			optional: true
+			rewards: [
+				{
+					id: "5000000000000006"
+					type: "xp_levels"
+					xp_levels: 3
+				}
+				{
+					id: "5000000000000007"
+					table_id: 4611686018427387906L
+					type: "loot"
+				}
+				{
+					id: "5000000000000008"
+					table_id: 4611686018427387905L
+					type: "all_table"
+				}
+				{
+					advancement: "minecraft:story/root"
+					criterion: ""
+					id: "5000000000000009"
+					type: "advancement"
+				}
+				{
+					description: "Well done!"
+					id: "500000000000000A"
+					type: "toast"
+				}
+				{
+					id: "500000000000000B"
+					stage: "secret"
+					type: "gamestage"
+				}
+				{
+					id: "500000000000000C"
+					type: "custom"
+				}
+			]
+			tasks: [
+				{
+					entity: "minecraft:zombie"
+					id: "6000000000000004"
+					type: "kill"
+					value: 5L
+				}
+				{
+					advancement: "minecraft:story/mine_stone"
+					criterion: ""
+					id: "6000000000000005"
+					type: "advancement"
+				}
+				{
+					dimension: "minecraft:the_nether"
+					id: "6000000000000006"
+					type: "dimension"
+				}
+				{
+					biome: "#minecraft:is_forest"
+					id: "6000000000000007"
+					type: "biome"
+				}
+				{
+					id: "6000000000000008"
+					structure: "minecraft:village_plains"
+					type: "structure"
+				}
+				{
+					id: "6000000000000009"
+					points: false
+					type: "xp"
+					value: 5L
+				}
+				{
+					id: "600000000000000A"
+					stat: "minecraft:jump"
+					type: "stat"
+					value: 10
+				}
+				{
+					id: "600000000000000B"
+					observe_type: 1
+					timer: 40L
+					to_observe: "minecraft:logs"
+					type: "observation"
+				}
+				{
+					dimension: "minecraft:overworld"
+					id: "600000000000000C"
+					ignore_dimension: false
+					position: [I; 10, 64, -5]
+					size: [I; 4, 2, 4]
+					type: "location"
+				}
+			]
+			title: "Explorer"
+			x: 4.0d
+			y: 0.0d
+		}
+		{
+			id: "3000000000000004"
+			rewards: [{
+				amount: 5
+				id: "500000000000000D"
+				type: "ftbmoney:money"
+			}]
+			tasks: [
+				{
+					amount: 1000L
+					fluid: "minecraft:water"
+					id: "600000000000000D"
+					type: "fluid"
+				}
+				{
+					id: "600000000000000E"
+					type: "forge_energy"
+					value: 10000L
+				}
+				{
+					id: "600000000000000F"
+					type: "ftbevolutioncompanion:launch"
+				}
+			]
+			title: "Machines"
+			x: 6.0d
+			y: 0.0d
+		}
+	]
+	subtitle: ["First steps"]
+	title: "&6Basics"
+}

@@ -239,7 +239,7 @@ public final class QuestServer {
         if (v >= task.maxProgress() && old < task.maxProgress()) {
             Quest q = task.quest;
             ProgressView view = team.viewFor(actor != null ? actor.getUUID() : team.owner);
-            if (!view.isQuestCompleted(q.id) && q.tasks.stream().allMatch(view::isTaskComplete)) {
+            if (!view.isQuestCompleted(q.id) && q.tasksComplete(view::isTaskComplete)) {
                 completeQuest(team, q, actor);
             }
         }
@@ -277,7 +277,7 @@ public final class QuestServer {
         }
         // A book edit can also make existing progress complete a quest.
         for (Quest q : book.allQuests()) {
-            if (!q.tasks.isEmpty() && !v.isQuestCompleted(q.id) && q.tasks.stream().allMatch(v::isTaskComplete)) completeQuest(team, q, actor);
+            if (!q.tasks.isEmpty() && !v.isQuestCompleted(q.id) && q.tasksComplete(v::isTaskComplete)) completeQuest(team, q, actor);
         }
     }
 

@@ -40,8 +40,17 @@ public interface ProgressView {
         if (isQuestCompleted(quest.id)) return 1f;
         if (quest.tasks.isEmpty()) return 0f;
         double sum = 0;
-        for (var t : quest.tasks) sum += Math.min(1.0, taskProgress(t.id) / (double) Math.max(1, t.maxProgress()));
-        return (float) (sum / quest.tasks.size());
+        double best = 0;
+        int required = 0;
+        for (var t : quest.tasks) {
+            double f = Math.min(1.0, taskProgress(t.id) / (double) Math.max(1, t.maxProgress()));
+            best = Math.max(best, f);
+            if (t.optional) continue;
+            sum += f;
+            required++;
+        }
+        // Only optional tasks: the one furthest along counts.
+        return (float) (required == 0 ? best : sum / required);
     }
 
     default boolean hasUnclaimedRewards(Quest quest) {

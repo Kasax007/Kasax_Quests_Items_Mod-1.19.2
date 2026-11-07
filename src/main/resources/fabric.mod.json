@@ -3,7 +3,7 @@
   "id": "questsicons",
   "version": "${version}",
   "name": "Quest Icons",
-  "description": "Icon items for quest books - and a complete quest book: chapters, quest maps, tasks, rewards, loot crates, teams and an in-game editor, in the spirit of FTB Quests.",
+  "description": "Icon items for quest books - and a complete quest book: chapters, quest maps, tasks, rewards, loot crates, teams and an in-game editor, in the spirit of FTB Quests. Imports FTB Quests books with /quests import ftbquests.",
   "authors": ["Kasax007"],
   "contact": {
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/quest-icons",

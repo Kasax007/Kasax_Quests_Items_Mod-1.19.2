@@ -32,6 +32,8 @@ public final class Quest extends QuestObject {
     public boolean optional;
     public boolean hideUntilDepsComplete;
     public boolean hideDependencyLines;
+    /** No lines from this quest to the quests that depend on it. */
+    public boolean hideDependentLines;
     public boolean invisible;
     public boolean disableToast;
     public final List<Task> tasks = new ArrayList<>();
@@ -66,6 +68,7 @@ public final class Quest extends QuestObject {
         optional = tag.getBooleanOr("optional", false);
         hideUntilDepsComplete = tag.getBooleanOr("hide_until_deps_complete", tag.getBooleanOr("hide_until_deps_visible", false));
         hideDependencyLines = tag.getBooleanOr("hide_dependency_lines", false);
+        hideDependentLines = tag.getBooleanOr("hide_dependent_lines", false);
         invisible = tag.getBooleanOr("invisible", false);
         disableToast = tag.getBooleanOr("disable_toast", false);
         tasks.clear();
@@ -100,6 +103,24 @@ public final class Quest extends QuestObject {
         }
     }
 
+    /**
+     * Are the quest's tasks done? Every task that is not optional must be; if all of them are optional, one is
+     * enough (FTB Quests' "either/or" quests). False for a quest without tasks (those finish on their own).
+     */
+    public boolean tasksComplete(java.util.function.Predicate<Task> done) {
+        boolean anyRequired = false;
+        boolean anyDone = false;
+        for (Task t : tasks) {
+            boolean d = done.test(t);
+            anyDone |= d;
+            if (!t.optional) {
+                anyRequired = true;
+                if (!d) return false;
+            }
+        }
+        return anyRequired || anyDone;
+    }
+
     public CompoundTag write() {
         CompoundTag tag = new CompoundTag();
         writeBase(tag);
@@ -122,6 +143,7 @@ public final class Quest extends QuestObject {
         if (optional) tag.putBoolean("optional", true);
         if (hideUntilDepsComplete) tag.putBoolean("hide_until_deps_complete", true);
         if (hideDependencyLines) tag.putBoolean("hide_dependency_lines", true);
+        if (hideDependentLines) tag.putBoolean("hide_dependent_lines", true);
         if (invisible) tag.putBoolean("invisible", true);
         if (disableToast) tag.putBoolean("disable_toast", true);
         ListTag tl = new ListTag();

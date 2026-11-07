@@ -16,6 +16,8 @@ public final class ChapterImage {
     public String hover = "";
     /** Draw in front of quests (default: behind). */
     public boolean front;
+    /** Only shown once this quest is completed (0 = always). */
+    public long dependency;
 
     public static ChapterImage read(CompoundTag tag) {
         ChapterImage i = new ChapterImage();
@@ -29,6 +31,7 @@ public final class ChapterImage {
         i.alpha = tag.getIntOr("alpha", 255);
         i.hover = tag.getStringOr("hover", "");
         i.front = tag.getBooleanOr("front", false);
+        i.dependency = QuestObject.parseId(tag.getStringOr("dependency", ""));
         return i;
     }
 
@@ -44,6 +47,7 @@ public final class ChapterImage {
         if (alpha != 255) t.putInt("alpha", alpha);
         if (!hover.isEmpty()) t.putString("hover", hover);
         if (front) t.putBoolean("front", true);
+        if (dependency != 0) t.putString("dependency", QuestObject.idToString(dependency));
         return t;
     }
 }

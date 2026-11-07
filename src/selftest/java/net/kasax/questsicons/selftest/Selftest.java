@@ -3,8 +3,17 @@ package net.kasax.questsicons.selftest;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
+import net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerConnection;
+import net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
+import net.fabricmc.loader.api.FabricLoader;
+import net.kasax.questsicons.importer.ImportReport;
+import net.kasax.questsicons.net.QuestNet;
+import net.kasax.questsicons.quest.Chapter;
+import net.kasax.questsicons.quest.QuestBook;
+import net.kasax.questsicons.quest.task.Tasks;
+import net.kasax.questsicons.server.FtbImportCommand;
 import net.kasax.questsicons.block.DreamStarPedestalBlock;
 import net.kasax.questsicons.block.DreamStarPedestalBlockEntity;
 import net.kasax.questsicons.block.ModBlocks;
@@ -37,8 +46,14 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.phys.AABB;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Opens the quest book in a fresh world and clicks through it with real mouse clicks and keys (26.3: SDL numbering),
@@ -74,7 +89,9 @@ public class Selftest implements FabricClientGameTest {
             ctx.takeScreenshot("qi_inventory_button");
             questBook(sp.getServer());
             dreamStar(sp.getServer());
+            ftbImport(sp.getServer());
         }
+        ftbImportOnDedicatedServer();
         if (!failed.isEmpty()) throw new AssertionError("self-test checks failed: " + failed);
         System.out.println("[selftest] all checks passed");
     }
@@ -227,6 +244,246 @@ public class Selftest implements FabricClientGameTest {
         ctx.waitTicks(2);
         ctx.getInput().pressMouse(InputConstants.MOUSE_BUTTON_LEFT);
         ctx.waitTicks(5);
+    }
+
+    // ------------------------------------------------------------------------------- FTB Quests import
+
+    /**
+     * Puts an FTB Quests book where a modpack has it (config/ftbquests/quests), previews and runs
+     * "/quests import ftbquests", then opens the imported book and finishes a quest with real clicks. The book is
+     * -Dqi.selftestFtb (default: the JSON5 test book of the converter tests). Afterwards the starter book is restored.
+     */
+    private void ftbImport(TestServerContext server) {
+        Path sample = Path.of(System.getProperty("qi.selftestFtb", ""));
+        if (!Files.isDirectory(sample)) {
+            check("FTB Quests sample folder exists (" + sample + ")", false);
+            return;
+        }
+        Path gameDir = FabricLoader.getInstance().getGameDir();
+        Path target = gameDir.resolve("config/ftbquests/quests");
+        try {
+            deleteTree(gameDir.resolve("config/ftbquests"));
+            copyTree(sample, target);
+        } catch (IOException e) {
+            check("copy the FTB Quests sample: " + e, false);
+            return;
+        }
+        server.runCommand("gamemode survival @a");
+        int before = server.computeOnServer(s -> QuestServer.get().book.questCount());
+
+        FtbImportCommand.last = null;
+        server.runCommand("quests import ftbquests preview");
+        ctx.waitFor(mc -> FtbImportCommand.last != null, 6000);
+        FtbImportCommand.Finished preview = FtbImportCommand.last;
+        int quests = preview.report().source("Quests");
+        check("preview reads the FTB book (" + preview.report().source("Chapters") + " chapters, " + quests + " quests)", preview.ok() && quests > 0);
+        check("preview changes nothing", server.computeOnServer(s -> QuestServer.get().book.questCount()) == before);
+        check("preview writes the report", Files.isRegularFile(FtbImportCommand.reportFile()));
+
+        FtbImportCommand.last = null;
+        server.runCommand("quests import ftbquests run");
+        ctx.waitFor(mc -> FtbImportCommand.last != null, 6000);
+        FtbImportCommand.Finished run = FtbImportCommand.last;
+        check("run imports every quest (" + quests + ")", run.ok() && server.computeOnServer(s -> QuestServer.get().book.questCount()) == quests);
+        check("run backs up the old book", run.backup() != null && Files.isRegularFile(run.backup().resolve("data.snbt")));
+        ctx.waitFor(mc -> ClientQuests.book != null && ClientQuests.book.questCount() == quests, 1200);
+        check("the client gets the imported book", ctx.computeOnClient(mc -> ClientQuests.book.questCount()) == quests);
+        System.out.println("[selftest] imported: " + run.report().result + "; checkmarks " + run.report().count(ImportReport.Kind.CHECKMARK)
+                + ", skipped " + run.report().count(ImportReport.Kind.SKIPPED) + ", approximated " + run.report().count(ImportReport.Kind.APPROXIMATED)
+                + ", unknown ids " + run.report().count(ImportReport.Kind.UNKNOWN));
+
+        // A startable quest of only checkmark tasks (unsupported FTB tasks became checkmarks, too).
+        long[] pick = server.computeOnServer(s -> {
+            QuestBook b = QuestServer.get().book;
+            for (Chapter c : b.chapters) {
+                if (c.alwaysInvisible) continue;
+                for (Quest q : c.quests) {
+                    if (q.dependencies.isEmpty() && !q.invisible && !q.tasks.isEmpty() && q.tasks.size() <= 4
+                            && q.tasks.stream().allMatch(t -> t instanceof Tasks.CheckmarkTask) && q.rewards.size() <= 4) {
+                        return new long[]{c.id, q.id};
+                    }
+                }
+            }
+            return null;
+        });
+        ctx.setScreen(QuestBookScreen::new);
+        ctx.waitTicks(10);
+        ctx.takeScreenshot("qi_import_book");
+        if (pick == null) {
+            check("the imported book has a startable checkmark quest", false);
+        } else {
+            check("click the imported chapter", clickLabel("chapter:" + QuestObject.idToString(pick[0])));
+            ctx.waitTicks(10);
+            check("the chapter is shown", ctx.computeOnClient(mc -> screen(mc).selectedChapter() != null && screen(mc).selectedChapter().id == pick[0]));
+            ctx.takeScreenshot("qi_import_chapter");
+            clickQuest(pick[1]);
+            check("left click opens the imported quest", selected() == pick[1]);
+            ctx.takeScreenshot("qi_import_quest");
+            int ticks = server.computeOnServer(s -> QuestServer.get().book.quest(pick[1]).tasks.size());
+            for (int i = 0; i < ticks; i++) {
+                clickLabel(tr("questsicons.gui.check"));
+                ctx.waitTicks(10);
+            }
+            check("ticking its tasks completes the imported quest", ClientQuests.progress.isQuestCompleted(pick[1]));
+            int rewards = server.computeOnServer(s -> QuestServer.get().book.quest(pick[1]).rewards.size());
+            for (int i = 0; i < rewards && clickLabel(tr("questsicons.gui.claim")); i++) ctx.waitTicks(10);
+            check("its rewards can be claimed", server.computeOnServer(s -> {
+                QuestServer qs = QuestServer.get();
+                var team = qs.team(player(s));
+                for (var r : qs.book.quest(pick[1]).rewards) {
+                    if (!r.needsChoice() && !team.isRewardClaimed(player(s).getUUID(), r.id, r.isTeamReward())) return false;
+                }
+                return true;
+            }));
+            ctx.takeScreenshot("qi_import_done");
+        }
+
+        // The JSON5 test book: an item tag task (FTB filter) completes from the inventory, the reward has a bonus.
+        long logs = QuestObject.parseId("3000000000000001");
+        if (server.computeOnServer(s -> QuestServer.get().book.quest(logs) != null)) {
+            server.runCommand("clear @a");
+            server.runCommand("give @a minecraft:oak_log 8");
+            ctx.waitTicks(60);
+            check("8 oak logs finish the \"#minecraft:logs\" quest", ClientQuests.progress.isQuestCompleted(logs));
+            ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);   // close the quest panel that covers the map
+            ctx.waitTicks(3);
+            clickQuest(logs);
+            check("click the logs quest", selected() == logs);
+            for (int i = 0; i < 2 && clickLabel(tr("questsicons.gui.claim")); i++) ctx.waitTicks(10);
+            int apples = server.computeOnServer(s -> player(s).getInventory().countItem(Items.APPLE));
+            check("the apple reward gives 4 to 6 apples (" + apples + ")", apples >= 4 && apples <= 6);
+            ctx.takeScreenshot("qi_import_claimed");
+        }
+        ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);
+        ctx.waitTicks(3);
+        ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);
+        ctx.waitTicks(3);
+
+        // Back to the starter book, so the next run starts the same way.
+        server.runOnServer(s -> {
+            try {
+                deleteTree(QuestServer.DIR);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            QuestServer.get().load();
+        });
+        try {
+            deleteTree(gameDir.resolve("config/ftbquests"));
+            deleteTree(FtbImportCommand.backupDir());
+            Files.deleteIfExists(FtbImportCommand.reportFile());
+        } catch (IOException e) {
+            check("clean up after the import: " + e, false);
+        }
+        ctx.waitFor(mc -> ClientQuests.book != null && ClientQuests.book.quest(QuestObject.hashId("quest/welcome")) != null, 600);
+        check("the starter book is back", ctx.computeOnClient(mc -> ClientQuests.book.quest(QuestObject.hashId("quest/welcome")) != null));
+    }
+
+    /**
+     * The import on a dedicated server with a real network connection: the imported book must reach the client even
+     * when it is big (-Dqi.selftestFtbLarge, e.g. a modpack's quest folder with thousands of quests; default: the
+     * test book). The client then opens it and finishes a quest of checkmark tasks with real clicks.
+     */
+    private void ftbImportOnDedicatedServer() {
+        Path sample = Path.of(System.getProperty("qi.selftestFtbLarge", System.getProperty("qi.selftestFtb", "")));
+        if (!Files.isDirectory(sample)) return;
+        Path gameDir = FabricLoader.getInstance().getGameDir();
+        try {
+            deleteTree(gameDir.resolve("config/ftbquests"));
+            copyTree(sample, gameDir.resolve("config/ftbquests/quests"));
+            // The test server of this run directory (a dev environment) only starts with the EULA accepted.
+            Files.writeString(gameDir.resolve("eula.txt"), "eula=true\n");
+        } catch (IOException e) {
+            check("copy the FTB Quests sample: " + e, false);
+            return;
+        }
+        try (TestDedicatedServerContext server = ctx.worldBuilder().createServer()) {
+            FtbImportCommand.last = null;
+            server.runCommand("quests import ftbquests run");
+            ctx.waitFor(mc -> FtbImportCommand.last != null, 12000);
+            FtbImportCommand.Finished run = FtbImportCommand.last;
+            int quests = run.report().source("Quests");
+            check("dedicated server: the import runs (" + quests + " quests)", run.ok() && quests > 0
+                    && server.computeOnServer(s -> QuestServer.get().book.questCount()) == quests);
+            System.out.println("[selftest] dedicated server import: " + run.report().result + "; unknown ids " + run.report().count(ImportReport.Kind.UNKNOWN));
+            try (TestDedicatedServerConnection connection = server.connect()) {
+                ctx.waitFor(mc -> ClientQuests.book != null && ClientQuests.book.questCount() == quests, 2400);
+                int size = server.computeOnServer(s -> QuestNet.compress(QuestServer.get().book.writeAll()).length);
+                check("dedicated server: the client gets the whole book over the network (" + size / 1024 + " KiB packed)",
+                        ctx.computeOnClient(mc -> ClientQuests.book != null && ClientQuests.book.questCount() == quests));
+                long[] pick = server.computeOnServer(s -> {
+                    QuestBook b = QuestServer.get().book;
+                    for (Chapter c : b.chapters) {
+                        if (c.alwaysInvisible) continue;
+                        for (Quest q : c.quests) {
+                            if (q.dependencies.isEmpty() && !q.invisible && !q.tasks.isEmpty() && q.tasks.size() <= 4
+                                    && q.tasks.stream().allMatch(t -> t instanceof Tasks.CheckmarkTask) && q.rewards.size() <= 4) {
+                                return new long[]{c.id, q.id};
+                            }
+                        }
+                    }
+                    return null;
+                });
+                ctx.setScreen(QuestBookScreen::new);
+                ctx.waitTicks(20);
+                ctx.takeScreenshot("qi_server_import_book");
+                if (pick != null) {
+                    check("dedicated server: click the chapter", clickLabel("chapter:" + QuestObject.idToString(pick[0])));
+                    ctx.waitTicks(20);
+                    ctx.takeScreenshot("qi_server_import_chapter");
+                    clickQuest(pick[1]);
+                    check("dedicated server: the quest opens", selected() == pick[1]);
+                    ctx.takeScreenshot("qi_server_import_quest");
+                    int ticks = server.computeOnServer(s -> QuestServer.get().book.quest(pick[1]).tasks.size());
+                    for (int i = 0; i < ticks; i++) {
+                        clickLabel(tr("questsicons.gui.check"));
+                        ctx.waitTicks(10);
+                    }
+                    check("dedicated server: ticking its tasks completes the quest", ClientQuests.progress.isQuestCompleted(pick[1]));
+                    ctx.takeScreenshot("qi_server_import_done");
+                }
+                ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);
+                ctx.waitTicks(3);
+                ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);
+                ctx.waitTicks(3);
+            }
+            server.runOnServer(s -> {
+                try {
+                    deleteTree(QuestServer.DIR);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                QuestServer.get().load();
+            });
+        }
+        try {
+            deleteTree(gameDir.resolve("config/ftbquests"));
+            deleteTree(FtbImportCommand.backupDir());
+            Files.deleteIfExists(FtbImportCommand.reportFile());
+        } catch (IOException e) {
+            check("clean up after the import: " + e, false);
+        }
+    }
+
+    private static void copyTree(Path from, Path to) throws IOException {
+        try (Stream<Path> s = Files.walk(from)) {
+            for (Path p : s.toList()) {
+                Path dest = to.resolve(from.relativize(p).toString());
+                if (Files.isDirectory(p)) {
+                    Files.createDirectories(dest);
+                } else {
+                    Files.createDirectories(dest.getParent());
+                    Files.copy(p, dest, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        }
+    }
+
+    private static void deleteTree(Path dir) throws IOException {
+        if (!Files.exists(dir)) return;
+        try (Stream<Path> s = Files.walk(dir)) {
+            for (Path p : s.sorted(Comparator.reverseOrder()).toList()) Files.delete(p);
+        }
     }
 
     // ------------------------------------------------------------------------------- dream star

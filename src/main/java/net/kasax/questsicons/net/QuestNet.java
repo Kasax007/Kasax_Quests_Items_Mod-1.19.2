@@ -109,7 +109,9 @@ public final class QuestNet {
     }
 
     public static void register() {
-        PayloadTypeRegistry.clientboundPlay().register(BookSync.TYPE, BookSync.CODEC);
+        // A big book (an imported FTB Quests book with thousands of quests) can be close to the 1 MiB limit of a single
+        // custom payload even compressed; Fabric splits a "large" payload into parts.
+        PayloadTypeRegistry.clientboundPlay().registerLarge(BookSync.TYPE, BookSync.CODEC, 16 * 1024 * 1024 + 1024);
         PayloadTypeRegistry.clientboundPlay().register(TeamSync.TYPE, TeamSync.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(Notify.TYPE, Notify.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(Action.TYPE, Action.CODEC);
