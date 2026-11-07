@@ -52,3 +52,6 @@ replay_*.log
 /REDDIT_DRAFTS.md
 /PLAN_ROADMAP.md
 /ROADMAP_STATUS.md
+
+# python
+__pycache__/
