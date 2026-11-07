@@ -76,8 +76,15 @@ public final class Forms {
                 tag, onSave);
         f.add(new Text("title", l("title"), true).help(l("help.title")));
         f.add(new Text("subtitle", l("subtitle"), true));
-        f.add(new Lines("description", l("description"), 5).help(l("help.text")));
         f.add(new ItemField("icon", l("icon"), true, true, false).help(l("help.icon")));
+        f.add(new ObjectList("tasks", l("tasks"), Forms::taskName, Forms::taskIcon,
+                (form, i) -> editTask(form, q, i), l("add_task"), form -> addTask(form, q)));
+        f.add(new ObjectList("rewards", l("rewards"), Forms::rewardName, Forms::rewardIcon,
+                (form, i) -> editReward(form, q, i), l("add_reward"), form -> addReward(form, q)));
+        f.add(new Lines("description", l("description"), 5).help(l("help.text")));
+        f.add(new ObjectList("dependencies", l("dependencies"), t -> questName(t), t -> questIcon(t), null, l("add_dependency"),
+                form -> Minecraft.getInstance().gui.setScreen(questPicker(form, q == null ? 0 : q.id, id -> addDep(form, id)))));
+        f.add(new Choice("dependency_requirement", l("requirement"), List.of("", "one_completed"), List.of(l("req_all"), l("req_one"))));
         f.add(new Choice("shape", l("shape"), shapes(true), shapeNames(true)));
         f.add(new Number("size", l("size"), 1, 0.25, 4, true));
         f.add(new Number("x", l("x"), 0, -10000, 10000, true));
@@ -88,13 +95,6 @@ public final class Forms {
         f.add(new Bool("hide_dependency_lines", l("hide_lines"), false));
         f.add(new Bool("hide_dependent_lines", l("hide_dependent_lines"), false));
         f.add(new Bool("disable_toast", l("disable_toast"), false));
-        f.add(new Choice("dependency_requirement", l("requirement"), List.of("", "one_completed"), List.of(l("req_all"), l("req_one"))));
-        f.add(new ObjectList("dependencies", l("dependencies"), t -> questName(t), t -> questIcon(t), null, l("add_dependency"),
-                form -> Minecraft.getInstance().gui.setScreen(questPicker(form, q == null ? 0 : q.id, id -> addDep(form, id)))));
-        f.add(new ObjectList("tasks", l("tasks"), Forms::taskName, Forms::taskIcon,
-                (form, i) -> editTask(form, q, i), l("add_task"), form -> addTask(form, q)));
-        f.add(new ObjectList("rewards", l("rewards"), Forms::rewardName, Forms::rewardIcon,
-                (form, i) -> editReward(form, q, i), l("add_reward"), form -> addReward(form, q)));
         return f;
     }
 

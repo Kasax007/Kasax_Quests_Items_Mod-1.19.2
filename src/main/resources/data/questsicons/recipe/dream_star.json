@@ -7,7 +7,13 @@
         "mythicupgrades",
         "wizards",
         "paladins",
-        "raft",
+        "raft"
+      ]
+    },
+    {
+      "condition": "fabric:any_mods_loaded",
+      "values": [
+        "tamacraft",
         "tamagotchi"
       ]
     },
@@ -21,8 +27,26 @@
         "wizards:staff_netherite_fire",
         "wizards:staff_netherite_frost",
         "paladins:netherite_holy_staff",
-        "raft:heart_of_the_tide",
-        "tamagotchi:tamagotchi_heart"
+        "raft:heart_of_the_tide"
+      ]
+    },
+    {
+      "condition": "fabric:or",
+      "values": [
+        {
+          "condition": "fabric:registry_contains",
+          "registry": "minecraft:item",
+          "values": [
+            "tamacraft:tamacraft_heart"
+          ]
+        },
+        {
+          "condition": "fabric:registry_contains",
+          "registry": "minecraft:item",
+          "values": [
+            "tamagotchi:tamagotchi_heart"
+          ]
+        }
       ]
     }
   ],
@@ -39,7 +63,7 @@
     ],
     "N": "minecraft:nether_star",
     "T": "techreborn:lapotronic_orb",
-    "P": "tamagotchi:tamagotchi_heart",
+    "P": "#questsicons:dream_star_hearts",
     "D": [
       "minecraft:dragon_egg",
       "minecraft:dragon_head"

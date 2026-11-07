@@ -115,7 +115,6 @@ public abstract class QiScreen extends Screen {
             for (int i = lastZones.size() - 1; i >= 0; i--) {
                 Zone z = lastZones.get(i);
                 if (z.contains(event.x(), event.y())) {
-                    setFocused(null);
                     z.action().run();
                     return true;
                 }
