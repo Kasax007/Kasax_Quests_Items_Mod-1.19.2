@@ -10,8 +10,12 @@ public class TestDedicatedServerConnection implements AutoCloseable {
         this.context = context;
     }
 
+    /** The connection stays up for the next test (see TestDedicatedServerContext). */
     @Override
     public void close() {
+    }
+
+    void disconnect() {
         context.runOnClient(mc -> {
             if (mc.level != null) mc.level.disconnect();
             mc.clearLevel(new TitleScreen());

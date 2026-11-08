@@ -87,7 +87,11 @@ public class TestInput {
 
     /** Presses whatever key or mouse button the key mapping is bound to (e.g. {@code o -> o.keyUse}). */
     public void pressKey(Function<Options, KeyMapping> mapping) {
-        // The game is not stepped like in Fabric's harness: give it two ticks to pick the block under the cursor first.
+        // The game is not stepped like in Fabric's harness: grab the mouse like a first click in the world would, and give
+        // the game two ticks to pick the block under the cursor.
+        context.runOnClient(mc -> {
+            if (mc.screen == null && !mc.mouseHandler.isMouseGrabbed()) mc.mouseHandler.grabMouse();
+        });
         context.waitTicks(2);
         InputConstants.Key key = context.computeOnClient(mc -> KeyBindingHelper.getBoundKeyOf(mapping.apply(mc.options)));
         if (key.getType() == InputConstants.Type.MOUSE) pressMouse(key.getValue());

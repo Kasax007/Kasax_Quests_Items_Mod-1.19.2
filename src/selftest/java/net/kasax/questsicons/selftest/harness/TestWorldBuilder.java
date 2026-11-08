@@ -44,6 +44,7 @@ public class TestWorldBuilder {
 
     /** Starts {@code net.minecraft.server.Main} with "nogui" in the run directory (server.properties: offline, flat). */
     public TestDedicatedServerContext createServer() {
+        if (TestDedicatedServerContext.shared != null && TestDedicatedServerContext.shared.isRunning()) return TestDedicatedServerContext.shared;
         try {
             Files.writeString(Path.of("server.properties"), "online-mode=false\nspawn-protection=0\nmax-players=2\nlevel-type=minecraft\\:flat\n"
                     + "server-port=" + (25600 + (int) (Math.random() * 300)) + "\nview-distance=4\nsimulation-distance=4\n");
@@ -55,6 +56,7 @@ public class TestWorldBuilder {
         t.setDaemon(true);
         t.start();
         context.waitFor(mc -> TestRunner.dedicated != null && TestRunner.dedicated.isReady(), 6000);
-        return new TestDedicatedServerContext(context, TestRunner.dedicated);
+        TestDedicatedServerContext.shared = new TestDedicatedServerContext(context, TestRunner.dedicated);
+        return TestDedicatedServerContext.shared;
     }
 }

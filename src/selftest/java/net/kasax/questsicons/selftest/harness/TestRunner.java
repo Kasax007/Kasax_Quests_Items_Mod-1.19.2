@@ -45,6 +45,11 @@ public class TestRunner implements ClientModInitializer {
                 e.printStackTrace(System.out);
             }
         }
+        try {
+            TestDedicatedServerContext.shutDown();
+        } catch (Throwable e) {
+            System.out.println("[selftest] stopping the test server failed: " + e);
+        }
         System.out.println("[selftest] finished: " + (ok ? "PASSED" : "FAILED"));
         if (ok) {
             Minecraft.getInstance().execute(() -> Minecraft.getInstance().stop());
