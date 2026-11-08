@@ -146,6 +146,8 @@ sourceSets.main.resources.srcDir generateModMetadata
 legacyForge.ideSyncTask generateModMetadata
 
 jar {
+	// Forge 1.20.1 finds a mod's mixin configs through this manifest entry.
+	manifest.attributes("MixinConfigs": "questsicons.mixins.json")
 	from("LICENSE") {
 		rename { "${it}_${project.base.archivesName.get()}" }
 	}
