@@ -55,6 +55,9 @@ legacyForge {
 	mods {
 		questsicons {
 			sourceSet sourceSets.main
+			// Dev runs only: the converter tests run inside the game, in the mod's own module (see the self-test's
+			// TestRunner); the release jar is built from the main source set alone.
+			sourceSet sourceSets.test
 		}
 		questsicons_selftest {
 			sourceSet sourceSets.selftest
@@ -102,6 +105,9 @@ dependencies {
 	testImplementation "org.junit.jupiter:junit-jupiter:5.13.4"
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 	selftestImplementation "org.junit.platform:junit-platform-launcher:1.13.4"
+	// Libraries outside the mods must be put on the game's class path explicitly on Forge.
+	additionalRuntimeClasspath "org.junit.jupiter:junit-jupiter:5.13.4"
+	additionalRuntimeClasspath "org.junit.platform:junit-platform-launcher:1.13.4"
 	if (project.hasProperty("withJei")) {
 		// Forge 1.20.1 mods ship with SRG names: modRuntimeOnly remaps them for the dev game.
 		modRuntimeOnly "maven.modrinth:jei:${project.property('withJei')}"

@@ -20,7 +20,7 @@ import org.junit.platform.launcher.listeners.TestExecutionSummary;
 import java.io.PrintWriter;
 import java.util.List;
 
-import static org.junit.platform.engine.discovery.DiscoverySelectors.selectPackage;
+import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
 /**
  * Starts the self-tests on their own thread once the title screen shows, when the game runs with -Dqi.selftest=true.
@@ -52,8 +52,13 @@ public class TestRunner {
 
     /** The JUnit tests of src/test (FtbImporterTest, QuestEditorTest). */
     private static boolean unitTests() {
-        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request().selectors(selectPackage("net.kasax.questsicons.importer"),
-                selectPackage("net.kasax.questsicons.server")).build();
+        LauncherDiscoveryRequest request;
+        try {
+            request = LauncherDiscoveryRequestBuilder.request().selectors(selectClass(Class.forName("net.kasax.questsicons.importer.FtbImporterTest")),
+                    selectClass(Class.forName("net.kasax.questsicons.server.QuestEditorTest"))).build();
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("the converter tests are not in the game (questsicons mod, test source set)", e);
+        }
         Launcher launcher = LauncherFactory.create();
         SummaryGeneratingListener listener = new SummaryGeneratingListener();
         launcher.execute(request, listener);
@@ -65,7 +70,14 @@ public class TestRunner {
     }
 
     private static void runAll() {
-        boolean ok = unitTests();
+        boolean ok;
+        try {
+            ok = unitTests();
+        } catch (Throwable e) {
+            ok = false;
+            System.out.println("[selftest] unit tests could not run: " + e);
+            e.printStackTrace(System.out);
+        }
         ClientGameTestContext ctx = new ClientGameTestContext();
         for (FabricClientGameTest test : List.<FabricClientGameTest>of(new Selftest())) {
             try {

@@ -249,6 +249,11 @@ final class FtbItems {
             String path = id.substring(6);
             out = FORGE_TAGS.getOrDefault(path, "c:" + path);
             if (options.game != null && !options.game.itemTag(out) && options.game.itemTag(id)) out = id;
+            // Fabric 1.20.1 names its common tags the other way round: forge:ingots/iron is c:iron_ingots there.
+            if (options.game != null && !options.game.itemTag(out) && path.indexOf('/') > 0 && path.indexOf('/') == path.lastIndexOf('/')) {
+                String flipped = "c:" + path.substring(path.indexOf('/') + 1) + "_" + path.substring(0, path.indexOf('/'));
+                if (options.game.itemTag(flipped)) out = flipped;
+            }
             if (!out.equals(id) && renamedTags.add(id)) {
                 report.add(Kind.NOTE, "Forge tag #" + id + " -> #" + out, where, "Forge's tags are called \"c\" tags since 1.21");
             }
