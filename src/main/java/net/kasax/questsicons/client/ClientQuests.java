@@ -40,10 +40,10 @@ public final class ClientQuests {
     public static boolean canEdit;
     public static final Progress progress = new Progress();
     public static final LongLinkedOpenHashSet pinned = new LongLinkedOpenHashSet();
-    private static final Path PIN_FILE = net.minecraftforge.fml.loading.FMLPaths.CONFIGDIR.get().resolve("questsicons-pinned.txt");
+    private static final Path PIN_FILE = net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir().resolve("questsicons-pinned.txt");
 
     private static final String CATEGORY = "key.category.questsicons.main";
-    /** Registered in RegisterKeyMappingsEvent (QuestsIconsClient). */
+    /** Registered by QuestsIconsClient. */
     public static final KeyMapping OPEN_BOOK =
             new KeyMapping("key.questsicons.open_book", InputConstants.Type.KEYSYM, InputConstants.KEY_J, CATEGORY);
 
@@ -51,7 +51,7 @@ public final class ClientQuests {
     }
 
     // ------------------------------------------------------------------------------- loader hooks
-    // NeoForge events call these (wired in QuestsIconsClient).
+    // Loader events call these (wired in QuestsIconsClient).
 
     public static void init() {
         loadPins();

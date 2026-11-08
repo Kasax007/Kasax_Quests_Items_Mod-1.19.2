@@ -1,10 +1,10 @@
-## Quest Icons 1.3.0 (Minecraft 1.21.1, NeoForge)
+## Quest Icons 1.3.0 (Minecraft 1.20.1, Fabric)
 
-**For Minecraft 1.21.1 with NeoForge 21.1 (21.1.0 or newer). Java 21. No other mod needed.** Install it on the server
-and on every client.
+**For Minecraft 1.20.1 with Fabric Loader 0.15 or newer and Fabric API. Java 17.** Install it on the server and on every
+client.
 
-This is the first Quest Icons for NeoForge, with the full quest book: everything of Quest Icons 1.0 to 1.3 (made for
-Minecraft 26.x) now also runs on 1.21.1.
+This is the first Quest Icons for 1.20.1 with the full quest book: everything of Quest Icons 1.0 to 1.3 (made for
+Minecraft 26.x) now also runs on 1.20.1.
 
 ### A complete quest book
 - Chapters and chapter groups, a quest map with 10 quest shapes, dependency lines and pictures, tasks, rewards, teams,
@@ -36,11 +36,13 @@ saving; the server checks operator rights for every change.
 `/quests import ftbquests` turns an FTB Quests book (1.20, 1.21 or 26.1 layout) into a Quest Icons book: preview first,
 then `run` (backs up your quest files) or `merge`. A report lists everything that is not exactly the same.
 
-### Notes for NeoForge 1.21.1
-- JEI (and other recipe viewers) list all icons and items; search `@questsicons`.
-- Same features and file format as on 26.3: quest files can be moved between the versions.
-- A dropped Dream Star is protected the 1.21.1 way (it floats on lava and cannot be destroyed except by the void).
+### Notes for Fabric 1.20.1
+- FTB Quests import turns Forge's item tags into Fabric's common tags where they exist (`#forge:ingots/iron` ->
+  `#c:iron_ingots`).
+- Same features as on 26.3. Quest files can be moved between the versions; item data inside them is the 1.20.1 NBT
+  ("tag"), so items with data written by a newer version lose that data here.
+- The Dream Star's vanilla recipe uses a Heart of the Sea in place of the Heavy Core (Minecraft 1.20.1 has none).
+- FTB Quests import: 1.20 books keep their item NBT; the item data of 1.21 and 26.1 books cannot be turned back into
+  1.20.1 NBT and is left out (the report lists it).
 - Big quest books and big edits are sent in several packets, so imported books with thousands of quests reach every
   player.
-- The Dream Star recipe for Dreamcraft needs Tech Reborn, Mythic Upgrades, Wizards, Paladins & Priests, Beach Craft and
-  Tamacraft (or Tamagotchi); without them the vanilla recipe is used.

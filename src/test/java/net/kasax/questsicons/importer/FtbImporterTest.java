@@ -242,13 +242,15 @@ class FtbImporterTest {
         assertTrue(q2.dependsOnAny);
         Tasks.ItemTask sword = task(b, "6000000000000002", Tasks.ItemTask.class);
         assertEquals("minecraft:diamond_sword", sword.item.idString());
-        CompoundTag comps = ((CompoundTag) sword.item.write()).getCompoundOrEmpty("components");
-        // 1.21.1 component format: {levels: {"minecraft:sharpness": 5}}. The JSON5 book comes from FTB Quests 26.1, whose
-        // newer format ({"minecraft:sharpness": 5}) Minecraft 1.21.1 cannot fix down: it stays as it is.
-        CompoundTag ench = comps.getCompoundOrEmpty("minecraft:enchantments");
-        assertEquals(5, ench.contains("levels") ? ench.getCompoundOrEmpty("levels").getIntOr("minecraft:sharpness", 0) : ench.getIntOr("minecraft:sharpness", 0),
-                "1.20 NBT and the 1.21 component are both upgraded: " + sword.item);
-        assertTrue(sword.matchComponents);
+        // 1.20.1 keeps item data as NBT ("tag"): the 1.20 book's enchantment stays; the 1.21 components of the newer
+        // layouts cannot be turned back into NBT and are left out (the report says so).
+        if (layout.equals("inline")) {
+            CompoundTag nbt = ((CompoundTag) sword.item.write()).getCompoundOrEmpty("tag");
+            assertEquals(5, nbt.getListOrEmpty("Enchantments").getCompoundOrEmpty(0).getIntOr("lvl", 0), "1.20 NBT is kept: " + sword.item);
+        } else {
+            assertTrue(sword.item.write() instanceof net.minecraft.nbt.StringTag, "1.21 components are left out: " + sword.item);
+        }
+        assertEquals(layout.equals("inline"), sword.matchComponents, "item data is matched where it is kept");
         assertFalse(sword.fuzzyMatch);
         assertTrue(sword.consume);
         Tasks.CheckmarkTask hi = task(b, "6000000000000003", Tasks.CheckmarkTask.class);
@@ -318,10 +320,11 @@ class FtbImporterTest {
         assertEquals("Deliver 10,000 energy", task(b, "600000000000000E", Tasks.CheckmarkTask.class).title);
         assertTrue(q4.rewards.isEmpty());
 
-        // Quest 5: a dependency on a whole chapter means all of its quests; 1.20's "grass" is "short_grass" now.
+        // Quest 5: a dependency on a whole chapter means all of its quests; 1.20.1 still calls "short_grass" "grass"
+        // (a 1.21 book's "short_grass" cannot be renamed back by the data fixer).
         Quest q5 = quest(b, "3000000000000005");
         assertEquals(4, q5.dependencies.size());
-        assertEquals("minecraft:short_grass", task(b, "6000000000000010", Tasks.ItemTask.class).item.idString());
+        assertEquals(layout.equals("inline") ? "minecraft:grass" : "minecraft:short_grass", task(b, "6000000000000010", Tasks.ItemTask.class).item.idString());
 
         // Reward tables keep their file name; FTB's decimal weights are scaled, ratios stay.
         RewardTable loot = b.rewardTables.get("loot");

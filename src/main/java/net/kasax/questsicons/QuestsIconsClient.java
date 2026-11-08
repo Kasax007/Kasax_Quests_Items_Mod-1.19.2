@@ -1,38 +1,34 @@
 package net.kasax.questsicons;
 
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
+import net.fabricmc.fabric.api.client.screen.v1.Screens;
 import net.kasax.questsicons.block.ModBlocks;
+import net.kasax.questsicons.client.ClientNet;
 import net.kasax.questsicons.client.ClientQuests;
 import net.kasax.questsicons.client.gui.QuestHud;
 import net.kasax.questsicons.client.render.DreamStarPedestalRenderer;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.event.ScreenEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 
-/** The client half of the Forge entry point (see {@link QuestsIcons}). */
-public final class QuestsIconsClient {
-    private QuestsIconsClient() {
-    }
-
-    static void init(IEventBus modBus) {
+/** The client half of the Fabric entry point (see {@link QuestsIcons}). */
+public class QuestsIconsClient implements ClientModInitializer {
+    @Override
+    public void onInitializeClient() {
         ClientQuests.init();
-        modBus.addListener((RegisterKeyMappingsEvent e) -> e.register(ClientQuests.OPEN_BOOK));
-        modBus.addListener((RegisterGuiOverlaysEvent e) -> e.registerAboveAll("pinned", new QuestHud()));
-        modBus.addListener((EntityRenderersEvent.RegisterRenderers e) ->
-                e.registerBlockEntityRenderer(ModBlocks.DREAM_STAR_PEDESTAL_BE, DreamStarPedestalRenderer::new));
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.ClientTickEvent e) -> {
-            if (e.phase == TickEvent.Phase.END) ClientQuests.clientTick(Minecraft.getInstance());
-        });
-        MinecraftForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut e) -> ClientQuests.disconnected());
-        MinecraftForge.EVENT_BUS.addListener((ScreenEvent.Init.Post e) -> {
-            Button b = ClientQuests.inventoryButton(Minecraft.getInstance(), e.getScreen());
-            if (b != null) e.addListener(b);
+        ClientNet.init();
+        KeyBindingHelper.registerKeyBinding(ClientQuests.OPEN_BOOK);
+        HudRenderCallback.EVENT.register(new QuestHud());
+        BlockEntityRenderers.register(ModBlocks.DREAM_STAR_PEDESTAL_BE, DreamStarPedestalRenderer::new);
+        ClientTickEvents.END_CLIENT_TICK.register(ClientQuests::clientTick);
+        ClientPlayConnectionEvents.DISCONNECT.register((h, mc) -> ClientQuests.disconnected());
+        ScreenEvents.AFTER_INIT.register((mc, screen, w, h) -> {
+            Button b = ClientQuests.inventoryButton(mc, screen);
+            if (b != null) Screens.getButtons(screen).add(b);
         });
     }
 }

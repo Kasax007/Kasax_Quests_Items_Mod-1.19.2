@@ -1,8 +1,9 @@
 package net.kasax.questsicons.net;
 
 import io.netty.buffer.Unpooled;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.kasax.questsicons.QuestsIcons;
-import net.kasax.questsicons.client.ClientNet;
 import net.kasax.questsicons.compat.MixedLists;
 import net.kasax.questsicons.server.QuestServer;
 import net.minecraft.nbt.CompoundTag;
@@ -11,10 +12,6 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
@@ -221,40 +218,42 @@ public final class QuestNet {
         }
     }
 
-    // ------------------------------------------------------------------------------------------- loader glue (Forge)
+    // ------------------------------------------------------------------------------------------- loader glue (Fabric)
+    // Fabric API 0.92 (Minecraft 1.20.1) sends raw buffers on named channels: one channel per payload.
 
-    private static final String VERSION = "1";
-    public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
-            new ResourceLocation(QuestsIcons.MOD_ID, "main"), () -> VERSION, VERSION::equals, VERSION::equals);
+    private static final Map<Class<?>, String> NAMES = Map.of(BookSync.class, "book", TeamSync.class, "team", Notify.class, "notify",
+            EditorLists.class, "editor_lists", Part.class, "part", Action.class, "action", Edit.class, "edit");
+    private static final Map<String, Function<FriendlyByteBuf, ? extends Payload>> TO_CLIENT = Map.of("book", BookSync::read,
+            "team", TeamSync::read, "notify", Notify::read, "editor_lists", EditorLists::read, "part", Part::read);
+    private static final Map<String, Function<FriendlyByteBuf, ? extends Payload>> TO_SERVER = Map.of("action", Action::read,
+            "edit", Edit::read, "part", Part::read);
 
-    /** Registers every payload with its handler (client handlers only run on the client). */
+    public static ResourceLocation channel(Payload p) {
+        return new ResourceLocation(QuestsIcons.MOD_ID, NAMES.get(p.getClass()));
+    }
+
+    public static FriendlyByteBuf encode(Payload p) {
+        FriendlyByteBuf buf = PacketByteBufs.create();
+        p.write(buf);
+        return buf;
+    }
+
+    /** Registers the server-side receivers (the client side is in ClientNet). */
     public static void register() {
-        int id = 0;
-        toClient(id++, BookSync.class, BookSync::read);
-        toClient(id++, TeamSync.class, TeamSync::read);
-        toClient(id++, Notify.class, Notify::read);
-        toClient(id++, EditorLists.class, EditorLists::read);
-        toClient(id++, Part.class, Part::read);
-        toServer(id++, Action.class, Action::read);
-        toServer(id++, Edit.class, Edit::read);
-        toServer(id++, Part.class, Part::read);
+        TO_SERVER.forEach((name, read) -> ServerPlayNetworking.registerGlobalReceiver(new ResourceLocation(QuestsIcons.MOD_ID, name),
+                (server, player, handler, buf, sender) -> {
+                    Payload p = read.apply(buf);
+                    server.execute(() -> QuestServer.received(player, p));
+                }));
     }
 
-    private static <T extends Payload> void toClient(int id, Class<T> type, Function<FriendlyByteBuf, T> read) {
-        CHANNEL.messageBuilder(type, id, NetworkDirection.PLAY_TO_CLIENT).encoder(Payload::write).decoder(read)
-                .consumerMainThread((p, ctx) -> ClientNet.received(p)).add();
-    }
-
-    private static <T extends Payload> void toServer(int id, Class<T> type, Function<FriendlyByteBuf, T> read) {
-        CHANNEL.messageBuilder(type, id, NetworkDirection.PLAY_TO_SERVER).encoder(Payload::write).decoder(read)
-                .consumerMainThread((p, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) QuestServer.received(sender, p);
-                }).add();
+    /** The readers of the payloads a client receives, by channel name. */
+    public static Map<String, Function<FriendlyByteBuf, ? extends Payload>> toClient() {
+        return TO_CLIENT;
     }
 
     /** Sends a payload to a player, in parts if it is too big for one packet. */
     public static void sendToPlayer(ServerPlayer player, Payload payload) {
-        for (Payload p : split(payload, MAX_TO_CLIENT)) CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), p);
+        for (Payload p : split(payload, MAX_TO_CLIENT)) ServerPlayNetworking.send(player, channel(p), encode(p));
     }
 }

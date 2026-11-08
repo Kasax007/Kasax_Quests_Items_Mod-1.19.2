@@ -8,7 +8,7 @@ import net.kasax.questsicons.selftest.harness.TestDedicatedServerContext;
 import net.kasax.questsicons.selftest.harness.TestServerContext;
 import net.kasax.questsicons.selftest.harness.TestSingleplayerContext;
 import net.kasax.questsicons.selftest.harness.TestWorldBuilder;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.fabricmc.loader.api.FabricLoader;
 import net.kasax.questsicons.importer.ImportReport;
 import net.kasax.questsicons.net.QuestNet;
 import net.kasax.questsicons.quest.Chapter;
@@ -529,7 +529,7 @@ public class Selftest implements FabricClientGameTest {
 
     /** The editor on a dedicated server: an operator's edits are saved by the server and reach the client live. */
     private void editorOnDedicatedServer() {
-        Path gameDir = FMLPaths.GAMEDIR.get();
+        Path gameDir = FabricLoader.getInstance().getGameDir();
         try {
             Files.writeString(gameDir.resolve("eula.txt"), "eula=true\n");
         } catch (IOException e) {
@@ -660,7 +660,7 @@ public class Selftest implements FabricClientGameTest {
             check("FTB Quests sample folder exists (" + sample + ")", false);
             return;
         }
-        Path gameDir = FMLPaths.GAMEDIR.get();
+        Path gameDir = FabricLoader.getInstance().getGameDir();
         Path target = gameDir.resolve("config/ftbquests/quests");
         try {
             deleteTree(gameDir.resolve("config/ftbquests"));
@@ -788,7 +788,7 @@ public class Selftest implements FabricClientGameTest {
     private void ftbImportOnDedicatedServer() {
         Path sample = Path.of(System.getProperty("qi.selftestFtbLarge", System.getProperty("qi.selftestFtb", "")));
         if (!Files.isDirectory(sample)) return;
-        Path gameDir = FMLPaths.GAMEDIR.get();
+        Path gameDir = FabricLoader.getInstance().getGameDir();
         try {
             deleteTree(gameDir.resolve("config/ftbquests"));
             copyTree(sample, gameDir.resolve("config/ftbquests/quests"));
@@ -894,7 +894,7 @@ public class Selftest implements FabricClientGameTest {
      * "@questsicons" with real keys, shows the quest icons (a CurseForge comment said JEI could not see them on Forge).
      */
     private void jei() {
-        if (!net.minecraftforge.fml.ModList.get().isLoaded("jei")) return;
+        if (!FabricLoader.getInstance().isModLoaded("jei")) return;
         ctx.setScreen(() -> new InventoryScreen(Minecraft.getInstance().player));
         ctx.waitTicks(40);
         ctx.takeScreenshot("qi_jei_inventory");

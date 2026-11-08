@@ -9,6 +9,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -20,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 public final class ModItemGroup {
     public static final CreativeModeTab QUEST_ITEMS = ModRegistry.register(Registries.CREATIVE_MODE_TAB,
             new ResourceLocation(QuestsIcons.MOD_ID, "questitems"),
-            CreativeModeTab.builder()
+            FabricItemGroup.builder()
                     .title(Component.translatable("itemgroup.questitems"))
                     .icon(() -> new ItemStack(ModItems.QUEST_CROWN))
                     .displayItems((params, out) -> {
@@ -41,7 +42,7 @@ public final class ModItemGroup {
         for (IconLibrary.Tab tab : IconLibrary.TABS) {
             if (tab.id().equals("questitems")) continue;
             ModRegistry.register(Registries.CREATIVE_MODE_TAB, new ResourceLocation(QuestsIcons.MOD_ID, "icons_" + tab.id()),
-                    CreativeModeTab.builder()
+                    FabricItemGroup.builder()
                             .title(Component.translatable("itemgroup.questsicons." + tab.id()))
                             .icon(() -> new ItemStack(ModItems.ICON_BY_ID.get(tab.icon())))
                             .displayItems((params, out) -> {

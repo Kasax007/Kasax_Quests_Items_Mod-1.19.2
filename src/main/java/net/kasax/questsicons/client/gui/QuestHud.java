@@ -1,7 +1,6 @@
 package net.kasax.questsicons.client.gui;
 
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.kasax.questsicons.client.ClientQuests;
 import net.kasax.questsicons.quest.Quest;
 import net.kasax.questsicons.quest.QuestBook;
@@ -12,9 +11,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.GuiGraphics;
 
 /** Pinned quests in the top-left corner: title plus each task's progress. */
-public class QuestHud implements IGuiOverlay {
+public class QuestHud implements HudRenderCallback {
     @Override
-    public void render(ForgeGui gui, GuiGraphics g, float partialTick, int width, int height) {
+    public void onHudRender(GuiGraphics g, float tickDelta) {
         Minecraft mc = Minecraft.getInstance();
         QuestBook book = ClientQuests.book;
         if (book == null || ClientQuests.pinned.isEmpty() || mc.options.hideGui || mc.screen != null) return;

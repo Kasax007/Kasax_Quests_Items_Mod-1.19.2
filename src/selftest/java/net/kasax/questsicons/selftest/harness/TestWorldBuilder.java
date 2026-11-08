@@ -5,9 +5,12 @@ import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.function.Consumer;
 
-/** Creates a singleplayer world through the Create World screen. */
+/** Creates a singleplayer world through the Create World screen, or starts a dedicated server in this JVM. */
 public class TestWorldBuilder {
     private final ClientGameTestContext context;
     private Consumer<WorldCreationUiState> settings = s -> {
@@ -36,13 +39,22 @@ public class TestWorldBuilder {
         return new TestSingleplayerContext(context, context.computeOnClient(mc -> mc.getSingleplayerServer()));
     }
 
-    /**
-     * False on NeoForge: its server Main loads every mod a second time in the same JVM, which mod loading refuses. The
-     * dedicated server is covered by the production test instead (a real NeoForge server and client with the release jar).
-     */
-    public static final boolean DEDICATED_SERVER_IN_JVM = false;
+    /** On Fabric the dedicated server can run in the client's JVM (it cannot on Forge and NeoForge). */
+    public static final boolean DEDICATED_SERVER_IN_JVM = true;
 
+    /** Starts {@code net.minecraft.server.Main} with "nogui" in the run directory (server.properties: offline, flat). */
     public TestDedicatedServerContext createServer() {
-        throw new UnsupportedOperationException("NeoForge cannot start a second, dedicated server in the client's JVM");
+        try {
+            Files.writeString(Path.of("server.properties"), "online-mode=false\nspawn-protection=0\nmax-players=2\nlevel-type=minecraft\\:flat\n"
+                    + "server-port=" + (25600 + (int) (Math.random() * 300)) + "\nview-distance=4\nsimulation-distance=4\n");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        TestRunner.dedicated = null;
+        Thread t = new Thread(() -> net.minecraft.server.Main.main(new String[]{"nogui"}), "Dedicated server main");
+        t.setDaemon(true);
+        t.start();
+        context.waitFor(mc -> TestRunner.dedicated != null && TestRunner.dedicated.isReady(), 6000);
+        return new TestDedicatedServerContext(context, TestRunner.dedicated);
     }
 }

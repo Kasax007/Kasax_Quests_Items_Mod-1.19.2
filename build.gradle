@@ -1,7 +1,6 @@
 plugins {
-	id 'java-library'
+	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
 	id 'maven-publish'
-	id 'net.neoforged.moddev.legacyforge' version "${moddev_version}"
 }
 
 version = project.mod_version
@@ -12,111 +11,31 @@ base {
 }
 
 repositories {
-	// JEI, only for the self-test (-PwithJei) to check that it lists the icons
-	exclusiveContent {
-		forRepository { maven { url = "https://api.modrinth.com/maven" } }
-		filter { includeGroup "maven.modrinth" }
-	}
-}
-
-java {
-	toolchain.languageVersion = JavaLanguageVersion.of(21)   // compiles for Java 17 (release 17, below)
-	withSourcesJar()
-}
-
-tasks.withType(JavaCompile).configureEach {
-	it.options.release = 17
-	it.options.encoding = "UTF-8"
-	it.options.compilerArgs += ["-Xmaxerrs", "2000"]
-}
-
-sourceSets {
-	// The converter tests (src/test) need Minecraft with the compat mixins applied; ModDevGradle has no unit tests
-	// for Forge 1.20.1, so the self-test runs them inside the game (JUnit Platform launcher, see TestRunner).
-	test {
-		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
-		runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
-	}
-	selftest {
-		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output + sourceSets.test.output
-		runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output + sourceSets.test.output
-	}
-}
-configurations {
-	selftestImplementation.extendsFrom testImplementation
-	selftestRuntimeOnly.extendsFrom testRuntimeOnly
-}
-
-legacyForge {
-	version = project.forge_version
-	// The 1.21.5+ NBT accessors the quest code uses (compat package): visible to the compiler, the mixins add them at run time.
-	interfaceInjectionData.from(file("src/main/resources/META-INF/interfaces.json"))
-
-	mods {
-		questsicons {
-			sourceSet sourceSets.main
-		}
-		questsicons_selftest {
-			sourceSet sourceSets.selftest
-		}
-	}
-
-	runs {
-		client {
-			client()
-		}
-		server {
-			server()
-		}
-		// Visual self-test (dev only, never shipped): ./gradlew runSelftest
-		// Runs the converter tests (src/test) inside the game, then clicks through the quest book and the editor in a fresh
-		// world, imports an FTB Quests book and saves screenshots (src/selftest; a small harness with the names of Fabric's
-		// client game-test API). Run it under Xvfb. The dedicated server is covered by the production test.
-		selftest {
-			client()
-			sourceSet = sourceSets.selftest
-			loadedMods = [mods.questsicons, mods.questsicons_selftest]
-			gameDirectory = file("build/run/selftest")
-			systemProperty "qi.selftest", "true"
-			jvmArgument "-Xmx2G"
-			programArguments.addAll("--username", "QiTester", "--width", "1280", "--height", "720")
-			// The FTB Quests book the self-test imports: -PselftestFtb=/path/to/quests (default: the JSON5 test book).
-			systemProperty "qi.selftestFtb", (project.findProperty("selftestFtb") ?: file("src/test/resources/ftbquests/json5").absolutePath).toString()
-			// The book imported on the in-process dedicated server (-PselftestFtbLarge=..., default: the same book).
-			if (project.findProperty("selftestFtbLarge")) systemProperty "qi.selftestFtbLarge", project.findProperty("selftestFtbLarge").toString()
-			// Splits payloads above this many bytes into parts (QuestNet), to test the parts with a small book: -PselftestMaxPayload=4000
-			if (project.findProperty("selftestMaxPayload")) systemProperty "questsicons.maxPayload", project.findProperty("selftestMaxPayload").toString()
-		}
-	}
-
-}
-
-// Forge 1.20.1 runs on SRG names: mixins need a refmap, the release jar is reobfuscated (reobfJar).
-mixin {
-	add sourceSets.main, "questsicons.refmap.json"
-	config "questsicons.mixins.json"
 }
 
 dependencies {
-	annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	// 1.20.1 is obfuscated: official Mojang names, so the code reads like the 26.x branches.
+	mappings loom.officialMojangMappings()
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
 	testImplementation "org.junit.jupiter:junit-jupiter:5.13.4"
+	// Runs the tests inside Fabric Loader, so the compat mixins (1.21.5+ NBT accessors) are applied to Minecraft.
+	testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
-	selftestImplementation "org.junit.platform:junit-platform-launcher:1.13.4"
-	if (project.hasProperty("withJei")) {
-		// Forge 1.20.1 mods ship with SRG names: modRuntimeOnly remaps them for the dev game.
-		modRuntimeOnly "maven.modrinth:jei:${project.property('withJei')}"
-	}
 }
 
 // Converter tests (FTB Quests import): ./gradlew test
 // Real modpack quest folders are not part of the repo (their authors keep the rights): fetch six public ones with
 // "python3 -I tools/ftb_samples.py fetch <dir>" and run ./gradlew test -PftbSamples=<dir> (one sub-folder per pack;
 // <name>.stats.json holds the counts of an independent reader that the tests compare with).
-// ./gradlew test does nothing on Forge 1.20.1: run ./gradlew runSelftest (it runs these tests first).
 test {
-	enabled = false
 	useJUnitPlatform()
 	maxHeapSize = "2G"
+	// Minecraft writes logs/ into the working directory: keep it out of the repository.
+	workingDir = layout.buildDirectory.dir("test-run").get().asFile
+	doFirst { workingDir.mkdirs() }
 	systemProperty "qi.ftbSamples", project.findProperty("ftbSamples") ?: ""
 	systemProperty "qi.testOut", layout.buildDirectory.dir("test-import").get().asFile.absolutePath
 	testLogging {
@@ -126,20 +45,82 @@ test {
 	}
 }
 
-var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
-	var replaceProperties = [mod_version: project.mod_version, minecraft_version: project.minecraft_version, forge_version: project.forge_version]
-	inputs.properties replaceProperties
-	expand replaceProperties
-	from "src/main/templates"
-	into "build/generated/sources/modMetadata"
+processResources {
+	inputs.property "version", project.version
+	filesMatching("fabric.mod.json") {
+		expand "version": inputs.properties.version
+	}
 }
-sourceSets.main.resources.srcDir generateModMetadata
-legacyForge.ideSyncTask generateModMetadata
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 17
+	it.options.encoding = "UTF-8"
+	it.options.compilerArgs += ["-Xmaxerrs", "2000"]
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+}
 
 jar {
+	inputs.property "archivesName", project.base.archivesName
 	from("LICENSE") {
-		rename { "${it}_${project.base.archivesName.get()}" }
+		rename { "${it}_${inputs.properties.archivesName}" }
 	}
+}
+
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			artifactId = project.archives_base_name
+			from components.java
+		}
+	}
+}
+
+// Visual self-test (dev only, never shipped): ./gradlew runSelftest
+// Clicks through the quest book and the editor in a fresh world, imports an FTB Quests book (also on a dedicated server
+// started in the same JVM) and saves screenshots. Minecraft 1.20.1 has no Fabric client game-test API: src/selftest
+// brings a small harness with the same names (net.kasax.questsicons.selftest.harness). Run it under Xvfb.
+sourceSets {
+	selftest {
+		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+		runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+	}
+}
+loom {
+	mods {
+		"questsicons" {
+			sourceSet sourceSets.main
+		}
+		"questsicons-selftest" {
+			sourceSet sourceSets.selftest
+		}
+	}
+	runs {
+		selftest {
+			client()
+			name "Selftest"
+			source sourceSets.selftest
+			runDir "build/run/selftest"
+			property "qi.selftest", "true"
+			vmArg "-Xmx2G"
+			programArgs "--username", "QiTester", "--width", "1280", "--height", "720"
+			// The FTB Quests book the self-test imports: -PselftestFtb=/path/to/quests (default: the JSON5 test book).
+			vmArg "-Dqi.selftestFtb=" + (project.findProperty("selftestFtb") ?: file("src/test/resources/ftbquests/json5").absolutePath)
+			// The book imported on the in-process dedicated server (-PselftestFtbLarge=..., default: the same book).
+			if (project.findProperty("selftestFtbLarge")) vmArg "-Dqi.selftestFtbLarge=" + project.findProperty("selftestFtbLarge")
+			// Splits payloads above this many bytes into parts (QuestNet), to test the parts with a small book: -PselftestMaxPayload=4000
+			if (project.findProperty("selftestMaxPayload")) vmArg "-Dquestsicons.maxPayload=" + project.findProperty("selftestMaxPayload")
+		}
+	}
+}
+// The game runs on Java 17 like a 1.20.1 player's (Gradle itself may run on a newer JDK; point it to a JDK 17 with
+// -Porg.gradle.java.installations.paths=<jdk> if none is installed).
+tasks.withType(JavaExec).configureEach {
+	javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(17) }
 }
 
 // A clean game for every self-test: no onboarding screens, no pause when the window loses focus.

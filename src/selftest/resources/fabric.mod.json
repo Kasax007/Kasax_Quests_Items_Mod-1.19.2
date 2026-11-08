@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "questsicons-selftest",
+  "version": "1.0.0",
+  "name": "Quest Icons self-test",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["net.kasax.questsicons.selftest.harness.TestRunner"],
+    "questsicons-selftest": ["net.kasax.questsicons.selftest.Selftest"]
+  },
+  "mixins": ["questsicons-selftest.mixins.json"],
+  "depends": {"questsicons": "*"}
+}

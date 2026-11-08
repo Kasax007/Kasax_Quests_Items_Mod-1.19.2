@@ -1,6 +1,6 @@
 package net.kasax.questsicons.server;
 
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.fabricmc.loader.api.FabricLoader;
 import net.kasax.questsicons.QuestsIcons;
 import net.kasax.questsicons.item.ModItems;
 import net.kasax.questsicons.net.QuestNet;
@@ -36,7 +36,7 @@ import java.util.UUID;
 
 /** Server side of the quest system: owns the book, detects progress, hands out rewards. */
 public final class QuestServer {
-    public static final Path DIR = FMLPaths.CONFIGDIR.get().resolve("questsicons").resolve("quests");
+    public static final Path DIR = FabricLoader.getInstance().getConfigDir().resolve("questsicons").resolve("quests");
 
     private static @Nullable QuestServer instance;
 
@@ -61,7 +61,7 @@ public final class QuestServer {
     }
 
     // ------------------------------------------------------------------------------- loader hooks
-    // NeoForge events call these (wired in QuestsIcons); on Fabric the same calls sit in Fabric API callbacks.
+    // Loader events call these (wired in QuestsIcons).
 
     public static void serverStarted(MinecraftServer s) {
         instance = new QuestServer(s);

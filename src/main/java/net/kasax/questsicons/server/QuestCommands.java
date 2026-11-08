@@ -39,7 +39,7 @@ public final class QuestCommands {
         return SharedSuggestionProvider.suggest(ids, b);
     };
 
-    /** Called from NeoForge's RegisterCommandsEvent (see QuestsIcons). */
+    /** Called when the commands are registered (see QuestsIcons). */
     public static void init(CommandDispatcher<CommandSourceStack> dispatcher) {
         register(dispatcher);
     }
