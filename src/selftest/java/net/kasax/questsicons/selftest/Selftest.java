@@ -936,6 +936,9 @@ public class Selftest implements FabricClientGameTest {
     private void dreamStar(TestServerContext server) {
         // A small stage high up, at night, so the pedestal's light shows.
         server.runCommand("gamemode survival @a");
+        // The spawn of a random world can be far from 0,0: keep the test area loaded.
+        server.runCommand("forceload add -32 -32 32 32");
+        ctx.waitTicks(20);
         server.runCommand("fill -3 150 -3 3 150 3 minecraft:polished_deepslate");
         server.runCommand("fill -3 151 -3 3 156 3 minecraft:air");
         server.runCommand("setblock 0 151 0 questsicons:dream_star_pedestal");
