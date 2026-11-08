@@ -79,7 +79,7 @@ def header(name='header_v4.png', size=(1600, 500)):
     d = ImageDraw.Draw(im)
     d.text((66, 318), '%d icons and a quest book you edit in game' % len(ids), font=small(38), fill=AVAILABLE)
     x = 66
-    for tag in ('Minecraft 26.3 & 26.2 · Fabric', 'No SNBT needed'):
+    for tag in ('Fabric · NeoForge · Forge', 'No SNBT needed'):
         f = small(28)
         pw = d.textlength(tag, font=f) + 44
         new = tag.startswith('No')
