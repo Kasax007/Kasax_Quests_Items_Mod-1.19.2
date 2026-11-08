@@ -100,7 +100,7 @@ public class Selftest implements FabricClientGameTest {
             ftbImportOnDedicatedServer();
             editorOnDedicatedServer();
         } else {
-            System.out.println("[selftest] dedicated server parts skipped on NeoForge (see TestWorldBuilder): the production test covers them");
+            System.out.println("[selftest] dedicated server parts skipped on Forge (see TestWorldBuilder): the production test covers them");
         }
         if (!failed.isEmpty()) throw new AssertionError("self-test checks failed: " + failed);
         System.out.println("[selftest] all checks passed");
