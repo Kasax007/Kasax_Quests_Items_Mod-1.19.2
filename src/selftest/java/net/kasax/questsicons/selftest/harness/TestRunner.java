@@ -10,7 +10,9 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLEnvironment;
+import org.junit.jupiter.engine.JupiterTestEngine;
 import org.junit.platform.launcher.Launcher;
+import org.junit.platform.launcher.core.LauncherConfig;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
@@ -59,7 +61,9 @@ public class TestRunner {
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("the converter tests are not in the game (questsicons mod, test source set)", e);
         }
-        Launcher launcher = LauncherFactory.create();
+        // Forge's module layers hide JUnit's service files: hand the Jupiter engine over directly.
+        Launcher launcher = LauncherFactory.create(LauncherConfig.builder().enableTestEngineAutoRegistration(false)
+                .addTestEngines(new JupiterTestEngine()).build());
         SummaryGeneratingListener listener = new SummaryGeneratingListener();
         launcher.execute(request, listener);
         TestExecutionSummary summary = listener.getSummary();

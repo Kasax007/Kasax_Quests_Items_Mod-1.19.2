@@ -83,6 +83,8 @@ legacyForge {
 			systemProperty "qi.selftest", "true"
 			jvmArgument "-Xmx2G"
 			programArguments.addAll("--username", "QiTester", "--width", "1280", "--height", "720")
+			// The self-test's own mixins (input invokers); Forge 1.20.1 reads mixin configs from the launch arguments.
+			programArguments.addAll("--mixin.config", "questsicons-selftest.mixins.json")
 			// The FTB Quests book the self-test imports: -PselftestFtb=/path/to/quests (default: the JSON5 test book).
 			systemProperty "qi.selftestFtb", (project.findProperty("selftestFtb") ?: file("src/test/resources/ftbquests/json5").absolutePath).toString()
 			// The book imported on the in-process dedicated server (-PselftestFtbLarge=..., default: the same book).
@@ -105,6 +107,7 @@ dependencies {
 	testImplementation "org.junit.jupiter:junit-jupiter:5.13.4"
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 	selftestImplementation "org.junit.platform:junit-platform-launcher:1.13.4"
+	selftestImplementation "org.junit.jupiter:junit-jupiter-engine:5.13.4"
 	// Libraries outside the mods must be put on the game's class path explicitly on Forge.
 	additionalRuntimeClasspath "org.junit.jupiter:junit-jupiter:5.13.4"
 	additionalRuntimeClasspath "org.junit.platform:junit-platform-launcher:1.13.4"

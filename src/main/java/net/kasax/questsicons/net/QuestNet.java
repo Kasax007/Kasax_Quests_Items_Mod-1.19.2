@@ -234,10 +234,15 @@ public final class QuestNet {
         toClient(id++, TeamSync.class, TeamSync::read);
         toClient(id++, Notify.class, Notify::read);
         toClient(id++, EditorLists.class, EditorLists::read);
-        toClient(id++, Part.class, Part::read);
         toServer(id++, Action.class, Action::read);
         toServer(id++, Edit.class, Edit::read);
-        toServer(id++, Part.class, Part::read);
+        // Parts travel both ways: one registration (a message class may only be registered once), the side decides.
+        CHANNEL.messageBuilder(Part.class, id++).encoder(Payload::write).decoder(Part::read)
+                .consumerMainThread((p, ctx) -> {
+                    ServerPlayer sender = ctx.get().getSender();
+                    if (sender != null) QuestServer.received(sender, p);
+                    else ClientNet.received(p);
+                }).add();
     }
 
     private static <T extends Payload> void toClient(int id, Class<T> type, Function<FriendlyByteBuf, T> read) {
