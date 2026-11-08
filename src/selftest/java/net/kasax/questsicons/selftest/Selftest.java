@@ -1036,12 +1036,12 @@ public class Selftest implements FabricClientGameTest {
         BlockPos lava = new BlockPos(20, 151, 20);
         server.runCommand("fill 19 150 19 21 152 21 minecraft:glass");
         server.runCommand("fill 20 151 20 20 152 20 minecraft:lava");
-        server.runCommand("summon item 20.5 153.5 20.5 {Item:{id:\"questsicons:dream_star\",count:1}}");
-        server.runCommand("summon item 20.5 153.5 20.5 {Item:{id:\"minecraft:stick\",count:1}}");
+        server.runCommand("summon item 20.5 153.5 20.5 {Item:{id:\"questsicons:dream_star\",Count:1b}}");
+        server.runCommand("summon item 20.5 153.5 20.5 {Item:{id:\"minecraft:stick\",Count:1b}}");
         BlockPos tnt = new BlockPos(-20, 151, -20);
         server.runCommand("fill -23 150 -23 -17 150 -17 minecraft:obsidian");
-        server.runCommand("summon item -19.5 151 -19.5 {Item:{id:\"questsicons:dream_star\",count:1}}");
-        server.runCommand("summon item -19.5 151 -19.5 {Item:{id:\"minecraft:stick\",count:1}}");
+        server.runCommand("summon item -19.5 151 -19.5 {Item:{id:\"questsicons:dream_star\",Count:1b}}");
+        server.runCommand("summon item -19.5 151 -19.5 {Item:{id:\"minecraft:stick\",Count:1b}}");
         server.runCommand("summon tnt -19.5 151 -19.5 {fuse:10}");
         ctx.waitTicks(100);
         check("the star floats in lava", server.computeOnServer(s -> count(s, ModItems.DREAM_STAR, lava, 3) == 1));
