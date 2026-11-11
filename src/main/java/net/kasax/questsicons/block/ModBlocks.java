@@ -1,6 +1,5 @@
 package net.kasax.questsicons.block;
 
-import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.kasax.questsicons.QuestsIcons;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Registry;
@@ -47,7 +46,7 @@ public final class ModBlocks {
             }
         });
         DREAM_STAR_PEDESTAL_BE = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id,
-                FabricBlockEntityTypeBuilder.create(DreamStarPedestalBlockEntity::new, DREAM_STAR_PEDESTAL).build());
+                new BlockEntityType<>(DreamStarPedestalBlockEntity::new, java.util.Set.of(DREAM_STAR_PEDESTAL)));
     }
 
     public static void registerBlocks() {

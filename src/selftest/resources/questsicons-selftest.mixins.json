@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.kasax.questsicons.selftest.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "CreateWorldScreenInvoker",
+    "InputConstantsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

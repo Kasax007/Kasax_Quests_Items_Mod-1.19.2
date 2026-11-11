@@ -1,19 +1,11 @@
 package net.kasax.questsicons.client;
 
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+
 import com.mojang.blaze3d.platform.InputConstants;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
-import net.fabricmc.fabric.api.client.screen.v1.Screens;
-import net.fabricmc.loader.api.FabricLoader;
 import net.kasax.questsicons.QuestsIcons;
 import net.kasax.questsicons.client.gui.QuestBookScreen;
 import net.kasax.questsicons.client.gui.QuestHud;
@@ -45,68 +37,75 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Client state: the synced book, the team's progress, pinned quests, key binding and notifications. */
-@Environment(EnvType.CLIENT)
 public final class ClientQuests {
     public static @Nullable QuestBook book;
     public static boolean canEdit;
     public static final Progress progress = new Progress();
     public static final LongLinkedOpenHashSet pinned = new LongLinkedOpenHashSet();
-    private static final Path PIN_FILE = FabricLoader.getInstance().getConfigDir().resolve("questsicons-pinned.txt");
+    private static final Path PIN_FILE = net.neoforged.fml.loading.FMLPaths.CONFIGDIR.get().resolve("questsicons-pinned.txt");
 
-    private static final KeyMapping.Category CATEGORY =
-            KeyMapping.Category.register(Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "main"));
-    public static final KeyMapping OPEN_BOOK = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.questsicons.open_book", InputConstants.Type.KEYBOARD, InputConstants.KEY_J, CATEGORY));
+    /** The key category and the key (NeoForge: registered in QuestsIconsClient). */
+    public static final KeyMapping.Category CATEGORY = new KeyMapping.Category(Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "main"));
+    public static final KeyMapping OPEN_BOOK =
+            new KeyMapping("key.questsicons.open_book", InputConstants.Type.KEYBOARD, InputConstants.KEY_J, CATEGORY);
 
     private ClientQuests() {
     }
 
     public static void init() {
         loadPins();
-        EditorData.init();
-        ClientPlayNetworking.registerGlobalReceiver(QuestNet.BookSync.TYPE, (payload, ctx) -> {
-            try {
-                QuestBook b = QuestBook.readAll(QuestNet.decompress(payload.data()));
-                if (ctx.client().level != null) b.registries = ctx.client().level.registryAccess();
-                book = b;
-                canEdit = payload.canEdit();
-                if (ctx.client().gui.screen() instanceof QuestBookScreen s) s.bookUpdated();
-            } catch (Exception e) {
-                QuestsIcons.LOGGER.error("Could not read the quest book from the server", e);
-            }
-        });
-        ClientPlayNetworking.registerGlobalReceiver(QuestNet.TeamSync.TYPE, (payload, ctx) -> {
-            progress.read(payload.data());
-            if (ctx.client().gui.screen() instanceof QuestBookScreen s) s.progressUpdated();
-        });
-        ClientPlayNetworking.registerGlobalReceiver(QuestNet.Notify.TYPE, (payload, ctx) -> notify(ctx.client(), payload));
-        ClientPlayConnectionEvents.DISCONNECT.register((h, c) -> {
-            book = null;
-            canEdit = false;
-            progress.clear();
-            EditorData.reset();
-        });
-        ClientTickEvents.END_CLIENT_TICK.register(mc -> {
-            while (OPEN_BOOK.consumeClick()) {
-                if (mc.player != null && mc.gui.screen() == null) open(mc);
-            }
-        });
-        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(QuestsIcons.MOD_ID, "pinned"), new QuestHud());
-        ScreenEvents.AFTER_INIT.register((mc, screen, w, h) -> {
-            if (screen instanceof InventoryScreen || screen instanceof CreativeModeInventoryScreen) {
-                Button b = Button.builder(Component.literal("✉"), btn -> open(mc))
-                        .bounds(4, 4, 20, 20)
-                        .tooltip(Tooltip.create(Component.translatable("questsicons.gui.open_book")))
-                        .build();
-                Screens.getWidgets(screen).add(b);
-            }
-        });
+    }
+
+    // ---------------------------------------------------------------------- loader hooks (NeoForge: QuestsIconsClient)
+
+    public static void onBook(QuestNet.BookSync payload) {
+        Minecraft mc = Minecraft.getInstance();
+        try {
+            QuestBook b = QuestBook.readAll(QuestNet.decompress(payload.data()));
+            if (mc.level != null) b.registries = mc.level.registryAccess();
+            book = b;
+            canEdit = payload.canEdit();
+            if (mc.gui.screen() instanceof QuestBookScreen s) s.bookUpdated();
+        } catch (Exception e) {
+            QuestsIcons.LOGGER.error("Could not read the quest book from the server", e);
+        }
+    }
+
+    public static void onTeam(QuestNet.TeamSync payload) {
+        progress.read(payload.data());
+        if (Minecraft.getInstance().gui.screen() instanceof QuestBookScreen s) s.progressUpdated();
+    }
+
+    public static void onNotify(QuestNet.Notify payload) {
+        notify(Minecraft.getInstance(), payload);
+    }
+
+    public static void disconnected() {
+        book = null;
+        canEdit = false;
+        progress.clear();
+        EditorData.reset();
+    }
+
+    public static void clientTick(Minecraft mc) {
+        while (OPEN_BOOK.consumeClick()) {
+            if (mc.player != null && mc.gui.screen() == null) open(mc);
+        }
+    }
+
+    /** The small envelope button in the inventory. */
+    public static @Nullable Button inventoryButton(Minecraft mc, net.minecraft.client.gui.screens.Screen screen) {
+        if (!(screen instanceof InventoryScreen || screen instanceof CreativeModeInventoryScreen)) return null;
+        return Button.builder(Component.literal("✉"), btn -> open(mc))
+                .bounds(4, 4, 20, 20)
+                .tooltip(Tooltip.create(Component.translatable("questsicons.gui.open_book")))
+                .build();
     }
 
     public static void open(Minecraft mc) {
         if (book == null) {
             if (mc.player != null) mc.player.sendSystemMessage(Component.translatable("questsicons.gui.no_book"));
-            ClientPlayNetworking.send(new QuestNet.Action(QuestNet.Action.REQUEST_SYNC, 0, 0));
+            ClientPacketDistributor.sendToServer(new QuestNet.Action(QuestNet.Action.REQUEST_SYNC, 0, 0));
             return;
         }
         mc.gui.setScreen(new QuestBookScreen());

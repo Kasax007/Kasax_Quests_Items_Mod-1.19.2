@@ -392,7 +392,7 @@ public final class FtbImportCommand {
             @Override
             public boolean namespace(String namespace) {
                 return namespaces.computeIfAbsent(namespace, ns -> ns.equals("minecraft") || ns.equals("c")
-                        || net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded(ns)
+                        || net.neoforged.fml.ModList.get().isLoaded(ns)
                         || BuiltInRegistries.ITEM.keySet().stream().anyMatch(k -> k.getNamespace().equals(ns)));
             }
 
