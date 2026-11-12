@@ -9,7 +9,7 @@ version = "${mod_version}"
 displayName = "Quest Icons"
 authors = "Kasax007"
 displayURL = "https://www.curseforge.com/minecraft/mc-mods/quest-icons"
-iconFile = "assets/questsicons/icon.png"
+logoFile = "assets/questsicons/icon.png"
 description = '''470 icon items for quest books (letters, numbers, symbols, tiers and chapter themes) - and a complete quest book with an in-game editor: chapters, quest maps, tasks, rewards, loot crates and teams, in the spirit of FTB Quests. Imports FTB Quests books with /quests import ftbquests.'''
 
 [[dependencies.questsicons]]
