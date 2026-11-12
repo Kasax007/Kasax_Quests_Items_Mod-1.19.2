@@ -1148,7 +1148,7 @@ public class Selftest implements FabricClientGameTest {
             ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);
             ctx.waitTicks(3);
         }
-        ctx.runOnClient(mc -> mc.disconnect(new net.minecraft.client.gui.screens.TitleScreen(), false));
+        ctx.runOnClient(mc -> mc.disconnectFromWorld(net.minecraft.client.multiplayer.ClientLevel.DEFAULT_QUIT_MESSAGE));
         ctx.waitFor(mc -> mc.level == null, 1200);
         ctx.waitTicks(5);
     }

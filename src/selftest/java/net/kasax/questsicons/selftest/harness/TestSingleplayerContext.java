@@ -22,7 +22,7 @@ public class TestSingleplayerContext implements AutoCloseable {
     @Override
     public void close() {
         context.runOnClient(mc -> {
-            mc.disconnectWithSavingScreen();
+            mc.disconnectFromWorld(net.minecraft.client.multiplayer.ClientLevel.DEFAULT_QUIT_MESSAGE);   // 1.21.11: like the pause screen
         });
         context.waitFor(mc -> mc.level == null && mc.getSingleplayerServer() == null, 1200);
         context.waitTicks(2);
