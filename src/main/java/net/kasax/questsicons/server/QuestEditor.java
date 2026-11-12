@@ -1,6 +1,5 @@
 package net.kasax.questsicons.server;
 
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.kasax.questsicons.QuestsIcons;
 import net.kasax.questsicons.net.QuestNet;
 import net.kasax.questsicons.quest.Chapter;
@@ -52,7 +51,7 @@ public final class QuestEditor {
         }
         String kind = op.getStringOr("op", "");
         if (kind.equals("lists")) {
-            ServerPlayNetworking.send(player, new QuestNet.EditorLists(lists(qs.server)));
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, new QuestNet.EditorLists(lists(qs.server)));
             return;
         }
         if (kind.equals("reload")) {

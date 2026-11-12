@@ -2,8 +2,6 @@ package net.kasax.questsicons.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.kasax.questsicons.block.DreamStarPedestalBlockEntity;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -22,7 +20,6 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 /** The star on the pedestal: floats, bobs gently, turns once every twelve seconds and is drawn at full brightness. */
-@Environment(EnvType.CLIENT)
 public class DreamStarPedestalRenderer implements BlockEntityRenderer<DreamStarPedestalBlockEntity, DreamStarPedestalRenderer.State> {
     /** Seamless loop: 30 turns (240 ticks each) and 90 bobs (80 ticks each). */
     private static final long LOOP = 7200;

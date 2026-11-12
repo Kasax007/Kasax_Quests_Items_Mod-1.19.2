@@ -1,6 +1,7 @@
 plugins {
-	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+	id 'java-library'
 	id 'maven-publish'
+	id 'net.neoforged.moddev' version "${moddev_version}"
 }
 
 version = project.mod_version
@@ -11,17 +12,95 @@ base {
 }
 
 repositories {
+	// JEI, only for the self-test (-PwithJei) to check that it lists the icons
+	exclusiveContent {
+		forRepository { maven { url = "https://api.modrinth.com/maven" } }
+		filter { includeGroup "maven.modrinth" }
+	}
+}
+
+java {
+	toolchain.languageVersion = JavaLanguageVersion.of(21)
+	withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 21
+	it.options.encoding = "UTF-8"
+	it.options.compilerArgs += ["-Xmaxerrs", "2000"]
+}
+
+sourceSets {
+	selftest {
+		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+		runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+	}
+}
+
+neoForge {
+	version = project.neo_version
+
+	mods {
+		questsicons {
+			sourceSet sourceSets.main
+		}
+		questsicons_selftest {
+			sourceSet sourceSets.selftest
+		}
+	}
+
+	runs {
+		client {
+			client()
+		}
+		server {
+			server()
+		}
+		// Visual self-test (dev only, never shipped): ./gradlew runSelftest
+		// Clicks through the quest book and the editor in a fresh world, imports an FTB Quests book (also on a dedicated
+		// server started in the same JVM) and saves screenshots (src/selftest; a small harness with the names of Fabric's
+		// client game-test API). Run it under Xvfb.
+		selftest {
+			client()
+			sourceSet = sourceSets.selftest
+			loadedMods = [mods.questsicons, mods.questsicons_selftest]
+			gameDirectory = file("build/run/selftest")
+			systemProperty "qi.selftest", "true"
+			jvmArgument "-Xmx2G"
+			programArguments.addAll("--username", "QiTester", "--width", "1280", "--height", "720")
+			// The FTB Quests book the self-test imports: -PselftestFtb=/path/to/quests (default: the JSON5 test book).
+			systemProperty "qi.selftestFtb", (project.findProperty("selftestFtb") ?: file("src/test/resources/ftbquests/json5").absolutePath).toString()
+			// The book imported on the in-process dedicated server (-PselftestFtbLarge=..., default: the same book).
+			if (project.findProperty("selftestFtbLarge")) systemProperty "qi.selftestFtbLarge", project.findProperty("selftestFtbLarge").toString()
+			// Splits payloads above this many bytes into parts (QuestNet), to test the parts with a small book: -PselftestMaxPayload=4000
+			// The dedicated-server parts against a running server: -PselftestServer=localhost:25565 (see Selftest.externalServer)
+			if (project.findProperty("selftestServer")) systemProperty "qi.selftestServer", project.findProperty("selftestServer").toString()
+		}
+		// Writes the mod's registry ids, data and tags to a file and stops (for the comparison with the Fabric build):
+		// ./gradlew runRegistryDump -PdumpTo=/path/file.txt
+		registryDump {
+			server()
+			sourceSet = sourceSets.selftest
+			loadedMods = [mods.questsicons, mods.questsicons_selftest]
+			gameDirectory = file("build/run/registryDump")
+			systemProperty "qi.dump", (project.findProperty("dumpTo") ?: file("build/registry-dump.txt").absolutePath).toString()
+			programArguments.add("--nogui")
+		}
+	}
+
+	// Converter and editor tests run inside NeoForge (FML's JUnit support), with the game's registries.
+	unitTest {
+		enable()
+		testedMod = mods.questsicons
+	}
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	// 1.21.11 is obfuscated: official Mojang names, so the code reads like the 26.x branches.
-	mappings loom.officialMojangMappings()
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
 	testImplementation "org.junit.jupiter:junit-jupiter:5.13.4"
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+	if (project.hasProperty("withJei")) {
+		selftestRuntimeOnly "maven.modrinth:jei:${project.property('withJei')}"
+	}
 }
 
 // Converter tests (FTB Quests import): ./gradlew test
@@ -31,11 +110,11 @@ dependencies {
 test {
 	useJUnitPlatform()
 	maxHeapSize = "2G"
-	// Minecraft writes logs/ into the working directory: keep it out of the repository.
 	workingDir = layout.buildDirectory.dir("test-run").get().asFile
 	doFirst { workingDir.mkdirs() }
 	systemProperty "qi.ftbSamples", project.findProperty("ftbSamples") ?: ""
 	systemProperty "qi.testOut", layout.buildDirectory.dir("test-import").get().asFile.absolutePath
+	systemProperty "qi.testResources", file("src/test/resources").absolutePath
 	testLogging {
 		events "passed", "skipped", "failed"
 		exceptionFormat "full"
@@ -43,72 +122,38 @@ test {
 	}
 }
 
-processResources {
-	inputs.property "version", project.version
-	filesMatching("fabric.mod.json") {
-		expand "version": inputs.properties.version
-	}
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+	var replaceProperties = [mod_version: project.mod_version, minecraft_version: project.minecraft_version, neo_version: project.neo_version]
+	inputs.properties replaceProperties
+	expand replaceProperties
+	from "src/main/templates"
+	into "build/generated/sources/modMetadata"
 }
-
-tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
-	it.options.encoding = "UTF-8"
-	it.options.compilerArgs += ["-Xmaxerrs", "2000"]
-}
-
-java {
-	withSourcesJar()
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
-}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
 
 jar {
-	inputs.property "archivesName", project.base.archivesName
 	from("LICENSE") {
-		rename { "${it}_${inputs.properties.archivesName}" }
+		rename { "${it}_${project.base.archivesName.get()}" }
 	}
 }
 
-publishing {
-	publications {
-		create("mavenJava", MavenPublication) {
-			artifactId = project.archives_base_name
-			from components.java
-		}
+tasks.matching { it.name == "runRegistryDump" }.configureEach {
+	doFirst {
+		def dir = file("build/run/registryDump")
+		dir.mkdirs()
+		new File(dir, "eula.txt").text = "eula=true\n"
+		delete new File(dir, "world")
 	}
 }
 
-// Visual self-test (dev only, never shipped): ./gradlew runSelftest
-// A client game test that creates a world, clicks through the quest book, imports an FTB Quests book and saves screenshots.
-sourceSets {
-	selftest {
-		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
-		runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+// A clean game for every self-test: no onboarding screens, no pause when the window loses focus.
+tasks.matching { it.name == "runSelftest" }.configureEach {
+	doFirst {
+		def dir = file("build/run/selftest")
+		dir.mkdirs()
+		file("build/run/selftest/options.txt").text = "onboardAccessibility:false\npauseOnLostFocus:false\ntutorialStep:none\n" +
+				"joinedFirstServer:true\nskipMultiplayerWarning:true\nnarrator:0\nguiScale:2\nsoundCategory_master:0.0\n"
+		delete "build/run/selftest/saves", "build/run/selftest/world", "build/run/selftest/config/questsicons", "build/run/selftest/screenshots"
 	}
-}
-loom {
-	mods {
-		"questsicons-selftest" {
-			sourceSet sourceSets.selftest
-		}
-	}
-	runs {
-		selftest {
-			client()
-			name "Selftest"
-			source sourceSets.selftest
-			runDir "build/run/selftest"
-			property "fabric.client.gametest"
-			vmArg "-Xmx2G"
-			// The FTB Quests book the self-test imports: -PselftestFtb=/path/to/quests (default: the JSON5 test book).
-			vmArg "-Dqi.selftestFtb=" + (project.findProperty("selftestFtb") ?: file("src/test/resources/ftbquests/json5").absolutePath)
-			// The book imported on the in-process dedicated server (-PselftestFtbLarge=..., default: the same book).
-			if (project.findProperty("selftestFtbLarge")) vmArg "-Dqi.selftestFtbLarge=" + project.findProperty("selftestFtbLarge")
-		}
-	}
-}
-
-// The game runs on Java 21 like a 1.21.11 player's (Gradle itself may run on a newer JDK).
-tasks.withType(JavaExec).configureEach {
-	javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
 }

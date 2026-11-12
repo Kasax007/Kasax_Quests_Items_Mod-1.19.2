@@ -1,6 +1,7 @@
 package net.kasax.questsicons.client.gui;
 
-import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
+import net.neoforged.neoforge.client.gui.GuiLayer;
+
 import net.kasax.questsicons.client.ClientQuests;
 import net.kasax.questsicons.quest.Quest;
 import net.kasax.questsicons.quest.QuestBook;
@@ -12,7 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.GuiGraphics;
 
 /** Pinned quests in the top-left corner: title plus each task's progress. */
-public class QuestHud implements HudElement {
+public class QuestHud implements GuiLayer {
     @Override
     public void render(GuiGraphics g, DeltaTracker delta) {
         Minecraft mc = Minecraft.getInstance();

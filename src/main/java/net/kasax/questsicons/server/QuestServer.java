@@ -1,12 +1,7 @@
 package net.kasax.questsicons.server;
 
-import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.loader.api.FabricLoader;
 import net.kasax.questsicons.QuestsIcons;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.kasax.questsicons.item.ModItems;
 import net.kasax.questsicons.net.QuestNet;
 import net.kasax.questsicons.progress.QuestSavedData;
@@ -40,7 +35,7 @@ import java.util.UUID;
 
 /** Server side of the quest system: owns the book, detects progress, hands out rewards. */
 public final class QuestServer {
-    public static final Path DIR = FabricLoader.getInstance().getConfigDir().resolve("questsicons").resolve("quests");
+    public static final Path DIR = net.neoforged.fml.loading.FMLPaths.CONFIGDIR.get().resolve("questsicons").resolve("quests");
 
     private static @Nullable QuestServer instance;
 
@@ -62,27 +57,39 @@ public final class QuestServer {
         return instance;
     }
 
-    public static void init() {
-        ServerLifecycleEvents.SERVER_STARTED.register(s -> instance = new QuestServer(s));
-        ServerLifecycleEvents.SERVER_STOPPED.register(s -> instance = null);
-        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((s, rm, ok) -> {
-            if (instance != null) instance.bookChanged(false);
-        });
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, s) -> {
-            if (instance != null) instance.onJoin(handler.player);
-        });
-        ServerTickEvents.END_SERVER_TICK.register(s -> {
-            if (instance != null) instance.tick();
-        });
-        ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
-            if (instance != null && source.getEntity() instanceof ServerPlayer p) instance.onKill(p, entity);
-        });
-        ServerPlayNetworking.registerGlobalReceiver(QuestNet.Action.TYPE, (payload, ctx) -> {
-            if (instance != null) instance.onAction(ctx.player(), payload);
-        });
-        ServerPlayNetworking.registerGlobalReceiver(QuestNet.Edit.TYPE, (payload, ctx) -> {
-            if (instance != null) QuestEditor.apply(instance, ctx.player(), payload.op());
-        });
+    // ------------------------------------------------------------------------------- loader hooks
+    // NeoForge events call these (wired in QuestsIcons and QuestNet); on Fabric the same calls sit in Fabric API callbacks.
+
+    public static void serverStarted(MinecraftServer s) {
+        instance = new QuestServer(s);
+    }
+
+    public static void serverStopped() {
+        instance = null;
+    }
+
+    public static void dataPacksReloaded() {
+        if (instance != null) instance.bookChanged(false);
+    }
+
+    public static void playerJoined(ServerPlayer p) {
+        if (instance != null) instance.onJoin(p);
+    }
+
+    public static void serverTick() {
+        if (instance != null) instance.tick();
+    }
+
+    public static void entityKilled(net.minecraft.world.entity.LivingEntity entity, net.minecraft.world.damagesource.DamageSource source) {
+        if (instance != null && source.getEntity() instanceof ServerPlayer p) instance.onKill(p, entity);
+    }
+
+    public static void received(ServerPlayer p, QuestNet.Action payload) {
+        if (instance != null) instance.onAction(p, payload);
+    }
+
+    public static void received(ServerPlayer p, QuestNet.Edit payload) {
+        if (instance != null) QuestEditor.apply(instance, p, payload.op());
     }
 
     // ------------------------------------------------------------------------------- book
@@ -139,7 +146,7 @@ public final class QuestServer {
     public void sendBook(ServerPlayer p) {
         boolean can = canEdit(p);
         editors.put(p.getUUID(), can);
-        ServerPlayNetworking.send(p, new QuestNet.BookSync(bookBytes, can));
+        PacketDistributor.sendToPlayer(p, new QuestNet.BookSync(bookBytes, can));
     }
 
     // ------------------------------------------------------------------------------- teams
@@ -155,7 +162,7 @@ public final class QuestServer {
     public void syncTeam(TeamData team) {
         for (UUID m : team.members) {
             ServerPlayer p = server.getPlayerList().getPlayer(m);
-            if (p != null) ServerPlayNetworking.send(p, new QuestNet.TeamSync(team.writeForClient(m)));
+            if (p != null) PacketDistributor.sendToPlayer(p, new QuestNet.TeamSync(team.writeForClient(m)));
         }
     }
 
@@ -168,7 +175,7 @@ public final class QuestServer {
         TeamData team = team(p);
         sendBook(p);
         completeTaskless(team, p);
-        ServerPlayNetworking.send(p, new QuestNet.TeamSync(team.writeForClient(p.getUUID())));
+        PacketDistributor.sendToPlayer(p, new QuestNet.TeamSync(team.writeForClient(p.getUUID())));
         if (book.giveBookOnFirstJoin && !team.gotBook.contains(p.getUUID())) {
             team.gotBook.add(p.getUUID());
             data().setDirty();
@@ -267,8 +274,8 @@ public final class QuestServer {
         for (UUID m : team.members) {
             ServerPlayer p = server.getPlayerList().getPlayer(m);
             if (p == null) continue;
-            if (!q.disableToast) ServerPlayNetworking.send(p, new QuestNet.Notify(QuestNet.Notify.QUEST, q.id));
-            if (chapterDone) ServerPlayNetworking.send(p, new QuestNet.Notify(QuestNet.Notify.CHAPTER, chapter.id));
+            if (!q.disableToast) PacketDistributor.sendToPlayer(p, new QuestNet.Notify(QuestNet.Notify.QUEST, q.id));
+            if (chapterDone) PacketDistributor.sendToPlayer(p, new QuestNet.Notify(QuestNet.Notify.CHAPTER, chapter.id));
             for (Reward r : q.rewards) {
                 if (r.autoClaim && !r.needsChoice()) claim(p, team, r, -1, false);
             }
@@ -331,7 +338,7 @@ public final class QuestServer {
             }
             case QuestNet.Action.REQUEST_SYNC -> {
                 sendBook(p);
-                ServerPlayNetworking.send(p, new QuestNet.TeamSync(team.writeForClient(p.getUUID())));
+                PacketDistributor.sendToPlayer(p, new QuestNet.TeamSync(team.writeForClient(p.getUUID())));
             }
             default -> {
             }
@@ -353,7 +360,7 @@ public final class QuestServer {
             p.sendSystemMessage(Component.literal("Reward failed: " + e.getMessage()).withStyle(ChatFormatting.RED));
         }
         if (sound) p.level().playSound(null, p.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.5f, 1.0f);
-        ServerPlayNetworking.send(p, new QuestNet.Notify(QuestNet.Notify.CLAIMED, r.id));
+        PacketDistributor.sendToPlayer(p, new QuestNet.Notify(QuestNet.Notify.CLAIMED, r.id));
         return true;
     }
 
@@ -384,6 +391,6 @@ public final class QuestServer {
     }
 
     public void openBook(ServerPlayer p) {
-        ServerPlayNetworking.send(p, new QuestNet.Notify(QuestNet.Notify.OPEN, 0));
+        PacketDistributor.sendToPlayer(p, new QuestNet.Notify(QuestNet.Notify.OPEN, 0));
     }
 }

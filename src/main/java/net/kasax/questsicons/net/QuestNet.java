@@ -1,6 +1,10 @@
 package net.kasax.questsicons.net;
 
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.kasax.questsicons.server.QuestServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+
 import net.kasax.questsicons.QuestsIcons;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
@@ -119,15 +123,18 @@ public final class QuestNet {
         }
     }
 
-    public static void register() {
-        // A big book (an imported FTB Quests book with thousands of quests) can be close to the 1 MiB limit of a single
-        // custom payload even compressed; Fabric splits a "large" payload into parts.
-        PayloadTypeRegistry.playS2C().registerLarge(BookSync.TYPE, BookSync.CODEC, 16 * 1024 * 1024 + 1024);
-        PayloadTypeRegistry.playS2C().register(TeamSync.TYPE, TeamSync.CODEC);
-        PayloadTypeRegistry.playS2C().register(Notify.TYPE, Notify.CODEC);
-        PayloadTypeRegistry.playC2S().register(Action.TYPE, Action.CODEC);
-        // Edits carry whole chapters (paste, undo of a big chapter): allowed to be large, too.
-        PayloadTypeRegistry.playC2S().registerLarge(Edit.TYPE, Edit.CODEC, 8 * 1024 * 1024);
-        PayloadTypeRegistry.playS2C().registerLarge(EditorLists.TYPE, EditorLists.CODEC, 8 * 1024 * 1024);
+    /**
+     * Mod bus: the payloads and their server handlers (the client registers its handlers in QuestsIconsClient).
+     * A big book (an imported FTB Quests book with thousands of quests) or a big edit can be larger than one custom
+     * payload may be; NeoForge splits such packets into parts and joins them again on the other side.
+     */
+    public static void register(RegisterPayloadHandlersEvent event) {
+        PayloadRegistrar r = event.registrar("1");
+        r.playToClient(BookSync.TYPE, BookSync.CODEC);
+        r.playToClient(TeamSync.TYPE, TeamSync.CODEC);
+        r.playToClient(Notify.TYPE, Notify.CODEC);
+        r.playToClient(EditorLists.TYPE, EditorLists.CODEC);
+        r.playToServer(Action.TYPE, Action.CODEC, (p, ctx) -> QuestServer.received((ServerPlayer) ctx.player(), p));
+        r.playToServer(Edit.TYPE, Edit.CODEC, (p, ctx) -> QuestServer.received((ServerPlayer) ctx.player(), p));
     }
 }

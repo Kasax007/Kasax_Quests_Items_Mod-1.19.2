@@ -61,7 +61,11 @@ class FtbImporterTest {
     }
 
     private static Path fixture(String name) throws URISyntaxException {
-        return Path.of(FtbImporterTest.class.getResource("/ftbquests/" + name + "/chapters").toURI()).getParent();
+        java.net.URL url = FtbImporterTest.class.getResource("/ftbquests/" + name + "/chapters");
+        // NeoForge runs the tests inside its module layer, which hides resource folders of the test module: the build
+        // passes the folder itself (qi.testResources)
+        if (url == null) return Path.of(System.getProperty("qi.testResources"), "ftbquests", name);
+        return Path.of(url.toURI()).getParent();
     }
 
     private static long id(String hex) {
