@@ -33,7 +33,16 @@ public class TestWorldBuilder {
         });
         context.waitFor(mc -> mc.level != null && mc.player != null && mc.getSingleplayerServer() != null && mc.gui.screen() == null, 2400);
         context.waitTicks(5);
-        return new TestSingleplayerContext(context, context.computeOnClient(mc -> mc.getSingleplayerServer()));
+        net.minecraft.server.MinecraftServer server = context.computeOnClient(mc -> mc.getSingleplayerServer());
+        // The tests build around the origin (Fabric's test worlds spawn there); with a random spawn far away its chunks
+        // would not be loaded and /setblock there would fail: keep them loaded.
+        server.submit(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSuppressedOutput(),
+                "forceload add -32 -32 31 31")).join();
+        for (int i = 0; i < 1200 && !server.submit(() -> server.overworld().hasChunk(0, 0) && server.overworld().hasChunk(-1, -1)).join(); i++) {
+            context.waitTick();
+        }
+        context.waitTicks(5);
+        return new TestSingleplayerContext(context, server);
     }
 
     /**
