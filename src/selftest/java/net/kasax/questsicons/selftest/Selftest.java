@@ -1,13 +1,14 @@
 package net.kasax.questsicons.selftest;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
-import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
-import net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerConnection;
-import net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerContext;
-import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext;
-import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
-import net.fabricmc.loader.api.FabricLoader;
+import net.kasax.questsicons.selftest.harness.FabricClientGameTest;
+import net.kasax.questsicons.selftest.harness.ClientGameTestContext;
+import net.kasax.questsicons.selftest.harness.TestDedicatedServerConnection;
+import net.kasax.questsicons.selftest.harness.TestDedicatedServerContext;
+import net.kasax.questsicons.selftest.harness.TestServerContext;
+import net.kasax.questsicons.selftest.harness.TestSingleplayerContext;
+import net.kasax.questsicons.selftest.harness.TestWorldBuilder;
+import net.neoforged.fml.loading.FMLPaths;
 import net.kasax.questsicons.importer.ImportReport;
 import net.kasax.questsicons.net.QuestNet;
 import net.kasax.questsicons.quest.Chapter;
@@ -80,6 +81,14 @@ public class Selftest implements FabricClientGameTest {
             mc.options.guiScale().set(2);
             mc.resizeGui();
         });
+        // NeoForge: the dedicated-server parts against a real (production) server: -Dqi.selftestServer=host:port
+        String external = System.getProperty("qi.selftestServer");
+        if (external != null) {
+            externalServer(external);
+            if (!failed.isEmpty()) throw new AssertionError("self-test checks failed: " + failed);
+            System.out.println("[selftest] all checks passed");
+            return;
+        }
         try (TestSingleplayerContext sp = ctx.worldBuilder().adjustSettings(s -> {
             s.setGameMode(WorldCreationUiState.SelectedGameMode.CREATIVE);
             s.setAllowCommands(true);
@@ -95,8 +104,12 @@ public class Selftest implements FabricClientGameTest {
             dreamStar(sp.getServer());
             ftbImport(sp.getServer());
         }
-        ftbImportOnDedicatedServer();
-        editorOnDedicatedServer();
+        if (TestWorldBuilder.DEDICATED_SERVER_IN_JVM) {
+            ftbImportOnDedicatedServer();
+            editorOnDedicatedServer();
+        } else {
+            System.out.println("[selftest] dedicated server parts skipped on NeoForge (see TestWorldBuilder): the production test covers them");
+        }
         if (!failed.isEmpty()) throw new AssertionError("self-test checks failed: " + failed);
         System.out.println("[selftest] all checks passed");
     }
@@ -524,7 +537,7 @@ public class Selftest implements FabricClientGameTest {
 
     /** The editor on a dedicated server: an operator's edits are saved by the server and reach the client live. */
     private void editorOnDedicatedServer() {
-        Path gameDir = FabricLoader.getInstance().getGameDir();
+        Path gameDir = FMLPaths.GAMEDIR.get();
         try {
             Files.writeString(gameDir.resolve("eula.txt"), "eula=true\n");
         } catch (IOException e) {
@@ -655,7 +668,7 @@ public class Selftest implements FabricClientGameTest {
             check("FTB Quests sample folder exists (" + sample + ")", false);
             return;
         }
-        Path gameDir = FabricLoader.getInstance().getGameDir();
+        Path gameDir = FMLPaths.GAMEDIR.get();
         Path target = gameDir.resolve("config/ftbquests/quests");
         try {
             deleteTree(gameDir.resolve("config/ftbquests"));
@@ -783,7 +796,7 @@ public class Selftest implements FabricClientGameTest {
     private void ftbImportOnDedicatedServer() {
         Path sample = Path.of(System.getProperty("qi.selftestFtbLarge", System.getProperty("qi.selftestFtb", "")));
         if (!Files.isDirectory(sample)) return;
-        Path gameDir = FabricLoader.getInstance().getGameDir();
+        Path gameDir = FMLPaths.GAMEDIR.get();
         try {
             deleteTree(gameDir.resolve("config/ftbquests"));
             copyTree(sample, gameDir.resolve("config/ftbquests/quests"));
@@ -1036,5 +1049,101 @@ public class Selftest implements FabricClientGameTest {
         CraftingInput input = CraftingInput.of(3, 3, items);
         return s.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, s.overworld())
                 .map(h -> h.value().assemble(input).is(result)).orElse(false);
+    }
+
+    // ------------------------------------------------------------------------------- external dedicated server
+
+    /**
+     * NeoForge cannot start a dedicated server in the client's JVM, so the dedicated-server parts run against a real one
+     * (the production test starts it with the release jar, the player QiTester is an operator, an FTB Quests book waits
+     * in its config/ftbquests/quests): everything goes over the network and is checked on the client.
+     */
+    private void externalServer(String address) {
+        ctx.runOnClient(mc -> net.minecraft.client.gui.screens.ConnectScreen.startConnecting(new net.minecraft.client.gui.screens.TitleScreen(), mc,
+                net.minecraft.client.multiplayer.resolver.ServerAddress.parseString(address),
+                new net.minecraft.client.multiplayer.ServerData("smoke", address, net.minecraft.client.multiplayer.ServerData.Type.OTHER), false, null));
+        ctx.waitFor(mc -> mc.level != null && mc.player != null && mc.gui.screen() == null, 2400);
+        ctx.waitTicks(20);
+        ctx.waitFor(mc -> ClientQuests.book != null, 1200);
+        check("external server: the book arrives over the network", ctx.computeOnClient(mc -> ClientQuests.book != null));
+        ctx.waitFor(mc -> ClientQuests.canEdit, 600);
+        check("external server: the operator may edit", ctx.computeOnClient(mc -> ClientQuests.canEdit));
+        ctx.takeScreenshot("qi_server_world");
+        // the editor: a chapter and a quest made on the client go to the server and come back in its book
+        ctx.setScreen(QuestBookScreen::new);
+        ctx.waitTicks(10);
+        press(tr("questsicons.edit.off"));
+        int chapters = ctx.computeOnClient(mc -> ClientQuests.book.chapters.size());
+        check("external server: + Chapter", press(tr("questsicons.edit.new_chapter")));
+        ctx.waitFor(mc -> ClientQuests.book.chapters.size() == chapters + 1, 200);
+        check("external server: the new chapter is on the server and back on the client",
+                ctx.computeOnClient(mc -> ClientQuests.book.chapters.size()) == chapters + 1);
+        ctx.waitTicks(10);
+        rightClickMap(0, 0);
+        press(tr("questsicons.edit.new_quest"));
+        type(tr("questsicons.form.title"), "Server Quest");
+        press(tr("questsicons.form.add_task"));
+        press("checkmark");
+        press(tr("questsicons.edit.save"));
+        check("external server: save the quest", press(tr("questsicons.edit.save")));
+        ctx.waitFor(mc -> {
+            for (Quest q : ClientQuests.book.allQuests()) if (q.title.equals("Server Quest")) return true;
+            return false;
+        }, 200);
+        check("external server: the quest comes back from the server", ctx.computeOnClient(mc -> {
+            for (Quest q : ClientQuests.book.allQuests()) if (q.title.equals("Server Quest")) return true;
+            return false;
+        }));
+        ctx.takeScreenshot("qi_server_editor");
+        ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);
+        ctx.waitTicks(5);
+        // the FTB Quests import on the server (merged into the book, so the quest above stays): the whole book reaches
+        // the client
+        int before = ctx.computeOnClient(mc -> ClientQuests.book.questCount());
+        ctx.runOnClient(mc -> mc.player.connection.sendCommand("quests import ftbquests merge"));
+        ctx.waitFor(mc -> ClientQuests.book != null && ClientQuests.book.questCount() > before, 2400);
+        int quests = ctx.computeOnClient(mc -> ClientQuests.book.questCount());
+        check("external server: the merged import reaches the client (" + before + " -> " + quests + " quests)", quests > before);
+        // complete a quest by ticking its tasks, then claim its rewards
+        long[] pick = ctx.computeOnClient(mc -> {
+            for (Chapter c : ClientQuests.book.chapters) {
+                if (c.alwaysInvisible) continue;
+                for (Quest q : c.quests) {
+                    if (q.dependencies.isEmpty() && !q.invisible && !q.tasks.isEmpty() && q.tasks.size() <= 4
+                            && q.tasks.stream().allMatch(t -> t instanceof Tasks.CheckmarkTask) && !q.rewards.isEmpty() && q.rewards.size() <= 4) {
+                        return new long[]{c.id, q.id};
+                    }
+                }
+            }
+            return null;
+        });
+        check("external server: a quest with checkmark tasks and rewards", pick != null);
+        if (pick != null) {
+            ctx.setScreen(QuestBookScreen::new);
+            ctx.waitTicks(20);
+            check("external server: click the chapter", clickLabel("chapter:" + QuestObject.idToString(pick[0])));
+            ctx.waitTicks(20);
+            clickQuest(pick[1]);
+            check("external server: the quest opens", selected() == pick[1]);
+            int ticks = ctx.computeOnClient(mc -> ClientQuests.book.quest(pick[1]).tasks.size());
+            for (int i = 0; i < ticks; i++) {
+                clickLabel(tr("questsicons.gui.check"));
+                ctx.waitTicks(10);
+            }
+            check("external server: ticking its tasks completes the quest", ctx.computeOnClient(mc -> ClientQuests.progress.isQuestCompleted(pick[1])));
+            ctx.takeScreenshot("qi_server_quest_done");
+            int unclaimed = ctx.computeOnClient(mc -> ClientQuests.progress.unclaimedTotal());
+            ctx.runOnClient(mc -> net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(
+                    new net.kasax.questsicons.net.QuestNet.Action(net.kasax.questsicons.net.QuestNet.Action.CLAIM_ALL, 0, 0)));
+            ctx.waitFor(mc -> ClientQuests.progress.unclaimedTotal() < unclaimed, 200);
+            int left = ctx.computeOnClient(mc -> ClientQuests.progress.unclaimedTotal());
+            check("external server: claim the rewards (" + unclaimed + " -> " + left + " unclaimed)", unclaimed > 0 && left < unclaimed);
+            ctx.takeScreenshot("qi_server_claimed");
+            ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);
+            ctx.waitTicks(3);
+        }
+        ctx.runOnClient(mc -> mc.disconnect(new net.minecraft.client.gui.screens.TitleScreen(), false));
+        ctx.waitFor(mc -> mc.level == null, 1200);
+        ctx.waitTicks(5);
     }
 }

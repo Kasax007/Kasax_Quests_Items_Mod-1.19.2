@@ -1,6 +1,6 @@
 package net.kasax.questsicons.client;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.kasax.questsicons.net.QuestNet;
 import net.kasax.questsicons.quest.Chapter;
 import net.kasax.questsicons.quest.QuestBook;
@@ -35,8 +35,9 @@ public final class EditorData {
     private static CompoundTag server = new CompoundTag();
     private static boolean requested;
 
-    public static void init() {
-        ClientPlayNetworking.registerGlobalReceiver(QuestNet.EditorLists.TYPE, (payload, ctx) -> server = payload.data());
+    /** The server's lists arrived (NeoForge: the payload handler registered in QuestsIconsClient). */
+    public static void received(QuestNet.EditorLists payload) {
+        server = payload.data();
     }
 
     public static void reset() {
@@ -51,7 +52,7 @@ public final class EditorData {
         requested = true;
         CompoundTag op = new CompoundTag();
         op.putString("op", "lists");
-        ClientPlayNetworking.send(new QuestNet.Edit(op));
+        ClientPacketDistributor.sendToServer(new QuestNet.Edit(op));
     }
 
     public static boolean hasServerLists() {
