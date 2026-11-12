@@ -2,7 +2,7 @@ package net.kasax.questsicons.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.kasax.questsicons.client.ClientQuests;
 import net.kasax.questsicons.client.EditorData;
 import net.kasax.questsicons.icons.IconLibrary;
@@ -714,7 +714,7 @@ public class QuestBookScreen extends Screen {
         x -= cw + 4;
         if (unclaimed > 0) {
             button(g, x, 4, cw, 16, claim, mouseX, mouseY, () -> {
-                ClientPlayNetworking.send(new QuestNet.Action(QuestNet.Action.CLAIM_ALL, 0, 0));
+                ClientPacketDistributor.sendToServer(new QuestNet.Action(QuestNet.Action.CLAIM_ALL, 0, 0));
                 click();
             });
         }
@@ -859,7 +859,7 @@ public class QuestBookScreen extends Screen {
                 if (showBtn) {
                     final Task task = t;
                     button(g, right - btnW, y + 1, btnW, 16, t.submitLabel(), mouseX, mouseY, () -> {
-                        ClientPlayNetworking.send(new QuestNet.Action(QuestNet.Action.SUBMIT, task.id, 0));
+                        ClientPacketDistributor.sendToServer(new QuestNet.Action(QuestNet.Action.SUBMIT, task.id, 0));
                         click();
                     });
                     right -= btnW + 4;
@@ -901,7 +901,7 @@ public class QuestBookScreen extends Screen {
                         if (reward.needsChoice()) {
                             choosing = reward;
                         } else {
-                            ClientPlayNetworking.send(new QuestNet.Action(QuestNet.Action.CLAIM, reward.id, -1));
+                            ClientPacketDistributor.sendToServer(new QuestNet.Action(QuestNet.Action.CLAIM, reward.id, -1));
                         }
                         click();
                     });
@@ -1020,7 +1020,7 @@ public class QuestBookScreen extends Screen {
             final int idx = i;
             final Reward r = choosing;
             zones.add(new Zone(ix, iy, 24, 24, () -> {
-                ClientPlayNetworking.send(new QuestNet.Action(QuestNet.Action.CLAIM, r.id, idx));
+                ClientPacketDistributor.sendToServer(new QuestNet.Action(QuestNet.Action.CLAIM, r.id, idx));
                 choosing = null;
                 click();
             }, items.get(i).getHoverName()));
@@ -1504,7 +1504,7 @@ public class QuestBookScreen extends Screen {
     // ------------------------------------------------------------------------------- editing
 
     private void edit(CompoundTag op) {
-        ClientPlayNetworking.send(new QuestNet.Edit(op));
+        ClientPacketDistributor.sendToServer(new QuestNet.Edit(op));
     }
 
     /** Sends an edit and remembers how to undo it: the touched chapters as they are now. */
