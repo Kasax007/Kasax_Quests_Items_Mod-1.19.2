@@ -38,6 +38,26 @@ public class TestInput {
         return HELD.contains(InputConstants.KEY_LSHIFT) ? InputConstants.MOD_SHIFT : 0;
     }
 
+    /**
+     * The SDL keycode of a key (26.3's KeyEvent carries both: the scancode for key bindings, the keycode for text
+     * editing, e.g. EditBox's Backspace and End). Printable keys are their character, the rest the scancode with
+     * SDLK_SCANCODE_MASK, like SDL does for a US layout.
+     */
+    private static int keycode(int scancode) {
+        if (scancode >= 4 && scancode <= 29) return 'a' + (scancode - 4);
+        if (scancode >= 30 && scancode <= 38) return '1' + (scancode - 30);
+        return switch (scancode) {
+            case 39 -> '0';
+            case 40 -> 13;    // Return
+            case 41 -> 27;    // Escape
+            case 42 -> 8;     // Backspace
+            case 43 -> 9;     // Tab
+            case 44 -> 32;    // Space
+            case 76 -> 127;   // Delete
+            default -> scancode | (1 << 30);
+        };
+    }
+
     public void resizeWindow(int width, int height) {
         context.runOnClient(mc -> mc.getWindow().setWindowed(width, height));
         context.waitTicks(5);
@@ -73,13 +93,13 @@ public class TestInput {
 
     public void holdKey(int key) {
         HELD.add(key);
-        context.runOnClient(mc -> mc.keyboardHandler.keyPress(window(mc), InputConstants.PRESS, new KeyEvent(key, 0, mods())));
+        context.runOnClient(mc -> mc.keyboardHandler.keyPress(window(mc), InputConstants.PRESS, new KeyEvent(key, keycode(key), mods())));
         context.waitTick();
     }
 
     public void releaseKey(int key) {
         HELD.remove(key);
-        context.runOnClient(mc -> mc.keyboardHandler.keyPress(window(mc), InputConstants.RELEASE, new KeyEvent(key, 0, mods())));
+        context.runOnClient(mc -> mc.keyboardHandler.keyPress(window(mc), InputConstants.RELEASE, new KeyEvent(key, keycode(key), mods())));
         context.waitTick();
     }
 

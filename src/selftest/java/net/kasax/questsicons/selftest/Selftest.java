@@ -1097,12 +1097,13 @@ public class Selftest implements FabricClientGameTest {
         ctx.takeScreenshot("qi_server_editor");
         ctx.getInput().pressKey(InputConstants.KEY_ESCAPE);
         ctx.waitTicks(5);
-        // the FTB Quests import on the server: the whole book reaches the client
+        // the FTB Quests import on the server (merged into the book, so the quest above stays): the whole book reaches
+        // the client
         int before = ctx.computeOnClient(mc -> ClientQuests.book.questCount());
-        ctx.runOnClient(mc -> mc.player.connection.sendCommand("quests import ftbquests run"));
-        ctx.waitFor(mc -> ClientQuests.book != null && ClientQuests.book.questCount() != before, 2400);
+        ctx.runOnClient(mc -> mc.player.connection.sendCommand("quests import ftbquests merge"));
+        ctx.waitFor(mc -> ClientQuests.book != null && ClientQuests.book.questCount() > before, 2400);
         int quests = ctx.computeOnClient(mc -> ClientQuests.book.questCount());
-        check("external server: the imported book reaches the client (" + quests + " quests)", quests > 0 && quests != before);
+        check("external server: the merged import reaches the client (" + before + " -> " + quests + " quests)", quests > before);
         // complete a quest by ticking its tasks, then claim its rewards
         long[] pick = ctx.computeOnClient(mc -> {
             for (Chapter c : ClientQuests.book.chapters) {

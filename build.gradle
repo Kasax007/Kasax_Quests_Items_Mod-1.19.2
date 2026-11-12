@@ -114,6 +114,7 @@ test {
 	doFirst { workingDir.mkdirs() }
 	systemProperty "qi.ftbSamples", project.findProperty("ftbSamples") ?: ""
 	systemProperty "qi.testOut", layout.buildDirectory.dir("test-import").get().asFile.absolutePath
+	systemProperty "qi.testResources", file("src/test/resources").absolutePath
 	testLogging {
 		events "passed", "skipped", "failed"
 		exceptionFormat "full"
