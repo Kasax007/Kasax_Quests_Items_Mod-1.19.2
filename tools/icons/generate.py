@@ -119,6 +119,9 @@ def main():
         gen['item.%s.%s' % (NS, icon['id'])] = icon['name']
     for cid, cname, _tab in cats:
         gen['questsicons.icons.category.' + cid] = cname
+        # the name recipe viewers show for the category's item tag (#questsicons:icons/<category>)
+        gen['tag.item.%s.icons.%s' % (NS, cid)] = 'Quest Icons: ' + cname
+    gen['tag.item.%s.icons' % NS] = 'Quest Icons'
     for tid, tname, _icon in manifest.TABS:
         if tid != 'questitems':
             gen['itemgroup.questsicons.' + tid] = tname
